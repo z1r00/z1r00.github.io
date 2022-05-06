@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="unlink unlink在ctf-wiki上面讲的很清楚，这里学习一下吧。看了hollk大佬的文章： https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;108481889?spm&#x3D;1001.2014.3001.5501#t4  unlink在pwn题中用的比较多，看一下unlink的源码吧。（2.23的源码）。unlink其实是libc中定义">
+<meta property="og:type" content="article">
+<meta property="og:title" content="unlink">
+<meta property="og:url" content="http://example.com/2021/10/01/unlink/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="unlink unlink在ctf-wiki上面讲的很清楚，这里学习一下吧。看了hollk大佬的文章： https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;108481889?spm&#x3D;1001.2014.3001.5501#t4  unlink在pwn题中用的比较多，看一下unlink的源码吧。（2.23的源码）。unlink其实是libc中定义">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/01/unlink/1.png">
+<meta property="og:image" content="http://example.com/2021/10/01/unlink/2.png">
+<meta property="og:image" content="http://example.com/2021/10/01/unlink/3.png">
+<meta property="og:image" content="http://example.com/2021/10/01/unlink/4.png">
+<meta property="article:published_time" content="2021-10-01T00:44:24.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.410Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/01/unlink/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>unlink</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/01/unlink-%E4%BE%8B%E9%A2%98/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/30/UseAfter-Free/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/01/unlink/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/01/unlink/&text=unlink"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/01/unlink/&is_video=false&description=unlink"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=unlink&body=Check out this article: http://example.com/2021/10/01/unlink/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/01/unlink/&name=unlink&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/01/unlink/&t=unlink"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink"><span class="toc-number">1.</span> <span class="toc-text">unlink</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A0%86%E9%87%8A%E6%94%BE"><span class="toc-number">2.</span> <span class="toc-text">堆释放</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink%E8%BF%87%E7%A8%8B%E4%BB%A5%E5%8F%8A%E6%A3%80%E6%9F%A5"><span class="toc-number">3.</span> <span class="toc-text">unlink过程以及检查</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        unlink
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-01T00:44:24.000Z" itemprop="datePublished">2021-10-01</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<h2 id="unlink"><a href="#unlink" class="headerlink" title="unlink"></a>unlink</h2><blockquote>
+<p>unlink在ctf-wiki上面讲的很清楚，这里学习一下吧。看了hollk大佬的文章：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/108481889?spm=1001.2014.3001.5501#t4">https://blog.csdn.net/qq_41202237/article/details/108481889?spm=1001.2014.3001.5501#t4</a></p>
+</blockquote>
+<p>unlink在pwn题中用的比较多，看一下unlink的源码吧。（2.23的源码）。unlink其实是libc中定义的一个宏，定义如下：</p>
+<p><img src="/2021/10/01/unlink/1.png"></p>
+<p>在执行free()函数时，调用了unlink，其实通俗易懂点就是：三个chunk，将中间的chunk拿掉，形成<code>chunk1-&gt;fd = chunk3-&gt;prev_size</code>，<code>chunk3-&gt;fd = chunk1-&gt;prev-size</code></p>
+<h2 id="堆释放"><a href="#堆释放" class="headerlink" title="堆释放"></a>堆释放</h2><p>先看看堆释放吧。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r01.c -o z1r01</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span>、</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span>&#123;</span><br><span class="line">    <span class="type">long</span> *p1 = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *first_chunk = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *p2 = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *second_chunk = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *p3 = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *third_chunk = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="type">long</span> *p4 = <span class="built_in">malloc</span>(<span class="number">0x80</span>);</span><br><span class="line">    <span class="built_in">free</span>(first_chunk);</span><br><span class="line">    <span class="built_in">free</span>(second_chunk);</span><br><span class="line">    <span class="built_in">free</span>(third_chunk);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>malloc7个0x80大小的chunk，释放了first，second，third这三个chunk，之所以释放这三个chunk是因为两个相邻的chunk释放后会进行合并，因为申请的是0x80所以直接进unsortedbin。</p>
+</blockquote>
+<p>gdb吧，直接下g 14</p>
+<p><img src="/2021/10/01/unlink/2.png"></p>
+<blockquote>
+<p>可以看到first-&gt;fd指向了main_arena+88，third-&gt;bk也指向了main_arena+88，看一下heap吧。</p>
+</blockquote>
+<p><img src="/2021/10/01/unlink/3.png"></p>
+<h2 id="unlink过程以及检查"><a href="#unlink过程以及检查" class="headerlink" title="unlink过程以及检查"></a>unlink过程以及检查</h2><blockquote>
+<p>ctf-wiki上面讲解了unlink的过程，有点难理解，这里复习一下吧，通俗易懂点</p>
+<p>ctf-wiki unlink：<a target="_blank" rel="noopener" href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unlink-zh/">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/unlink-zh/</a></p>
+</blockquote>
+<p>按上面的继续吧，还是在第14行下个断点，查看一下first_chunk吧。</p>
+<p><img src="/2021/10/01/unlink/4.png"></p>
+<blockquote>
+<p>检查1：检查与被释放chunk相邻高地址的chunk的prevsize的值是否等于被释放chunk的size大小。</p>
+<p>可以看上图蓝色框中的内容，上面蓝色框中的内容是second_chunk的size大小，下面蓝色框中的内容是p3的prev_size，这两个蓝色框中的数值是需要相等的（忽略P标志位）。在wiki上我记得在基础部分有讲过，如果一个块属于空闲状态，那么相邻高地址块的prev_size为前一个块的大小</p>
+</blockquote>
+<blockquote>
+<p>检查2：检查与被释放chunk相邻高地址的chunk的size的P标志位是否为0</p>
+<p>可以看上图粉色框中的内容，这里是p3的size，p3的size的P标志位为0，代表着它前一个chunk(second_chunk)为空闲状态</p>
+</blockquote>
+<blockquote>
+<p>检查3：检查前后被释放chunk的fd和bk</p>
+<p>可以看上图红色框中的fd和bk内容，这里是second_chunk的fd和bk。首先看fd，它指向的位置就是前一个被释放的块first_chunk，这里需要检查的是first_chunk的bk是否指向second_chunk的地址。再看second_chunk的bk，它指向的是后一个被释放的块third_chunk，这里需要检查的是third_chunk的fd是否指向second_chunk的地址</p>
+</blockquote>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink"><span class="toc-number">1.</span> <span class="toc-text">unlink</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A0%86%E9%87%8A%E6%94%BE"><span class="toc-number">2.</span> <span class="toc-text">堆释放</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#unlink%E8%BF%87%E7%A8%8B%E4%BB%A5%E5%8F%8A%E6%A3%80%E6%9F%A5"><span class="toc-number">3.</span> <span class="toc-text">unlink过程以及检查</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/01/unlink/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/01/unlink/&text=unlink"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/01/unlink/&is_video=false&description=unlink"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=unlink&body=Check out this article: http://example.com/2021/10/01/unlink/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/01/unlink/&title=unlink"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/01/unlink/&name=unlink&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/01/unlink/&t=unlink"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

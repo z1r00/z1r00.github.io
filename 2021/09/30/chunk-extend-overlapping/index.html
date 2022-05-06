@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本文的思路来自：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;108320408 hollk tql  学习一下chunk extend&#x2F;overlapping吧 Chunk Extend and Overlappingchunk extend 是堆漏洞的一种常见利用手法，通过 extend 可以实现 chunk overlap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="chunk extend&#x2F;overlapping">
+<meta property="og:url" content="http://example.com/2021/09/30/chunk-extend-overlapping/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="本文的思路来自：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;108320408 hollk tql  学习一下chunk extend&#x2F;overlapping吧 Chunk Extend and Overlappingchunk extend 是堆漏洞的一种常见利用手法，通过 extend 可以实现 chunk overlap">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/1.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/2.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/3.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/4.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/5.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/6.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/7.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/8.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/9.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/10.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/11.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/12.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/13.png">
+<meta property="article:published_time" content="2021-09-30T00:58:53.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/09/30/chunk-extend-overlapping/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>chunk extend/overlapping</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/29/%E5%A0%86%E4%B8%AD%E7%9A%84off-by-null/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/chunk-extend-overlapping/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/chunk-extend-overlapping/&text=chunk extend/overlapping"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/chunk-extend-overlapping/&is_video=false&description=chunk extend/overlapping"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=chunk extend/overlapping&body=Check out this article: http://example.com/2021/09/30/chunk-extend-overlapping/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/chunk-extend-overlapping/&name=chunk extend/overlapping&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/chunk-extend-overlapping/&t=chunk extend/overlapping"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Chunk-Extend-and-Overlapping"><span class="toc-number">1.</span> <span class="toc-text">Chunk Extend and Overlapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%9A%E5%AF%B9inuse%E7%9A%84fastbin%E8%BF%9B%E8%A1%8Cextend"><span class="toc-number">2.</span> <span class="toc-text">1：对inuse的fastbin进行extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%9A%E5%AF%B9inuse%E7%9A%84smallbin%E8%BF%9B%E8%A1%8Cextend"><span class="toc-number">3.</span> <span class="toc-text">2：对inuse的smallbin进行extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%9A%E5%AF%B9-free-%E7%9A%84-smallbin-%E8%BF%9B%E8%A1%8C-extend"><span class="toc-number">4.</span> <span class="toc-text">3：对 free 的 smallbin 进行 extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%EF%BC%9A%E9%80%9A%E8%BF%87-extend-%E5%90%8E%E5%90%91-overlapping"><span class="toc-number">5.</span> <span class="toc-text">4：通过 extend 后向 overlapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%EF%BC%9A%E9%80%9A%E8%BF%87-extend-%E5%89%8D%E5%90%91-overlapping"><span class="toc-number">6.</span> <span class="toc-text">5：通过 extend 前向 overlapping</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        chunk extend/overlapping
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-30T00:58:53.000Z" itemprop="datePublished">2021-09-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>本文的思路来自：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/108320408">https://blog.csdn.net/qq_41202237/article/details/108320408</a></p>
+<p>hollk tql</p>
+</blockquote>
+<p>学习一下chunk extend&#x2F;overlapping吧</p>
+<h3 id="Chunk-Extend-and-Overlapping"><a href="#Chunk-Extend-and-Overlapping" class="headerlink" title="Chunk Extend and Overlapping"></a>Chunk Extend and Overlapping</h3><p>chunk extend 是堆漏洞的一种常见利用手法，通过 extend 可以实现 chunk overlapping 的效果。这种利用方法需要以下的时机和条件：</p>
+<ul>
+<li>程序中存在基于堆的漏洞</li>
+<li>漏洞可以控制 chunk header 中的数据</li>
+</ul>
+<h3 id="1：对inuse的fastbin进行extend"><a href="#1：对inuse的fastbin进行extend" class="headerlink" title="1：对inuse的fastbin进行extend"></a>1：对inuse的fastbin进行extend</h3><p>直接来个源码吧</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r01.c -o z1r01</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span> *p, *q;</span><br><span class="line">    p = <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//分配第一个0x10的chunk</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//分配第二个0x10的chunk</span></span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span> *)((<span class="type">long</span> <span class="type">long</span>)p - <span class="number">0x8</span>) = <span class="number">0x41</span>;<span class="comment">// 修改第一个块的size域</span></span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    q = <span class="built_in">malloc</span>(<span class="number">0x30</span>);<span class="comment">// 实现extend，控制了第二个块的内容</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>libc-2.23.so的版本来gdb吧</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/1.png"></p>
+<blockquote>
+<p>因为我们在gcc阶段使用了-g所以我们可以在gdb中使用<code>b + 行号</code>在任意行号进行gdb。在第8行下个断点gdb一下</p>
+</blockquote>
+<p><img src="/2021/09/30/chunk-extend-overlapping/2.png"></p>
+<blockquote>
+<p>因为堆块的结构分为prev_size、size、块内容，拿上面这个64位程序举例：malloc(0x10)其中的0x10指得是内容部分申请0x10大小的空间，，prev_size和size部分各占8个字节，size记录的是整个堆块的大小，并且size的最后一位用来记录前一个块的状态，所以<br><code>size = 0x8(prev_size) + 0x8(size) + 0x10(内容) + 0x1(标志位) = 0x21</code></p>
+</blockquote>
+<p>接下来我们在第9行下断点<code>b 9</code>执行<code>*(long long *)((long long)p - 0x8) = 0x41</code>，依然还是在这个位置看两个块有什么变化，p指针指向的地址再减0x8的位置修改成0x41，也就是说chunk1的size从0x21被修改成0x41。整整扩大了32字节，chunk1与chunk2的范围如下图所示：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/3.png"></p>
+<p>但是这样一看，chunk1的0x41却包含了下面的chunk2。接下来直接第十行下个断点看一下。</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/4.png"></p>
+<blockquote>
+<p>执行了free(p)。可以看到两个块直接被合并成了一个块都进了fastbin这里</p>
+</blockquote>
+<p>接下来直接十一行下断点</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/5.png"></p>
+<blockquote>
+<p>最后我们重新申请一个大小为0x30的chunk时，fastbin中刚好有合适的大小块，这个时候chunk1与chunk2合并的chunk就会重新被启用，启用的同时原有chunk2中的内容也会连带着被启用，这个时候就可以直接通过这个新申请的块来对chunk2中的内容进行操作了</p>
+</blockquote>
+<hr>
+<h3 id="2：对inuse的smallbin进行extend"><a href="#2：对inuse的smallbin进行extend" class="headerlink" title="2：对inuse的smallbin进行extend"></a>2：对inuse的smallbin进行extend</h3><p>话不多说上源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r02.c -o z1r02</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span> *p, *q;</span><br><span class="line">    p = <span class="built_in">malloc</span>(<span class="number">0x80</span>);<span class="comment">//分配第一个 0x80 的chunk1</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>); <span class="comment">//分配第二个 0x10 的chunk2</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>); <span class="comment">//防止与top chunk合并</span></span><br><span class="line">    *(<span class="type">long</span> *)((<span class="type">long</span>)p<span class="number">-0x8</span>) = <span class="number">0xb1</span>;</span><br><span class="line">    <span class="built_in">free</span>(p);</span><br><span class="line">    q = <span class="built_in">malloc</span>(<span class="number">0xa0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先在第9行下断点<code>b 9</code>，我们看一下申请完三个chunk之后内存中的样子：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/6.png"></p>
+<p>接下来我们在第10行下断点，执行<code>*(int *)((int)p-0x8) = 0xb1;</code>这段代码：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/7.png"></p>
+<blockquote>
+<p>可以看到chunk1和chunk2合并了</p>
+</blockquote>
+<p>在第11行下断点：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/8.png"></p>
+<blockquote>
+<p>可以看到执行了free(p);这行代码之后，原来的chunk1和chunk2合并之后直接进入了unsortedbin，至于下面的b0 20为什么会是这两个数值后面的blog再讲解，这里说一下为什么会进unstortedbin：</p>
+<ul>
+<li>当一个较大的 chunk 被分割成两半后，如果剩下的部分大于 MINSIZE，就会被放到 unsorted bin 中</li>
+<li>释放一个不属于 fast bin 的 chunk，并且该 chunk 不和 top chunk 紧邻时，该 chunk 会被首先放到 unsorted bin 中</li>
+</ul>
+</blockquote>
+<p>继续下一行代码：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/9.png"></p>
+<blockquote>
+<p>可以看到执行q &#x3D; malloc(0xa0);这个之后，0xb1这个块重新被启用，这个块是由chunk1和chunk2合并起来的，在pwn题中，有show函数可以直接leak libc了</p>
+</blockquote>
+<h3 id="3：对-free-的-smallbin-进行-extend"><a href="#3：对-free-的-smallbin-进行-extend" class="headerlink" title="3：对 free 的 smallbin 进行 extend"></a>3：对 free 的 smallbin 进行 extend</h3><p>话不多说直接上源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r03 -o z1r03</span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"> <span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line"> &#123;</span><br><span class="line">    <span class="type">void</span> *p, *q;</span><br><span class="line">    p = <span class="built_in">malloc</span>(<span class="number">0x80</span>);<span class="comment">//分配第一个0x80的chunk1</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//分配第二个0x10的chunk2</span></span><br><span class="line">    <span class="built_in">free</span>(p);<span class="comment">//首先进行释放，使得chunk1进入unsorted bin</span></span><br><span class="line">    *(<span class="type">long</span> *)((<span class="type">long</span>)p - <span class="number">0x8</span>) = <span class="number">0xb1</span>;</span><br><span class="line">    q = <span class="built_in">malloc</span>(<span class="number">0xa0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第三个例子和前面两个有一些区别，前面两个都是先修改chunk1的size大小然后进行释放，但是这个例子是先进行释放，然后重新修改chunk1的size大小，依然还是一步一步来，首先在第8行下断点，使程序完成申请chunk的操作：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/10.png"></p>
+<p>接下来我们在第9行下断点，使程序完成对chunk1的释放：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/11.png"></p>
+<blockquote>
+<p>free(p)之后chunk1直接进入unstorted bin至于进这个的原因（上面写过了</p>
+</blockquote>
+<p>接下来 我们将断点下载第10行，需要注意的是此时更改size大小的操作是在free之后完成的：</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/12.png"></p>
+<blockquote>
+<p>修改了大小可以看到chunk2和chunk1一起被合并进了unstorted bin了</p>
+</blockquote>
+<p>继续代码之后不需要多想了，chunk2和chunk1（你懂的</p>
+<p><img src="/2021/09/30/chunk-extend-overlapping/13.png"></p>
+<h3 id="4：通过-extend-后向-overlapping"><a href="#4：通过-extend-后向-overlapping" class="headerlink" title="4：通过 extend 后向 overlapping"></a>4：通过 extend 后向 overlapping</h3><p>直接上源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r04.c  -o z1r04</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span> *z1r0, *z1r01;</span><br><span class="line">    z1r0 = <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//分配第1个 0x10 的chunk1</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>); <span class="comment">//分配第2个 0x10 的chunk2</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>); <span class="comment">//分配第3个 0x10 的chunk3</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>); <span class="comment">//分配第4个 0x10 的chunk4    </span></span><br><span class="line">    *(<span class="type">long</span> *)((<span class="type">long</span>)z1r0 - <span class="number">0x8</span>) = <span class="number">0x61</span>;</span><br><span class="line">    <span class="built_in">free</span>(z1r0);</span><br><span class="line">    z1r01 = <span class="built_in">malloc</span>(<span class="number">0x50</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在 malloc(0x50) 对 extend 区域重新占位后，其中 0x10 的 fastbin 块依然可以正常的分配和释放，此时已经构成 overlapping，通过对 overlapping 的进行操作可以实现 fastbin attack</p>
+</blockquote>
+<h3 id="5：通过-extend-前向-overlapping"><a href="#5：通过-extend-前向-overlapping" class="headerlink" title="5：通过 extend 前向 overlapping"></a>5：通过 extend 前向 overlapping</h3><p>上源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g test5.c -o test</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">void</span> *z1r01, *z1r02, *z1r03, *z1r04;</span><br><span class="line">    z1r01 = <span class="built_in">malloc</span>(<span class="number">128</span>);<span class="comment">//smallbin1</span></span><br><span class="line">    z1r02 = <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//fastbin1</span></span><br><span class="line">    z1r03 = <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//fastbin2</span></span><br><span class="line">    z1r04 = <span class="built_in">malloc</span>(<span class="number">128</span>);<span class="comment">//smallbin2</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x10</span>);<span class="comment">//防止与top合并</span></span><br><span class="line">    <span class="built_in">free</span>(z1r01);</span><br><span class="line">    *(<span class="type">int</span> *)((<span class="type">long</span> <span class="type">long</span>)z1r04 - <span class="number">0x8</span>) = <span class="number">0x90</span>;<span class="comment">//修改pre_inuse域</span></span><br><span class="line">    *(<span class="type">int</span> *)((<span class="type">long</span> <span class="type">long</span>)z1r04 - <span class="number">0x10</span>) = <span class="number">0xd0</span>;<span class="comment">//修改pre_size域</span></span><br><span class="line">    <span class="built_in">free</span>(z1r04);<span class="comment">//unlink进行前向extend</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x150</span>);<span class="comment">//占位块</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>前向 extend 利用了 smallbin 的 unlink 机制，通过修改 pre_size 域可以跨越多个 chunk 进行合并实现 overlapping</p>
+</blockquote>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Chunk-Extend-and-Overlapping"><span class="toc-number">1.</span> <span class="toc-text">Chunk Extend and Overlapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%9A%E5%AF%B9inuse%E7%9A%84fastbin%E8%BF%9B%E8%A1%8Cextend"><span class="toc-number">2.</span> <span class="toc-text">1：对inuse的fastbin进行extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%9A%E5%AF%B9inuse%E7%9A%84smallbin%E8%BF%9B%E8%A1%8Cextend"><span class="toc-number">3.</span> <span class="toc-text">2：对inuse的smallbin进行extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%9A%E5%AF%B9-free-%E7%9A%84-smallbin-%E8%BF%9B%E8%A1%8C-extend"><span class="toc-number">4.</span> <span class="toc-text">3：对 free 的 smallbin 进行 extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%EF%BC%9A%E9%80%9A%E8%BF%87-extend-%E5%90%8E%E5%90%91-overlapping"><span class="toc-number">5.</span> <span class="toc-text">4：通过 extend 后向 overlapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%EF%BC%9A%E9%80%9A%E8%BF%87-extend-%E5%89%8D%E5%90%91-overlapping"><span class="toc-number">6.</span> <span class="toc-text">5：通过 extend 前向 overlapping</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/chunk-extend-overlapping/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/chunk-extend-overlapping/&text=chunk extend/overlapping"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/chunk-extend-overlapping/&is_video=false&description=chunk extend/overlapping"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=chunk extend/overlapping&body=Check out this article: http://example.com/2021/09/30/chunk-extend-overlapping/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/chunk-extend-overlapping/&title=chunk extend/overlapping"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/chunk-extend-overlapping/&name=chunk extend/overlapping&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/chunk-extend-overlapping/&t=chunk extend/overlapping"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

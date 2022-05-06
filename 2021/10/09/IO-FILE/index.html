@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="现在好多pwn堆题都要打IO_FILE。简单写一下吧，学习一下，借鉴了hollk和wiki的文章 https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;113845320?spm&#x3D;1001.2014.3001.5501 https:&#x2F;&#x2F;ctf-wiki.org&#x2F;pwn&#x2F;linux&#x2F;user-mode&#x2F;io-file&#x2F;introduction&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO_FILE">
+<meta property="og:url" content="http://example.com/2021/10/09/IO-FILE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="现在好多pwn堆题都要打IO_FILE。简单写一下吧，学习一下，借鉴了hollk和wiki的文章 https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;113845320?spm&#x3D;1001.2014.3001.5501 https:&#x2F;&#x2F;ctf-wiki.org&#x2F;pwn&#x2F;linux&#x2F;user-mode&#x2F;io-file&#x2F;introduction&#x2F;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/1.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/2.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/3.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/4.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/5.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/6.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/7.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/8.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/9.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/6.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/11.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/12.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/13.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/14.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/15.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/16.png">
+<meta property="article:published_time" content="2021-10-09T06:20:04.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.378Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/09/IO-FILE/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>IO_FILE</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/10/HITB-XCTF-2018-GSEC-once/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/08/hitcon-2018-baby-tcache/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE/&text=IO_FILE"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE/&is_video=false&description=IO_FILE"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE&body=Check out this article: http://example.com/2021/10/09/IO-FILE/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE/&name=IO_FILE&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE/&t=IO_FILE"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#FILE%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">FILE结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IO-FILE-plus"><span class="toc-number">2.</span> <span class="toc-text">__IO_FILE_plus</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FLAGS"><span class="toc-number">3.</span> <span class="toc-text">_FLAGS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fread"><span class="toc-number">4.</span> <span class="toc-text">fread</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fwrite"><span class="toc-number">5.</span> <span class="toc-text">fwrite</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fopen"><span class="toc-number">6.</span> <span class="toc-text">fopen</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fclose"><span class="toc-number">7.</span> <span class="toc-text">fclose</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-IO-2-1-stdout%E6%B3%84%E9%9C%B2libc"><span class="toc-number">8.</span> <span class="toc-text">利用_IO_2_1_stdout泄露libc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        IO_FILE
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-09T06:20:04.000Z" itemprop="datePublished">2021-10-09</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>现在好多pwn堆题都要打IO_FILE。简单写一下吧，学习一下，借鉴了hollk和wiki的文章</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/113845320?spm=1001.2014.3001.5501">https://blog.csdn.net/qq_41202237/article/details/113845320?spm=1001.2014.3001.5501</a></p>
+<p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/io-file/introduction/">https://ctf-wiki.org/pwn/linux/user-mode/io-file/introduction/</a></p>
+</blockquote>
+<h2 id="FILE结构"><a href="#FILE结构" class="headerlink" title="FILE结构"></a>FILE结构</h2><p>就拿2.23下的IO_FILE来看一下，先看一下FILE结构。</p>
+<p><img src="/2021/10/09/IO-FILE/1.png"></p>
+<p>进程中的FILE结构会通过_chain域链接形成一个链表。链表头部用全局变量__IO_list_all表示。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">                         stderr				stdout				stdin</span><br><span class="line">                         _______			_______				_______</span><br><span class="line">IO_list_all  -----------&gt;|flag |	 |--&gt;   |flag |		|--&gt;	|flag |</span><br><span class="line">						 |_____|     |		|_____| 	|		|_____|</span><br><span class="line">						 |chain|-----|		|chain|-----|		|chain|</span><br><span class="line">						 |_____|			|_____|				|_____|</span><br><span class="line">						 |_____|			|_____|				|_____|</span><br></pre></td></tr></table></figure>
+
+<p>一个程序启动时有三个文件流是打开的：stderr，stdout，stdin。这三个文件流位于libc.so数据段，<code>__IO_FILE</code>结构外包裹着另一种结构<code>__IO_FILE_plus</code>。</p>
+<h2 id="IO-FILE-plus"><a href="#IO-FILE-plus" class="headerlink" title="__IO_FILE_plus"></a>__IO_FILE_plus</h2><p><img src="/2021/10/09/IO-FILE/2.png"></p>
+<p>这里有一个重要的指针vtable（虚表）。它指向了一系列的函数指针。在学C语言的时候会学到一个叫做虚函数的东西，具有虚函数的类都会有一张vtable(虚表)，其中记录了本类中所有虚函数的函数指针，也就是说是个函数指针数组的起始位置，通常虚表在编程中所具有的作用是为了标识父类。</p>
+<p>在2.23版本下，32位的vtable的偏移为0x94，64位偏移为0xd8。从源码可以看到vtable是一个IO__jump_t的类型指针。IO_jump_t 中保存了一些函数指针，在后面我们会看到在一系列标准 IO 函数中会调用这些函数指针</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">void * funcs[] = &#123;</span><br><span class="line">   1 NULL, // &quot;extra word&quot;</span><br><span class="line">   2 NULL, // DUMMY</span><br><span class="line">   3 exit, // finish</span><br><span class="line">   4 NULL, // overflow</span><br><span class="line">   5 NULL, // underflow</span><br><span class="line">   6 NULL, // uflow</span><br><span class="line">   7 NULL, // pbackfail</span><br><span class="line">   </span><br><span class="line">   8 NULL, // xsputn  #printf</span><br><span class="line">   9 NULL, // xsgetn</span><br><span class="line">   10 NULL, // seekoff</span><br><span class="line">   11 NULL, // seekpos</span><br><span class="line">   12 NULL, // setbuf</span><br><span class="line">   13 NULL, // sync</span><br><span class="line">   14 NULL, // doallocate</span><br><span class="line">   15 NULL, // read</span><br><span class="line">   16 NULL, // write</span><br><span class="line">   17 NULL, // seek</span><br><span class="line">   18 pwn,  // close</span><br><span class="line">   19 NULL, // stat</span><br><span class="line">   20 NULL, // showmanyc</span><br><span class="line">   21 NULL, // imbue</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="FLAGS"><a href="#FLAGS" class="headerlink" title="_FLAGS"></a>_FLAGS</h2><p><img src="/2021/10/09/IO-FILE/3.png"></p>
+<p>_flag是IO_FILE结构体中的第一个变量， 这个成员变量在stdout泄露libc很关键。_flag的<code>高两位</code>字节是由libc固定的，不同的libc可能存在差异，但是基本上都一样：<code>0xfbad0000</code>。高两位字节其实就是作为一个标识，标志这是一个什么文件。而<code>低两位</code>字节的位数规则决定了程序的执行状态。一般在执行流程中会将<code>_flag</code>和定义常量进行<code>按位与</code>运算，并根据与运算的结构进行判断如何执行。</p>
+<h2 id="fread"><a href="#fread" class="headerlink" title="fread"></a>fread</h2><p>fread 是标准 IO 库函数，作用是从文件流中读数据</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">fread</span> <span class="params">( <span class="type">void</span> *buffer, <span class="type">size_t</span> size, <span class="type">size_t</span> count, FILE *stream)</span> ;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>buffer 存放读取数据的缓冲区。</li>
+<li>size：指定每个记录的长度。</li>
+<li>count： 指定记录的个数。</li>
+<li>stream：目标文件流。</li>
+<li>返回值：返回读取到数据缓冲区中的记录个数</li>
+</ul>
+</blockquote>
+<p>fread 的代码位于 &#x2F; libio&#x2F;iofread.c 中，函数名为_IO_fread，但真正的功能实现在子函数_IO_sgetn 中。</p>
+<p><img src="/2021/10/09/IO-FILE/4.png"></p>
+<p>在_IO_sgetn 函数中会调用_IO_XSGETN，而_IO_XSGETN 是_IO_FILE_plus.vtable 中的函数指针，在调用这个函数时会首先取出 vtable 中的指针然后再进行调用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">_IO_size_t</span><br><span class="line">_IO_sgetn (fp, data, n)</span><br><span class="line">     _IO_FILE *fp;</span><br><span class="line">     void *data;</span><br><span class="line">     _IO_size_t n;</span><br><span class="line">&#123;</span><br><span class="line">  return _IO_XSGETN (fp, data, n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在默认情况下函数指针是指向_IO_file_xsgetn 函数的。</p>
+<h2 id="fwrite"><a href="#fwrite" class="headerlink" title="fwrite"></a>fwrite</h2><p>fwrite 同样是标准 IO 库函数，作用是向文件流写入数据，函数原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">fwrite</span><span class="params">(<span class="type">const</span> <span class="type">void</span>* buffer, <span class="type">size_t</span> size, <span class="type">size_t</span> count, FILE* stream)</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>buffer: 是一个指针，对 fwrite 来说，是要写入数据的地址;</li>
+<li>size: 要写入内容的单字节数;</li>
+<li>count: 要进行写入 size 字节的数据项的个数;</li>
+<li>stream: 目标文件指针;</li>
+<li>返回值：实际写入的数据项个数 count。</li>
+</ul>
+</blockquote>
+<p><img src="/2021/10/09/IO-FILE/5.png"></p>
+<p>在_IO_fwrite 中主要是调用_IO_XSPUTN 来实现写入的功能。在_IO_XSPUTN 对应的默认函数_IO_new_file_xsputn 中会调用同样位于 vtable 中的_IO_OVERFLOW</p>
+<p><img src="/2021/10/09/IO-FILE/6.png"></p>
+<p>_IO_OVERFLOW 默认对应的函数是_IO_new_file_overflow，在_IO_new_file_overflow 内部最终会调用系统接口 write 函数</p>
+<p><img src="/2021/10/09/IO-FILE/7.png"></p>
+<h2 id="fopen"><a href="#fopen" class="headerlink" title="fopen"></a>fopen</h2><p>fopen 在标准 IO 库中用于打开文件，函数原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FILE *<span class="title function_">fopen</span><span class="params">(<span class="type">char</span> *filename, *type)</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>filename: 目标文件的路径</li>
+<li>type: 打开方式的类型</li>
+<li>返回值: 返回一个文件指针</li>
+</ul>
+</blockquote>
+<p>首先在 fopen 对应的函数__fopen_internal 内部会调用 malloc 函数，分配 FILE 结构的空间。因此我们可以获知 FILE 结构是存储在堆上的</p>
+<p><img src="/2021/10/09/IO-FILE/8.png"></p>
+<p>fopen的操作是以下几点。</p>
+<blockquote>
+<ul>
+<li>使用 malloc 分配 FILE 结构</li>
+<li>设置 FILE 结构的 vtable</li>
+<li>初始化分配的 FILE 结构</li>
+<li>将初始化的 FILE 结构链入 FILE 结构链表中</li>
+<li>调用系统调用打开文件</li>
+</ul>
+</blockquote>
+<h2 id="fclose"><a href="#fclose" class="headerlink" title="fclose"></a>fclose</h2><p>fclose 是标准 IO 库中用于关闭已打开文件的函数，其作用与 fopen 相反。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">fclose</span><span class="params">(FILE *stream)</span></span><br></pre></td></tr></table></figure>
+
+<p>功能：关闭一个文件流，使用 fclose 就可以把缓冲区内最后剩余的数据输出到磁盘文件中，并释放文件指针和有关的缓冲区，其作用与fopen的作用相反。</p>
+<h2 id="利用-IO-2-1-stdout泄露libc"><a href="#利用-IO-2-1-stdout泄露libc" class="headerlink" title="利用_IO_2_1_stdout泄露libc"></a>利用_IO_2_1_stdout泄露libc</h2><p>pus函数执行流程，看一下源码吧。</p>
+<p><img src="/2021/10/09/IO-FILE/9.png"></p>
+<p>IO_sputn一个宏，调用了<code>_IO_2_1_stdout</code>的vtable所指向的<code>_xsputn</code>也就是<code>_IO_new_file_xsputn</code>函数，在写fwrite时，已经看过了xsputn的关键代码。</p>
+<p>首先进入函数之后判断输出缓冲区还有多少空间，这里是由_IO_write_end - _IO_write_base得来的，这两个是FILE结构体中的两个成员变量，分别是输出结束地址和其实输出地址，由于stdout也是FILE结构，所以后面就直接使用成员变量名称来描述了。接下来如果缓冲区有空间，则先把数据载入输出缓冲区并计算目标输出数据是否还有剩余</p>
+<p><img src="/2021/10/09/IO-FILE/6.png"></p>
+<p>经过上述最后一步的判断，如果还有剩余则说明输出缓冲区未建立或者空间已满，那么就需要通过<code>_IO_OVERFLOW</code>函数来建立或清空缓冲区，这个函数主要是实现刷新缓冲区或建立缓冲区的功能。在vtable中为<code>__overflow</code></p>
+<p><code>_IO_new_file_overflow</code>函数的部分源码如下</p>
+<p><img src="/2021/10/09/IO-FILE/11.png"></p>
+<p><img src="/2021/10/09/IO-FILE/12.png"></p>
+<p>我们想要利用的就是最后的<code>_IO_do_write (f, f-&gt;_IO_write_base,f-&gt;_IO_write_ptr - f-&gt;_IO_write_base)</code></p>
+<blockquote>
+<p>_IO_do_write就是我们需要执行的目标函数，这个函数执行后会调用系统调用write输出输出缓冲区，传入_IO_do_write函数的参数为：stdout结构体、_IO_write_base（输出缓冲区起始地址）和size（_IO_write_end - _IO_write_base计算得来）</p>
+</blockquote>
+<p>如果我们事先在stdout的_IO_write_base的位置部署要输出的起始地址，那么在去利用_IO_do_write函数，即可打印部分内存地址，打印出来的内容就包含我们所需要泄露的libc</p>
+<p>如果我们想要利用_IO_do_write函数的话是需要绕过_IO_new_file_overflow函数的检查的，先看第一个检查。<br><img src="/2021/10/09/IO-FILE/13.png"></p>
+<p>将_flags和_IO_NO_WRITES进行一个按位与的操作，_flag与_IO_NO_WRITES各自定义的常量为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_MAGIC 0xFBAD0000 <span class="comment">/* 魔数 */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_NO_WRITES 8 <span class="comment">/* 不可写 */</span></span></span><br></pre></td></tr></table></figure>
+
+<p>如果与运算为真则返回错误，返回错误我们就不可以利用_IO_do_write了，所以我们需要让其与运算结果为假。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_MAGIC 0xFBAD0000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_NO_WRITES 8</span></span><br><span class="line">_flags &amp; _IO_NO_WRITES = <span class="number">0</span> </span><br><span class="line">_flags = <span class="number">0xfbad0000</span></span><br></pre></td></tr></table></figure>
+
+<p>看一下第二个判断吧。</p>
+<p><img src="/2021/10/09/IO-FILE/14.png"></p>
+<p>第二个判断是为了检查输出缓冲区是否为空，如果为空则进行分配空间，并且会初始化指针。一旦进行初始化操作，那么就会覆盖掉我们事先在stdout的<code>_IO_write_base</code>的数据，这样一来就会脱离我们一开始的初衷。所以这个if也不可以进，我们得让这个if为假。</p>
+<p>f-&gt;_flags &amp; _IO_CURRENTLY_PUTTING &#x3D; 1</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_MAGIC 0xFBAD0000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_CURRENTLY_PUTTING 0x800</span></span><br><span class="line">f-&gt;_flags &amp; _IO_CURRENTLY_PUTTING = <span class="number">1</span></span><br><span class="line">_flags = <span class="number">0xfbad0800</span></span><br></pre></td></tr></table></figure>
+
+<p>经过前面的处理，就会执行到_IO_do_write函数，跟进_IO_do_write函数后将会进入<code>_IO_new_do_write</code>函数，我们来看一下这个函数的源码</p>
+<p><img src="/2021/10/09/IO-FILE/15.png"></p>
+<p>IO_new_do_write并没有做太多的操作，就调用了new_do_write函数，new_do_write函数的参数其实是和传入的参数是一样的，一参stdout结构体，二参输出缓冲区起始地址，三参输出长度</p>
+<p>接下来看一下new_do_write函数中的源码</p>
+<p><img src="/2021/10/09/IO-FILE/16.png"></p>
+<p>红色框中的syswrite为最终目标，可以执行系统调用write。看一下蓝色框的代码，我们需要让它们其中的一个为真，如果都为假的话执行不到518行的syswrote。先看第一个吧。</p>
+<p>这个影响比较小，内部仅仅将偏移设置为标准值，不会影响后续的输出流程。只需要将fp-&gt;flags &amp; _IO_IS_APPENDING为1，我们满足下面这些条件就可以了</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_MAGIC 0xFBAD0000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_IS_APPENDING 0x1000</span></span><br><span class="line">fp-&gt;_flags &amp; _IO_IS_APPENDING = <span class="number">1</span></span><br><span class="line">_flags = <span class="number">0xfbad1000</span></span><br></pre></td></tr></table></figure>
+
+<p>尽量满足第一个条件，因为else if这里比较复杂，可能会让end和base中的值变掉。完成上面这些检查时，就可以调用系统调用了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>所以通过上述的讲解，我们只需要满足如下几条对_flags的设定，即可利用_IO_2_1_stdout泄露libc</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_MAGIC 0xFBAD0000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_NO_WRITES 8</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_CURRENTLY_PUTTING 0x800</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_IS_APPENDING 0x1000</span></span><br></pre></td></tr></table></figure>
+
+<p>1、设置<code>_flags &amp; _IO_NO_WRITES = 0</code><br>2、设置<code>_flags &amp; _IO_CURRENTLY_PUTTING = 1</code><br>3、设置<code>_flags &amp; _IO_IS_APPENDING = 1</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_flags = <span class="number">0xFBAD1800</span></span><br></pre></td></tr></table></figure>
+
+<p>4、设置_IO_write_base指向想要泄露的位置，_IO_write_ptr指向泄露结束的地址(不需要一定设置指向结尾，程序中自带地址足够泄露libc)</p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#FILE%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">FILE结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IO-FILE-plus"><span class="toc-number">2.</span> <span class="toc-text">__IO_FILE_plus</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FLAGS"><span class="toc-number">3.</span> <span class="toc-text">_FLAGS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fread"><span class="toc-number">4.</span> <span class="toc-text">fread</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fwrite"><span class="toc-number">5.</span> <span class="toc-text">fwrite</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fopen"><span class="toc-number">6.</span> <span class="toc-text">fopen</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fclose"><span class="toc-number">7.</span> <span class="toc-text">fclose</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8-IO-2-1-stdout%E6%B3%84%E9%9C%B2libc"><span class="toc-number">8.</span> <span class="toc-text">利用_IO_2_1_stdout泄露libc</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE/&text=IO_FILE"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE/&is_video=false&description=IO_FILE"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE&body=Check out this article: http://example.com/2021/10/09/IO-FILE/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE/&title=IO_FILE"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE/&name=IO_FILE&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE/&t=IO_FILE"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

