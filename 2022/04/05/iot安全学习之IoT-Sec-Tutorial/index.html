@@ -77,7 +77,7 @@
 <meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png">
 <meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png">
 <meta property="article:published_time" content="2022-04-05T05:58:53.000Z">
-<meta property="article:modified_time" content="2022-05-06T00:48:31.394Z">
+<meta property="article:modified_time" content="2022-05-12T06:13:19.952Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="IOT">
 <meta name="twitter:card" content="summary">
@@ -172,7 +172,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">7.</span> <span class="toc-text">Reference</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IoT-Sec-Tutorial"><span class="toc-number">1.</span> <span class="toc-text">IoT_Sec_Tutorial</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">1.5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.7.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -236,7 +236,7 @@
 <blockquote>
 <p>iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将自己遇见的一些坑点写出来。在这里笔者可能会借用很多IoT_Sec_Tutorial这个项目的东西</p>
 </blockquote>
-<h1 id="提取-IOT-固件"><a href="#提取-IOT-固件" class="headerlink" title="提取 IOT 固件"></a>提取 IOT 固件</h1><p>首先在提取iot固件中需要的工具就是binwalk。在前面的<a target="_blank" rel="noopener" href="https://www.z1r0.top/2022/03/24/%E8%B7%AF%E7%94%B1%E5%99%A8D-LINK-DIR-815%E5%A4%9A%E6%AC%A1%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">路由器初探之D-LINK DIR-815多次溢出漏洞分析</a>中笔者使用kali 2022.1提取非标准的Squashfs文件系统的时候会出现错误需要安装<code>sasquatch</code>。然后在网上搜索之后发现可能是kali的版本太新了导致安装报错，所以笔者直接在vm上装了一个ubuntu18，然后再安装sasquatch包括后面的固件模拟都需要安装很多环境，所以有点麻烦。笔者继续往下做这些实验的时候发现了一个os<code>Attify</code>。这个操作系统将iot的环境基本都装好了。所以笔者就下载了，并且安装使用，只能说一句真***好用。</p>
+<h1 id="IoT-Sec-Tutorial"><a href="#IoT-Sec-Tutorial" class="headerlink" title="IoT_Sec_Tutorial"></a>IoT_Sec_Tutorial</h1><h2 id="提取-IOT-固件"><a href="#提取-IOT-固件" class="headerlink" title="提取 IOT 固件"></a>提取 IOT 固件</h2><p>首先在提取iot固件中需要的工具就是binwalk。在前面的<a target="_blank" rel="noopener" href="https://www.z1r0.top/2022/03/24/%E8%B7%AF%E7%94%B1%E5%99%A8D-LINK-DIR-815%E5%A4%9A%E6%AC%A1%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">路由器初探之D-LINK DIR-815多次溢出漏洞分析</a>中笔者使用kali 2022.1提取非标准的Squashfs文件系统的时候会出现错误需要安装<code>sasquatch</code>。然后在网上搜索之后发现可能是kali的版本太新了导致安装报错，所以笔者直接在vm上装了一个ubuntu18，然后再安装sasquatch包括后面的固件模拟都需要安装很多环境，所以有点麻烦。笔者继续往下做这些实验的时候发现了一个os<code>Attify</code>。这个操作系统将iot的环境基本都装好了。所以笔者就下载了，并且安装使用，只能说一句真***好用。</p>
 <blockquote>
 <p>因为是国外的网盘下载链接，所以可能下的有点慢，这里笔者将这个os放到了百度网盘里，链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA">https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA</a> 提取码: gprv 。ova直接使用虚拟机打开就可以了，界面如下图</p>
 </blockquote>
@@ -244,7 +244,7 @@
 <p>有了上面这个os，接下来就很方便操作了，对这个固件<strong>RT-N300_3.0.0.4_378_9317-g2f672ff.trx</strong>进行提取</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/2.png"></p>
 <p>可以加上-t -vv参数查看详细的提取过程。通过输出信息，可以得知该固件系统没有加密压缩，好了之后就可以看到squashfs-root这个文件夹了。得到的squashfs-root就是固件系统</p>
-<h1 id="静态分析iot固件"><a href="#静态分析iot固件" class="headerlink" title="静态分析iot固件"></a>静态分析iot固件</h1><p>接下来拿的是一个zip方式的固件，我们需要对它进行解压，在解压的时候发现有压缩包密码</p>
+<h2 id="静态分析iot固件"><a href="#静态分析iot固件" class="headerlink" title="静态分析iot固件"></a>静态分析iot固件</h2><p>接下来拿的是一个zip方式的固件，我们需要对它进行解压，在解压的时候发现有压缩包密码</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/3.png"></p>
 <p>使用frackzip工具可以破解该zip的密码，时间太长了，所以直接看这个项目里告诉的密码。最后的密码是<code>beUT9Z</code>，有一个坑点unzip不能完整的解压需要使用7z</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/4.png"></p>
@@ -279,7 +279,7 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo -ne &quot;HELODBG&quot; | nc -u 192.168.1.1 39889 </span><br><span class="line">telnet 192.168.1.1</span><br></pre></td></tr></table></figure>
 
 <p>这里先放一放了，后面的话会专门写一个<code>DWR-932_B1_FW_v.02.02EU</code>漏洞分析</p>
-<h1 id="动态分析IoT固件"><a href="#动态分析IoT固件" class="headerlink" title="动态分析IoT固件"></a>动态分析IoT固件</h1><blockquote>
+<h2 id="动态分析IoT固件"><a href="#动态分析IoT固件" class="headerlink" title="动态分析IoT固件"></a>动态分析IoT固件</h2><blockquote>
 <p>在这里我们采用的是DVRF这个固件，在这里我们先进行固件模拟，什么是固件模拟呢，其实就是让这个固件模拟一个真实的路由器有web服务器和telent这些功能。</p>
 </blockquote>
 <p>前面说了attify，我们在attify里面进行固件模拟。将这个固件放到attiry中并运行下面的命令（后面的参数是固件的位置</p>
@@ -326,7 +326,7 @@
 <p>为了让shell正常运行所以我们肯定不能有gp从0x5c之里开始就可以顺利进行</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/30.png"></p>
 <p>成功利用</p>
-<h1 id="解密dlink固件"><a href="#解密dlink固件" class="headerlink" title="解密dlink固件"></a>解密dlink固件</h1><blockquote>
+<h2 id="解密dlink固件"><a href="#解密dlink固件" class="headerlink" title="解密dlink固件"></a>解密dlink固件</h2><blockquote>
 <p> 本次要研究的是路由器Dlink-882的固件</p>
 </blockquote>
 <p><code>ftp://ftp2.dlink.com/PRODUCTS/DIR-882/REVA/，其中的zip文件就是各版本的固件。</code></p>
@@ -349,7 +349,7 @@
 <p>我们可以对这个加密程序进行一些逆向分析，分析出用的是什么加密算法。这里就不演示了，我们可以想个另一种方法，是不是可以使用这个程序直接对后面加密版本的固件进行解密呢？</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/42.png"></p>
 <p>nice，成功解密。</p>
-<h1 id="修复固件运行环境"><a href="#修复固件运行环境" class="headerlink" title="修复固件运行环境"></a>修复固件运行环境</h1><blockquote>
+<h2 id="修复固件运行环境"><a href="#修复固件运行环境" class="headerlink" title="修复固件运行环境"></a>修复固件运行环境</h2><blockquote>
 <p>之前我们学习了如何模拟运行IoT固件，但是，现实中并不是所有固件都能模拟运行成功，比如固件运行可能依赖于硬件，qemu无法完全模拟，所以，本节我们就来学习如何修复固件的运行环境，从而成功模拟固件运行。</p>
 </blockquote>
 <p>我们本次使用的固件是D-Link的DIR-605L FW_113固件，附件可以去这个项目中下载</p>
@@ -407,8 +407,8 @@
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png"></p>
 <p>改完再次访问，ohhhhhhhhhhhh，成功。</p>
 <p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png"></p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>这几天一有空就在学习这个项目，总算是完成了（很开心），学习之后觉得这个项目对iot新手极其友好，真的是学到了很多东西，从提取iot固件到修复固件运行环境都讲得特清楚。iot安全之路还长继续加油。</p>
-<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p><a target="_blank" rel="noopener" href="https://github.com/G4rb3n/IoT_Sec_Tutorial">https://github.com/G4rb3n/IoT_Sec_Tutorial</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这几天一有空就在学习这个项目，总算是完成了（很开心），学习之后觉得这个项目对iot新手极其友好，真的是学到了很多东西，从提取iot固件到修复固件运行环境都讲得特清楚。iot安全之路还长继续加油。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://github.com/G4rb3n/IoT_Sec_Tutorial">https://github.com/G4rb3n/IoT_Sec_Tutorial</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/245945#h2-14">https://www.anquanke.com/post/id/245945#h2-14</a></p>
 <p><a target="_blank" rel="noopener" href="https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/">https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/</a></p>
 </font>
@@ -438,7 +438,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">7.</span> <span class="toc-text">Reference</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IoT-Sec-Tutorial"><span class="toc-number">1.</span> <span class="toc-text">IoT_Sec_Tutorial</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">1.5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.7.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
