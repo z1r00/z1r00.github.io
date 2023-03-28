@@ -1,0 +1,409 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="ctf-wiki上学习一下kernel。内核主要有以下几个类别  Prepatch Mainline Stable Longterm   kernel内核的下载更好的学习kernel pwn选择长期支持版。选择 5.4 的版本 5.4.98来学习下载链接：https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/[linux-5.4.98.tar.si">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kernel与Qemu模拟环境">
+<meta property="og:url" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="ctf-wiki上学习一下kernel。内核主要有以下几个类别  Prepatch Mainline Stable Longterm   kernel内核的下载更好的学习kernel pwn选择长期支持版。选择 5.4 的版本 5.4.98来学习下载链接：https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/[linux-5.4.98.tar.si">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/1.png">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/2.png">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/3.png">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/4.png">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/5.png">
+<meta property="og:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/6.png">
+<meta property="article:published_time" content="2021-10-21T00:11:33.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.322Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="kernel_pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>kernel与Qemu模拟环境</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/19/ZCTF-2015-pwn/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;text=kernel与Qemu模拟环境"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;is_video=false&amp;description=kernel与Qemu模拟环境"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel与Qemu模拟环境&amp;body=Check out this article: http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;name=kernel与Qemu模拟环境&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;t=kernel与Qemu模拟环境"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel"><span class="toc-number">1.</span> <span class="toc-text">kernel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%9A%84%E4%B8%8B%E8%BD%BD"><span class="toc-number">1.0.1.</span> <span class="toc-text">内核的下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%9A%84%E7%BC%96%E8%AF%91"><span class="toc-number">1.0.2.</span> <span class="toc-text">内核的编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8"><span class="toc-number">1.0.3.</span> <span class="toc-text">编译内核驱动</span></a></li></ol></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#Qemu-%E6%A8%A1%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">Qemu 模拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87"><span class="toc-number">2.0.1.</span> <span class="toc-text">准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">2.0.2.</span> <span class="toc-text">配置文件系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%86%85%E6%A0%B8"><span class="toc-number">2.0.3.</span> <span class="toc-text">启动内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E9%A9%B1%E5%8A%A8"><span class="toc-number">2.0.4.</span> <span class="toc-text">加载驱动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="toc-number">2.1.</span> <span class="toc-text">调试分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="toc-number">2.1.1.</span> <span class="toc-text">基本操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E8%B0%83%E8%AF%95"><span class="toc-number">2.1.2.</span> <span class="toc-text">启动调试</span></a></li></ol></li>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        kernel与Qemu模拟环境
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-21T00:11:33.000Z" itemprop="datePublished">2021-10-21</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/kernel/">kernel</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/kernel-pwn/" rel="tag">kernel_pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>ctf-wiki上学习一下kernel。内核主要有以下几个类别</p>
+<ul>
+<li>Prepatch</li>
+<li>Mainline</li>
+<li>Stable</li>
+<li>Longterm</li>
+</ul>
+</blockquote>
+<h1 id="kernel"><a href="#kernel" class="headerlink" title="kernel"></a>kernel</h1><h3 id="内核的下载"><a href="#内核的下载" class="headerlink" title="内核的下载"></a>内核的下载</h3><p>更好的学习kernel pwn选择长期支持版。选择 5.4 的版本 5.4.98来学习下载链接：<a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/[linux-5.4.98.tar.sign](https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/linux-5.4.98.tar.sign)">https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/[linux-5.4.98.tar.sign](https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/linux-5.4.98.tar.sign)</a></p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://mirrors.tuna.tsinghua.edu.cn/kernel/v5.x/linux-5.4.98.tar.xz</span><br><span class="line">$ unxz linux-5.4.98.tar.xz</span><br><span class="line">$ tar -xf linux-5.4.98.tar</span><br></pre></td></tr></tbody></table></figure>
+
+<p>wiki上还有验证内核签名，这里就不进行验证了。解压成功之后我们就可以得到内核源码了</p>
+<h3 id="内核的编译"><a href="#内核的编译" class="headerlink" title="内核的编译"></a>内核的编译</h3><p>在编译之前我们需要配置内核编译选项。<code>make menuconfig</code>这里我们主要关注调试方面的选项，依次进入到 Kernel hacking -&gt; Compile-time checks and compiler options，然后勾选如下选项<code>Compile the kernel with debug info</code>，以便于调试。不过似乎现在是默认开启的。</p>
+<p>如果要使用 kgdb 调试内核，则需要选中 <code>KGDB: kernel debugger</code>，并选中 KGDB 下的所有选项。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo make -j 4  bzImage</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个中间出了好多错，百度一下就行:)。最后成功的界面是这样子的。</p>
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/1.png"></p>
+<p>在编译成功后我们需要注意的是：</p>
+<blockquote>
+<ul>
+<li>bzImage：<code>arch/x86/boot/bzImage</code></li>
+<li>vmlinux：源码所在的根目录下</li>
+</ul>
+</blockquote>
+<ul>
+<li><strong>bzImage</strong>：目前主流的 kernel 镜像格式，即 big zImage（即 bz 不是指 bzip2），适用于较大的（大于 512 KB） Kernel。这个镜像会被加载到内存的高地址，高于 1MB。bzImage 是用 gzip 压缩的，文件的开头部分有 gzip 解压缩的代码，所以我们不能用 gunzip 来解压缩。</li>
+<li><strong>zImage</strong>：比较老的 kernel 镜像格式，适用于较小的（不大于 512KB） Kernel。启动时，这个镜像会被加载到内存的低地址，即内存的前 640 KB。zImage 也不能用 gunzip 来解压缩。</li>
+<li><strong>vmlinuz</strong>：vmlinuz 不仅包含了压缩后的 vmlinux，还包含了 gzip 解压缩的代码。实际上就是 zImage 或者 bzImage 文件。该文件是 bootable 的。 bootable 是指它能够把内核加载到内存中。对于 Linux 系统而言，该文件位于 /boot 目录下。该目录包含了启动系统时所需要的文件。</li>
+<li><strong>vmlinux</strong>：静态链接的 Linux kernel，以可执行文件的形式存在，尚未经过压缩。该文件往往是在生成 vmlinuz 的过程中产生的。该文件适合于调试。但是该文件不是 bootable 的。</li>
+<li><strong>vmlinux.bin</strong>：也是静态链接的 Linux kernel，只是以一个可启动的 (bootable) 二进制文件存在。所有的符号信息和重定位信息都被删除了。生成命令为：<code>objcopy -O binary vmlinux vmlinux.bin</code>。</li>
+<li><strong>uImage</strong>：uImage 是 U-boot 专用的镜像文件，它是在 zImage 之前加上了一个长度为 0x40 的 tag 而构成的。这个 tag 说明了这个镜像文件的类型、加载位置、生成时间、大小等信息。</li>
+</ul>
+<h3 id="编译内核驱动"><a href="#编译内核驱动" class="headerlink" title="编译内核驱动"></a>编译内核驱动</h3><p>这里尝试编译一个内核驱动。源码：</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//1.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/init.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/module.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/kernel.h&gt;</span></span></span><br><span class="line">MODULE_LICENSE(<span class="string">"Dual BSD/GPL"</span>);</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">ko_test_init</span><span class="params">(<span class="type">void</span>)</span> {</span><br><span class="line">    printk(<span class="string">"This is a test ko!\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">ko_test_exit</span><span class="params">(<span class="type">void</span>)</span> {</span><br><span class="line">    printk(<span class="string">"Bye Bye~\n"</span>);</span><br><span class="line">}</span><br><span class="line">module_init(ko_test_init);</span><br><span class="line">module_exit(ko_test_exit);</span><br></pre></td></tr></tbody></table></figure>
+
+<p>Makefile文件如下：</p>
+<figure class="highlight makefile"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">obj-m += 1.o</span><br><span class="line"></span><br><span class="line">KDIR =/home/xuxu/stu_ha/ctf_range/kernel_pwn/linux-5.4.98</span><br><span class="line"></span><br><span class="line"><span class="section">all:</span></span><br><span class="line">	<span class="variable">$(MAKE)</span> -C <span class="variable">$(KDIR)</span> M=<span class="variable">$(PWD)</span> modules</span><br><span class="line"></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -rf *.o *.ko *.mod.* *.symvers *.order</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里对table等字符非常严格，说一下makefile吧：</p>
+<p><code>obj-m</code> 指定要声称哪些模块</p>
+<p><code>KDIR</code> 用来标识内核源码目录，提供驱动编译所需环境</p>
+<p>$(MAKE) -C $(KDIR) M=$(PWD) modules</p>
+<p><code>-C</code> 表示进入到指定的内核目录</p>
+<p><code>M</code> 指定驱动源码的环境，M 并不是 Makefile 的选项，而是内核根目录下 Makefile 中使用的变量。这会使得该 Makefile 在构造模块之前返回到 M 指定的目录，并在指定的目录中生成驱动模块</p>
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/2.png"></p>
+<h1 id="Qemu-模拟环境"><a href="#Qemu-模拟环境" class="headerlink" title="Qemu 模拟环境"></a>Qemu 模拟环境</h1><p>使用 QEMU 来搭建调试分析环境。为了使用 qemu 启动和调试内核，我们需要内核、qemu、文件系统</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.qemu.org/">qemu</a> 是一款由 <a target="_blank" rel="noopener" href="https://bellard.org/">Fabrice Bellard</a> 等人编写的可以执行硬件虚拟化的开源托管虚拟机，具有运行速度快（配合 kvm），跨平台等优点。qemu 通过动态的二进制转化模拟 CPU，并且提供一组设备模型，使其能够运行多种未修改的客户机OS。</p>
+<p>在 CTF 比赛中，qemu 多用于启动异架构的程序（mips, arm 等）、kernel 及 bootloader 等二进制程序，有时也会作为要 pwn 掉的程序出现。</p>
+</blockquote>
+<h3 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h3><p>首先是内核，已经完成了。接下来是qemu</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install qemu</span><br></pre></td></tr></tbody></table></figure>
+
+<p>qemu也搞定之后最后是文件系统。使用 busybox 来构建一个简单的文件系统。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://busybox.net/downloads/busybox-1.32.1.tar.bz2</span><br><span class="line">$ tar -jxf busybox-1.32.1.tar.bz2</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接下来进行配置。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make menuconfig</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在 Setttings 选中 Build static binary (no shared libs)，将 busybox 编译为静态链接的文件；在 Linux System Utilities 中取消选中 Support mounting NFS file systems on Linux &lt; 2.6.23 (NEW)；在 Networking Utilities 中取消选中 inetd。</p>
+<p>编译</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ make -j3</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="配置文件系统"><a href="#配置文件系统" class="headerlink" title="配置文件系统"></a>配置文件系统</h3><p>在编译完成后，我们在 <code>_install</code> 目录下创建以下文件夹</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">mkdir</span> -p  proc sys dev etc/init.d</span><br></pre></td></tr></tbody></table></figure>
+
+<p>并创建 <code>init</code> 作为 linux 的启动脚本，内容为下面。其中setsid我给的权限是root</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/sh</span></span><br><span class="line">echo "INIT SCRIPT"</span><br><span class="line">mkdir /tmp</span><br><span class="line">mount -t proc none /proc</span><br><span class="line">mount -t sysfs none /sys</span><br><span class="line">mount -t devtmpfs none /dev</span><br><span class="line">mount -t debugfs none /sys/kernel/debug</span><br><span class="line">mount -t tmpfs none /tmp</span><br><span class="line">echo -e "Boot took $(cut -d' ' -f1 /proc/uptime) seconds"</span><br><span class="line">setsid /bin/cttyhack setuidgid 0 /bin/sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/3.png"></p>
+<p>打包文件系统</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ find . | cpio -o --format=newc &gt; ../rootfs.img</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="启动内核"><a href="#启动内核" class="headerlink" title="启动内核"></a>启动内核</h3><p>使用脚本来启动，这里面的bzImage也就是之前内核里的bzImage。rootfs.img是打包文件系统时创建的。</p>
+<figure class="highlight sh"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line">qemu-system-x86_64 \</span><br><span class="line">    -m 64M \</span><br><span class="line">    -nographic \</span><br><span class="line">    -kernel ./bzImage \</span><br><span class="line">    -initrd  ./rootfs.img \</span><br><span class="line">    -append <span class="string">"root=/dev/ram rw console=ttyS0 oops=panic panic=1 kalsr"</span> \</span><br><span class="line">    -smp cores=2,threads=1 \</span><br><span class="line">    -cpu kvm64</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接下来运行这个脚本就可以成功启动了。</p>
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/4.png"></p>
+<h3 id="加载驱动"><a href="#加载驱动" class="headerlink" title="加载驱动"></a>加载驱动</h3><p>之前写了一个驱动，我们将那个驱动放到_install目录下。改一下init脚本</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"INIT SCRIPT"</span></span><br><span class="line"><span class="built_in">mkdir</span> /tmp</span><br><span class="line">mount -t proc none /proc</span><br><span class="line">mount -t sysfs none /sys</span><br><span class="line">mount -t devtmpfs none /dev</span><br><span class="line">mount -t debugfs none /sys/kernel/debug</span><br><span class="line">mount -t tmpfs none /tmp</span><br><span class="line">insmod /1.ko</span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">"Boot took <span class="subst">$(cut -d' ' -f1 /proc/uptime)</span> seconds"</span></span><br><span class="line">setsid /bin/cttyhack setuidgid 0 /bin/sh</span><br></pre></td></tr></tbody></table></figure>
+
+<p>再次启动一下内核吧。可以看到成功加载驱动了。</p>
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/5.png"></p>
+<h2 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h2><h3 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h3><p>查看装载的驱动</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsmod</span><br></pre></td></tr></tbody></table></figure>
+
+<p>获取驱动加载的基地址</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># method 1</span></span><br><span class="line">grep target_module_name /proc/modules </span><br><span class="line"><span class="meta"># method 2</span></span><br><span class="line">cat /sys/module/target_module_name/sections/.text </span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="启动调试"><a href="#启动调试" class="headerlink" title="启动调试"></a>启动调试</h3><p>想要调试需要在启动脚本里加上一个-s</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line">qemu-system-x86_64 \</span><br><span class="line">    -m 64M \</span><br><span class="line">    -nographic \</span><br><span class="line">    -kernel ./bzImage \</span><br><span class="line">    -initrd  ./rootfs.img \</span><br><span class="line">    -append <span class="string">"root=/dev/ram rw console=ttyS0 oops=panic panic=1 kalsr"</span> \</span><br><span class="line">    -smp cores=2,threads=1 \</span><br><span class="line">    -cpu kvm64 \</span><br><span class="line">    -s</span><br></pre></td></tr></tbody></table></figure>
+
+<p>qemu 其实提供了调试内核的接口，我们可以在启动参数中添加 <code>-gdb dev</code> 来启动调试服务。最常见的操作为在一个端口监听一个 tcp 连接。 QEMU 同时提供了一个简写的方式 <code>-s</code>，表示 <code>-gdb tcp::1234</code>，即在 1234 端口开启一个 gdbserver。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gdb -q -ex <span class="string">"target remote localhost:1234"</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/6.png"></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel"><span class="toc-number">1.</span> <span class="toc-text">kernel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%9A%84%E4%B8%8B%E8%BD%BD"><span class="toc-number">1.0.1.</span> <span class="toc-text">内核的下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E7%9A%84%E7%BC%96%E8%AF%91"><span class="toc-number">1.0.2.</span> <span class="toc-text">内核的编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8"><span class="toc-number">1.0.3.</span> <span class="toc-text">编译内核驱动</span></a></li></ol></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#Qemu-%E6%A8%A1%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">Qemu 模拟环境</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87"><span class="toc-number">2.0.1.</span> <span class="toc-text">准备</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">2.0.2.</span> <span class="toc-text">配置文件系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%86%85%E6%A0%B8"><span class="toc-number">2.0.3.</span> <span class="toc-text">启动内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E9%A9%B1%E5%8A%A8"><span class="toc-number">2.0.4.</span> <span class="toc-text">加载驱动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="toc-number">2.1.</span> <span class="toc-text">调试分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="toc-number">2.1.1.</span> <span class="toc-text">基本操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E8%B0%83%E8%AF%95"><span class="toc-number">2.1.2.</span> <span class="toc-text">启动调试</span></a></li></ol></li>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;text=kernel与Qemu模拟环境"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;is_video=false&amp;description=kernel与Qemu模拟环境"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel与Qemu模拟环境&amp;body=Check out this article: http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;title=kernel与Qemu模拟环境"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;name=kernel与Qemu模拟环境&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/&amp;t=kernel与Qemu模拟环境"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

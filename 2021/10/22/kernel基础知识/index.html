@@ -1,0 +1,417 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kernel pwn（一）基础知识">
+<meta property="og:url" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/1.png">
+<meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/2.png">
+<meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/4.png">
+<meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/3.png">
+<meta property="article:published_time" content="2021-10-22T01:43:41.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.394Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="kernel_pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>kernel pwn（一）基础知识</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/26/%E7%AC%AC%E5%9B%9B%E5%B1%8A%E5%BC%BA%E7%BD%91%E6%8B%9F%E6%80%81%E9%98%B2%E5%BE%A1%E5%9B%BD%E9%99%85%E7%B2%BE%E8%8B%B1%E6%8C%91%E6%88%98%E8%B5%9Bwp-pwn/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/21/%E5%86%85%E6%A0%B8%E4%B8%8B%E8%BD%BD%E4%B8%8E%E7%BC%96%E8%AF%91/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;text=kernel pwn（一）基础知识"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;is_video=false&amp;description=kernel pwn（一）基础知识"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel pwn（一）基础知识&amp;body=Check out this article: http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;name=kernel pwn（一）基础知识&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;t=kernel pwn（一）基础知识"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">kernel基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Ring-Model"><span class="toc-number">1.1.</span> <span class="toc-text">Ring Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Loadable-Kernel-Modules"><span class="toc-number">1.2.</span> <span class="toc-text">Loadable Kernel Modules</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4"><span class="toc-number">1.2.1.</span> <span class="toc-text">指令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#syscall"><span class="toc-number">1.3.</span> <span class="toc-text">syscall</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-%E6%80%81"><span class="toc-number">1.4.</span> <span class="toc-text">kernel 态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ioctl"><span class="toc-number">1.5.</span> <span class="toc-text">ioctl</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8A%B6%E6%80%81%E5%88%87%E6%8D%A2"><span class="toc-number">1.6.</span> <span class="toc-text">状态切换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#user-space-to-kernel-space"><span class="toc-number">1.6.1.</span> <span class="toc-text">user space to kernel space</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#kernel-space-to-user-space"><span class="toc-number">1.6.2.</span> <span class="toc-text">kernel space to user space</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel-pwn%E5%9F%BA%E7%A1%80"><span class="toc-number">2.</span> <span class="toc-text">kernel pwn基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-pwn%E7%9A%84%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">2.1.</span> <span class="toc-text">kernel pwn的保护机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B"><span class="toc-number">2.2.</span> <span class="toc-text">攻击流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-cred"><span class="toc-number">2.3.</span> <span class="toc-text">struct cred</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-pwn"><span class="toc-number">2.4.</span> <span class="toc-text">kernel pwn</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        kernel pwn（一）基础知识
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-22T01:43:41.000Z" itemprop="datePublished">2021-10-22</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/kernel/">kernel</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/kernel-pwn/" rel="tag">kernel_pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>从wiki和其它文章上学习一下kernel pwn的一些基础知识。</p>
+</blockquote>
+<h1 id="kernel基础"><a href="#kernel基础" class="headerlink" title="kernel基础"></a>kernel基础</h1><p>kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理</p>
+<blockquote>
+<p>Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些内核，比如微内核效率低，但是体积小。</p>
+</blockquote>
+<h2 id="Ring-Model"><a href="#Ring-Model" class="headerlink" title="Ring Model"></a>Ring Model</h2><p>CPU 的特权级别分为 4 个级别，分别是Ring 0，Ring 1，Ring 2，Ring 3。</p>
+<blockquote>
+<p>内层 Ring 可以随便使用外层 Ring 的资源。kernel运行于Ring 0等级，有自己的栈，和用户不共用。Ring 3所有程序都可以使用，使用Ring Model可以提升安全性，一个恶意程序运行在Ring 3级上，恶意程序需要打开摄像头时需要Ring 1级的权限，所以在不通知用户的情况下会被阻止。</p>
+</blockquote>
+<h2 id="Loadable-Kernel-Modules"><a href="#Loadable-Kernel-Modules" class="headerlink" title="Loadable Kernel Modules"></a>Loadable Kernel Modules</h2><p>上面说过单内核效率高，的同时也有缺点，为了弥补可扩展性和维护性相对较差的形势，模块机制就是为了弥补这一缺陷。模块通常用来实现一种文件系统、一个驱动程序或者其他内核上层的功能，内核模块就像运行在内核空间的可执行程序。</p>
+<blockquote>
+<p>kernel pwn的一些漏洞好多都出现在Loadable Kernel Modules中</p>
+</blockquote>
+<h3 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h3><blockquote>
+<ul>
+<li><strong>insmod</strong>: 讲指定模块加载到内核中</li>
+<li><strong>rmmod</strong>: 从内核中卸载指定模块</li>
+<li><strong>lsmod</strong>: 列出已经加载的模块</li>
+<li><strong>modprobe</strong>: 添加或删除模块，modprobe 在加载模块时会查找依赖关系</li>
+</ul>
+</blockquote>
+<h2 id="syscall"><a href="#syscall" class="headerlink" title="syscall"></a>syscall</h2><p>系统调用，指的是用户空间的程序向操作系统内核请求需要更高权限的服务，比如 IO 操作或者进程间通信。系统调用提供用户程序与操作系统间的接口，部分库函数（如 scanf，puts 等 IO 相关的函数实际上是对系统调用的封装（read 和 write））</p>
+<blockquote>
+<p>在 /usr/include/x86_64-linux-gnu/asm/unistd_64.h文件下可以查看64位程序的系统调用。32位的话就是将64改为32即可。</p>
+</blockquote>
+<p><img src="/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/1.png"></p>
+<h2 id="kernel-态"><a href="#kernel-态" class="headerlink" title="kernel 态"></a>kernel 态</h2><p>进入kernel态之前会保护用户态的各个寄存器，以及执行到代码的位置。相比用户态库函数，内核态的函数有了一些变化</p>
+<blockquote>
+<ul>
+<li>printf() -&gt; printk()，但需要注意的是 printk() 不一定会把内容显示到终端上，但一定在内核缓冲区里，可以通过 dmesg 查看效果</li>
+<li>memcpy() -&gt; copy_from_user()/copy_to_user()</li>
+<li>copy_from_user() 实现了将用户空间的数据传送到内核空间</li>
+<li>copy_to_user() 实现了将内核空间的数据传送到用户空间</li>
+<li>malloc() -&gt; kmalloc()，内核态的内存分配函数，和 malloc() 相似，但使用的是 slab/slub 分配器</li>
+<li>free() -&gt; kfree()，同 kmalloc()</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">printk(<span class="string">"&lt;1&gt;Hello World!\n"</span>);</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>&lt;1&gt;是输出的级别，表示立即在终端输出。</p>
+</blockquote>
+<h2 id="ioctl"><a href="#ioctl" class="headerlink" title="ioctl"></a>ioctl</h2><p> ioctl 也是一个系统调用，用于与设备通信。<code>int ioctl(int fd, unsigned long request, ...)</code> 的第一个参数为打开设备 (open) 返回的文件描述符，第二个参数为用户程序对设备的控制命令，再后边的参数则是一些补充参数，与设备有关。</p>
+<blockquote>
+<p>使用 ioctl 进行通信的原因：</p>
+<p>操作系统提供了内核访问标准外部设备的系统调用，因为大多数硬件设备只能够在内核空间内直接寻址, 但是当访问非标准硬件设备这些系统调用显得不合适, 有时候用户模式可能需要直接访问设备。</p>
+<p>比如，一个系统管理员可能要修改网卡的配置。现代操作系统提供了各种各样设备的支持，有一些设备可能没有被内核设计者考虑到，如此一来提供一个这样的系统调用来使用设备就变得不可能了。</p>
+<p>为了解决这个问题，内核被设计成可扩展的，可以加入一个称为设备驱动的模块，驱动的代码允许在内核空间运行而且可以对设备直接寻址。一个 Ioctl 接口是一个独立的系统调用，通过它用户空间可以跟设备驱动沟通。对设备驱动的请求是一个以设备和请求号码为参数的 Ioctl 调用，如此内核就允许用户空间访问设备驱动进而访问设备而不需要了解具体的设备细节，同时也不需要一大堆针对不同设备的系统调用。</p>
+</blockquote>
+<h2 id="状态切换"><a href="#状态切换" class="headerlink" title="状态切换"></a>状态切换</h2><h3 id="user-space-to-kernel-space"><a href="#user-space-to-kernel-space" class="headerlink" title="user space to kernel space"></a>user space to kernel space</h3><p>当发生系统调用，产生异常，外设产生中断等事件时，会发生用户态到内核态的切换</p>
+<blockquote>
+<p>通过 <code>swapgs</code> 切换 GS 段寄存器，将 GS 寄存器值和一个特定位置的值进行交换，目的是保存 GS 值，同时将该位置的值作为内核执行时的 GS 值使用。</p>
+<p>将当前栈顶（用户空间栈顶）记录在 CPU 独占变量区域里，将 CPU 独占区域里记录的内核栈顶放入 rsp/esp。</p>
+<p>通过 push 保存各寄存器值，具体的代码如下:</p>
+</blockquote>
+<p><img src="/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/2.png"></p>
+<blockquote>
+<p>通过汇编指令判断是否为 <code>x32_abi</code></p>
+<p>通过系统调用号，跳到全局变量 <code>sys_call_table</code> 相应位置继续执行系统调用。</p>
+</blockquote>
+<h3 id="kernel-space-to-user-space"><a href="#kernel-space-to-user-space" class="headerlink" title="kernel space to user space"></a>kernel space to user space</h3><p>退出时，流程如下：</p>
+<blockquote>
+<p>通过 <code>swapgs</code> 恢复 GS 值</p>
+<p>通过 <code>sysretq</code> 或者 <code>iretq</code> 恢复到用户控件继续执行。如果使用 <code>iretq</code> 还需要给出用户空间的一些信息（CS, eflags/rflags, esp/rsp 等）</p>
+</blockquote>
+<h1 id="kernel-pwn基础"><a href="#kernel-pwn基础" class="headerlink" title="kernel pwn基础"></a>kernel pwn基础</h1><h2 id="kernel-pwn的保护机制"><a href="#kernel-pwn的保护机制" class="headerlink" title="kernel pwn的保护机制"></a>kernel pwn的保护机制</h2><p><code>KASLR</code>：内核地址随机化，相当于ASLR(并非默认启用，需要在内核命令行中加入kaslr开启)</p>
+<p><code>SMEP/SMAP</code>：[SMEP—-&gt;管理模式执行保护，禁止内核访问用户空间的数据]，[SMAP—-&gt;管理模式访问保护，类似于NX，即内核态无法执行shellcode]</p>
+<p><code>Stack Protector</code>：(canary)在编译内核时设置CONFIG_CC_STACKPROTECTOR选项，即可开启该保护，一般而言开了这个保护再编译驱动会发现有canary。</p>
+<p><code>KPTI</code>：KPTI即<code>内核页表隔离</code>（Kernel page-table isolation），内核空间与用户空间分别使用两组不同的页表集，这对于内核的内存管理产生了根本性的变化</p>
+<h2 id="攻击流程"><a href="#攻击流程" class="headerlink" title="攻击流程"></a>攻击流程</h2><p>1.在内核代码中找到漏洞。</p>
+<p>2.利用Shellcode, ROP, 等攻击方式实现代码执行。</p>
+<p>3.提权。</p>
+<p>4.本地写好 exploit 后，可以通过 base64 编码等方式把编译好的二进制文件保存到远程目录下，进而拿到 flag。</p>
+<h2 id="struct-cred"><a href="#struct-cred" class="headerlink" title="struct cred"></a>struct cred</h2><p>之前提到 kernel 记录了进程的权限，更具体的，是用 cred 结构体记录的，每个进程中都有一个 cred 结构，这个结构保存了该进程的权限等信息（uid，gid 等），如果能修改某个进程的 cred，那么也就修改了这个进程的权限。</p>
+<p><img src="/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/4.png"></p>
+<blockquote>
+<p>例如：执行 commit_creds(prepare_kernel_cred(0)) 即可获得 root 权限</p>
+</blockquote>
+<p>看一下源码</p>
+<p><img src="/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/3.png"></p>
+<h2 id="kernel-pwn"><a href="#kernel-pwn" class="headerlink" title="kernel pwn"></a>kernel pwn</h2><blockquote>
+<p>一般会给以下三个文件</p>
+<ol>
+<li>boot.sh: 一个用于启动 kernel 的 shell 的脚本，多用 qemu，保护措施与 qemu 不同的启动参数有关</li>
+<li>bzImage: kernel binary</li>
+<li>rootfs.cpio: 文件系统映像</li>
+</ol>
+</blockquote>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">qemu-system-x86_64 -initrd rootfs.cpio -kernel bzImage -append <span class="string">'console=ttyS0 root=/dev/ram oops=panic panic=1'</span> -enable-kvm -monitor /dev/null -m 64M --nographic  -smp cores=1,threads=1 -cpu kvm64,+smep -s</span><br></pre></td></tr></tbody></table></figure>
+
+<p>解释一下 qemu 启动的参数：</p>
+<ul>
+<li>-initrd rootfs.cpio，使用 rootfs.cpio 作为内核启动的文件系统</li>
+<li>-kernel bzImage，使用 bzImage 作为 kernel 映像</li>
+<li>-cpu kvm64,+smep，设置 CPU 的安全选项，这里开启了 smep</li>
+<li>-m 64M，设置虚拟 RAM 为 64M，默认为 128M 其他的选项可以通过 –help 查看。</li>
+</ul>
+<p>本地写好 exploit 后，可以通过 base64 编码等方式把编译好的二进制文件保存到远程目录下，进而拿到 flag。同时可以使用 musl, uclibc 等方法减小 exploit 的体积方便传输。</p>
+<p>测试exp：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cp</span> ./exp ./fs &amp;&amp; <span class="built_in">cd</span> fs</span><br><span class="line">$ find . | cpio -o --format=newc &gt; ../rootfs.cpio <span class="comment"># 重新打包文件系统</span></span><br><span class="line">$ ./boot.sh <span class="comment"># 启动&amp;测试exp</span></span><br></pre></td></tr></tbody></table></figure>
+
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p><a target="_blank" rel="noopener" href="http://taqini.space/2020/11/21/linux-kernel-pwn-learning/#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4">http://taqini.space/2020/11/21/linux-kernel-pwn-learning/#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4</a></p>
+<p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/kernel-mode/basic-knowledge/#ctf-kernel-pwn">https://ctf-wiki.org/pwn/linux/kernel-mode/basic-knowledge/#ctf-kernel-pwn</a></p>
+<p><a target="_blank" rel="noopener" href="https://arttnba3.cn/2021/02/21/NOTE-0X02-LINUX-KERNEL-PWN-PART-I/#0xFF-reference">https://arttnba3.cn/2021/02/21/NOTE-0X02-LINUX-KERNEL-PWN-PART-I/#0xFF-reference</a></p>
+<p><a target="_blank" rel="noopener" href="https://ama2in9.top/2020/09/03/kernel/">https://ama2in9.top/2020/09/03/kernel/</a></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%86%85%E6%A0%B8">https://zh.wikipedia.org/wiki/%E5%86%85%E6%A0%B8</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">kernel基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Ring-Model"><span class="toc-number">1.1.</span> <span class="toc-text">Ring Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Loadable-Kernel-Modules"><span class="toc-number">1.2.</span> <span class="toc-text">Loadable Kernel Modules</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4"><span class="toc-number">1.2.1.</span> <span class="toc-text">指令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#syscall"><span class="toc-number">1.3.</span> <span class="toc-text">syscall</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-%E6%80%81"><span class="toc-number">1.4.</span> <span class="toc-text">kernel 态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ioctl"><span class="toc-number">1.5.</span> <span class="toc-text">ioctl</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8A%B6%E6%80%81%E5%88%87%E6%8D%A2"><span class="toc-number">1.6.</span> <span class="toc-text">状态切换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#user-space-to-kernel-space"><span class="toc-number">1.6.1.</span> <span class="toc-text">user space to kernel space</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#kernel-space-to-user-space"><span class="toc-number">1.6.2.</span> <span class="toc-text">kernel space to user space</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#kernel-pwn%E5%9F%BA%E7%A1%80"><span class="toc-number">2.</span> <span class="toc-text">kernel pwn基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-pwn%E7%9A%84%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">2.1.</span> <span class="toc-text">kernel pwn的保护机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E6%B5%81%E7%A8%8B"><span class="toc-number">2.2.</span> <span class="toc-text">攻击流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#struct-cred"><span class="toc-number">2.3.</span> <span class="toc-text">struct cred</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kernel-pwn"><span class="toc-number">2.4.</span> <span class="toc-text">kernel pwn</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">3.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;text=kernel pwn（一）基础知识"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;is_video=false&amp;description=kernel pwn（一）基础知识"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel pwn（一）基础知识&amp;body=Check out this article: http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;title=kernel pwn（一）基础知识"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;name=kernel pwn（一）基础知识&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/&amp;t=kernel pwn（一）基础知识"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

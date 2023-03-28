@@ -1,0 +1,556 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="最近在网上看到了IoT_Sec_Tutorial这个项目项目地址，拿过来学习一下，分5个点  提取iot固件 静态分析iot固件 动态分析iot固件 解密dlink固件 修复固件运行环境    iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iot安全学习之IoT_Sec_Tutorial">
+<meta property="og:url" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="最近在网上看到了IoT_Sec_Tutorial这个项目项目地址，拿过来学习一下，分5个点  提取iot固件 静态分析iot固件 动态分析iot固件 解密dlink固件 修复固件运行环境    iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/2.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/3.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/4.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/5.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/6.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/7.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/8.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/9.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/10.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/11.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/12.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/13.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/14.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/15.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/16.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/17.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/18.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/19.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/20.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/21.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/22.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/23.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/24.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/25.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/26.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/27.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/28.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/29.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/30.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/32.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/33.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/34.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/35.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/37.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/38.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/39.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/40.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/42.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/43.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/44.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/45.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/46.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/47.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/48.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/49.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/50.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/51.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/52.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/54.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/53.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/55.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/56.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/57.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/58.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/59.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/60.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/61.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/62.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/63.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/64.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png">
+<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png">
+<meta property="article:published_time" content="2022-04-05T05:58:53.000Z">
+<meta property="article:modified_time" content="2022-05-12T06:13:19.952Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>iot安全学习之IoT_Sec_Tutorial</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/04/11/vm-pwn%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IoT-Sec-Tutorial"><span class="toc-number">1.</span> <span class="toc-text">IoT_Sec_Tutorial</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">1.5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.7.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        iot安全学习之IoT_Sec_Tutorial
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-04-05T05:58:53.000Z" itemprop="datePublished">2022-04-05</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E8%B7%AF%E7%94%B1%E5%99%A8/">路由器</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>最近在网上看到了IoT_Sec_Tutorial这个项目<a target="_blank" rel="noopener" href="https://github.com/G4rb3n/IoT_Sec_Tutorial">项目地址</a>，拿过来学习一下，分5个点</p>
+<ul>
+<li>提取iot固件</li>
+<li>静态分析iot固件</li>
+<li>动态分析iot固件</li>
+<li>解密dlink固件</li>
+<li>修复固件运行环境</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将自己遇见的一些坑点写出来。在这里笔者可能会借用很多IoT_Sec_Tutorial这个项目的东西</p>
+</blockquote>
+<h1 id="IoT-Sec-Tutorial"><a href="#IoT-Sec-Tutorial" class="headerlink" title="IoT_Sec_Tutorial"></a>IoT_Sec_Tutorial</h1><h2 id="提取-IOT-固件"><a href="#提取-IOT-固件" class="headerlink" title="提取 IOT 固件"></a>提取 IOT 固件</h2><p>首先在提取iot固件中需要的工具就是binwalk。在前面的<a target="_blank" rel="noopener" href="https://www.z1r0.top/2022/03/24/%E8%B7%AF%E7%94%B1%E5%99%A8D-LINK-DIR-815%E5%A4%9A%E6%AC%A1%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">路由器初探之D-LINK DIR-815多次溢出漏洞分析</a>中笔者使用kali 2022.1提取非标准的Squashfs文件系统的时候会出现错误需要安装<code>sasquatch</code>。然后在网上搜索之后发现可能是kali的版本太新了导致安装报错，所以笔者直接在vm上装了一个ubuntu18，然后再安装sasquatch包括后面的固件模拟都需要安装很多环境，所以有点麻烦。笔者继续往下做这些实验的时候发现了一个os<code>Attify</code>。这个操作系统将iot的环境基本都装好了。所以笔者就下载了，并且安装使用，只能说一句真***好用。</p>
+<blockquote>
+<p>因为是国外的网盘下载链接，所以可能下的有点慢，这里笔者将这个os放到了百度网盘里，链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA">https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA</a> 提取码: gprv 。ova直接使用虚拟机打开就可以了，界面如下图</p>
+</blockquote>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png"></p>
+<p>有了上面这个os，接下来就很方便操作了，对这个固件<strong>RT-N300_3.0.0.4_378_9317-g2f672ff.trx</strong>进行提取</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/2.png"></p>
+<p>可以加上-t -vv参数查看详细的提取过程。通过输出信息，可以得知该固件系统没有加密压缩，好了之后就可以看到squashfs-root这个文件夹了。得到的squashfs-root就是固件系统</p>
+<h2 id="静态分析iot固件"><a href="#静态分析iot固件" class="headerlink" title="静态分析iot固件"></a>静态分析iot固件</h2><p>接下来拿的是一个zip方式的固件，我们需要对它进行解压，在解压的时候发现有压缩包密码</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/3.png"></p>
+<p>使用frackzip工具可以破解该zip的密码，时间太长了，所以直接看这个项目里告诉的密码。最后的密码是<code>beUT9Z</code>，有一个坑点unzip不能完整的解压需要使用7z</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/4.png"></p>
+<p>进入目录可以看到有很多的yaffs2文件和mbn文件。</p>
+<blockquote>
+<p>YAFFS（Yet Another Flash File System）是由Aleph One公司所发展出来的NAND flash 嵌入式文件系统。</p>
+<p>mbn：高通的一套用于加载网络环境的文件</p>
+</blockquote>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/5.png"></p>
+<p>核心的应该是2K-mdm-image-mdm9625.yaffs2。可以使用unyaffs来进行提取</p>
+<p><code>unyaffs 2K-mdm-image-mdm9625.yaffs2 yaffs2-root/</code></p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/6.png"></p>
+<p>出了这个错的话就是没有sudo了，但是对于静态分析来说影响不大，提取之后就可以看到文件系统了</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/7.png"></p>
+<p>接下来我们查找该路径下的所有.conf文件，.conf文件多是配置文件，有可能从中可以发现敏感的信息。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/8.png"></p>
+<p>其中的inadyn-mt.conf文件引起了我们注意，这是no-ip应用的配置文件，no-ip就是一个相当于花生壳的东西，可以申请动态域名。我们从中可以发现泄露的no-ip的登陆账号及密码。同时在etc/shadow中发现了root的的密码</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/9.png"></p>
+<p>用john破解之后发现root的密码是1234。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/10.png"></p>
+<p>为了发现更多价值的信息，我们可以使用firmwalker工具来自动化遍历该固件系统中的所有可疑文件</p>
+<p><code>git clone https://github.com/craigz28/firmwalker.git</code></p>
+<p>使用<code>./firmwalker.sh ../IoT_Sec_Tutorial/02/DWR-932_B1_FW_v.02.02EU/yaffs2-root</code>之后会自动生成firmwalker.txt并将结果存入。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/11.png"></p>
+<p>分析完敏感的配置文件后，我们接下来分析存在风险的二进制程序。查看自启动的程序，在etc/init.d中一个start_appmgr脚本引起了我们注意，mgr一般就是主控程序的意思。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/12.png"></p>
+<p>看一下这个程序吧，发现该脚本会在开机的时候以服务的形式运行/bin/appmgr程序。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/13.png"></p>
+<p>我们接下来对这个程序进行逆向分析，理解这个程序到底会做些什么 。在“/bin/appmgr”中，有一个线程会持续监听0.0.0.0:39889（UDP），并等待传入控制命令。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/14.png"></p>
+<p>当传入HELODBG的时候会给一个shell。所以poc可以这样构造</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo -ne "HELODBG" | nc -u 192.168.1.1 39889 </span><br><span class="line">telnet 192.168.1.1</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里先放一放了，后面的话会专门写一个<code>DWR-932_B1_FW_v.02.02EU</code>漏洞分析</p>
+<h2 id="动态分析IoT固件"><a href="#动态分析IoT固件" class="headerlink" title="动态分析IoT固件"></a>动态分析IoT固件</h2><blockquote>
+<p>在这里我们采用的是DVRF这个固件，在这里我们先进行固件模拟，什么是固件模拟呢，其实就是让这个固件模拟一个真实的路由器有web服务器和telent这些功能。</p>
+</blockquote>
+<p>前面说了attify，我们在attify里面进行固件模拟。将这个固件放到attiry中并运行下面的命令（后面的参数是固件的位置</p>
+<p>注意：这里有两个固件，一个是DVRF_v03.bin还有一个是DWP2360b-firmware-v206-rc018.bin。模拟运行的是DWP2360b-firmware-v206-rc018.bin，因为DVRF_v03.bin笔者模拟运行一下发现network interfaces是空的，然后就用了这个项目给的DWP2360b-firmware-v206-rc018.bin来进行模拟。</p>
+<blockquote>
+<p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/G4rb3n/IoT_Sec_Tutorial/blob/master/03-%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6/DWP2360b-firmware-v206-rc018.bin">DWP2360b-firmware-v206-rc018.bin</a> <a target="_blank" rel="noopener" href="https://github.com/praetorian-inc/DVRF/tree/master/Firmware">DVRF_v03.bin</a></p>
+</blockquote>
+<p>运行这个命令就可以对dwp进行固件模拟<code>./fat.py ~/IoT_Sec_Tutorial/o3/DWP2360b-firmware-v206-rc018.bin</code></p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/15.png"></p>
+<p>红色框子里面就是路由器web端的入口。接下来按一下回车就可以模拟一个真实的路由器了。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/16.png"></p>
+<p>这个时候就可以使用attify自带的firefox来访问一下这个地址，可以看到启动成功。DVRF这个固件是一个自制的充满漏洞的固件，供学习用的。接下来就是进行动态分析，在动态分析之前需要做的是binwalk -e 固件</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/17.png"></p>
+<p>跟进文件系统，pwnable这个文件夹存放着有漏洞的程序示例。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/18.png"></p>
+<p>我们选取缓冲区漏洞程序stack_bof_01进行实验。首先使用file命令查看该程序的架构。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/19.png"></p>
+<p>可以看到是MIPS32</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/20.png"></p>
+<p>保护方面的话基本什么都没开，想怎么溢出就怎么溢出，启动这个程序看一下是什么，需要将qemu-mipsel放到本目录下不然会出现一些找不到文件或目录这种错误</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/21.png"></p>
+<p>放到ghidra中看一下这个程序是什么样子的。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/22.png"></p>
+<p>一个栈溢出，在第16行这里，当argv[1]超过austack206的空间时就会溢出。这个程序还给了一个后门，利用思路很简单，ret2text</p>
+<p>我们需要先确定偏移是多少，这里采取动态调试。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/23.png"></p>
+<p>接着我们需要输入数据，笔者用的是patternoffest.py至于为什么会用这个是因为笔者的gdb-multiarch里面的测试偏移的命令没反应</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">生成定位字符串：轮子直接使用</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> argparse</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"><span class="keyword">import</span> binascii</span><br><span class="line"><span class="keyword">import</span> string</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line">a =<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span></span><br><span class="line">b =<span class="string">"abcdefghijklmnopqrstuvwxyz"</span></span><br><span class="line">c = <span class="string">"0123456789"</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">generate</span>(<span class="params">count,output</span>):</span><br><span class="line">    <span class="comment"># pattern create</span></span><br><span class="line">    codeStr =<span class="string">''</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">'[*] Create pattern string contains %d characters'</span>%count</span><br><span class="line">    timeStart = time.time()</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,count):</span><br><span class="line">        codeStr += a[i/(<span class="number">26</span>*<span class="number">10</span>)] + b[(i%(<span class="number">26</span>*<span class="number">10</span>))/<span class="number">10</span>] + c[i%(<span class="number">26</span>*<span class="number">10</span>)%<span class="number">10</span>]</span><br><span class="line">    <span class="built_in">print</span> <span class="string">'ok!'</span></span><br><span class="line">    <span class="keyword">if</span> output:</span><br><span class="line">        <span class="built_in">print</span> <span class="string">'[+] output to %s'</span>%output</span><br><span class="line">        fw = <span class="built_in">open</span>(output,<span class="string">'w'</span>)</span><br><span class="line">        fw.write(codeStr)</span><br><span class="line">        fw.close()</span><br><span class="line">        <span class="built_in">print</span> <span class="string">'ok!'</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> codeStr</span><br><span class="line">    <span class="built_in">print</span> <span class="string">"[+] take time: %.4f s"</span>%(time.time()-timeStart)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">patternMatch</span>(<span class="params">searchCode, length=<span class="number">1024</span></span>):</span><br><span class="line"> </span><br><span class="line">   <span class="comment"># pattern search</span></span><br><span class="line">   offset = <span class="number">0</span></span><br><span class="line">   pattern = <span class="literal">None</span></span><br><span class="line"> </span><br><span class="line">   timeStart = time.time()</span><br><span class="line">   is0xHex = re.match(<span class="string">'^0x[0-9a-fA-F]{8}'</span>,searchCode)</span><br><span class="line">   isHex = re.match(<span class="string">'^[0-9a-fA-F]{8}'</span>,searchCode)</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">if</span> is0xHex:</span><br><span class="line">       <span class="comment">#0x41613141</span></span><br><span class="line">       pattern = binascii.a2b_hex(searchCode[<span class="number">2</span>:])</span><br><span class="line">   <span class="keyword">elif</span> isHex:</span><br><span class="line">       pattern = binascii.a2b_hex(searchCode)</span><br><span class="line">   <span class="keyword">else</span>:</span><br><span class="line">       <span class="built_in">print</span>  <span class="string">'[-] seach Pattern eg:0x41613141'</span></span><br><span class="line">       sys.exit(<span class="number">1</span>)</span><br><span class="line"> </span><br><span class="line">   source = generate(length,<span class="literal">None</span>)</span><br><span class="line">   offset = source.find(pattern)</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">if</span> offset != -<span class="number">1</span>: <span class="comment"># MBS</span></span><br><span class="line">       <span class="built_in">print</span> <span class="string">"[*] Exact match at offset %d"</span> % offset</span><br><span class="line">   <span class="keyword">else</span>:</span><br><span class="line">       <span class="built_in">print</span></span><br><span class="line">       <span class="string">"[*] No exact matches, looking for likely candidates..."</span></span><br><span class="line">       reverse = <span class="built_in">list</span>(pattern)</span><br><span class="line">       reverse.reverse()</span><br><span class="line">       pattern = <span class="string">""</span>.join(reverse)</span><br><span class="line">       offset = source.find(pattern)</span><br><span class="line"> </span><br><span class="line">       <span class="keyword">if</span> offset != -<span class="number">1</span>:</span><br><span class="line">           <span class="built_in">print</span> <span class="string">"[+] Possible match at offset %d (adjusted another-endian)"</span> % offset</span><br><span class="line"> </span><br><span class="line">   <span class="built_in">print</span> <span class="string">"[+] take time: %.4f s"</span> % (time.time() - timeStart)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">mian</span>():</span><br><span class="line">   <span class="string">'''</span></span><br><span class="line"><span class="string">   parse argument</span></span><br><span class="line"><span class="string">   '''</span></span><br><span class="line">   parser = argparse.ArgumentParser()</span><br><span class="line">   parser.add_argument(<span class="string">'-s'</span>, <span class="string">'--search'</span>, <span class="built_in">help</span>=<span class="string">'search for pattern'</span>)</span><br><span class="line">   parser.add_argument(<span class="string">'-c'</span>, <span class="string">'--create'</span>, <span class="built_in">help</span>=<span class="string">'create a pattern'</span>,action=<span class="string">'store_true'</span>)</span><br><span class="line">   parser.add_argument(<span class="string">'-f'</span>,<span class="string">'--file'</span>,<span class="built_in">help</span>=<span class="string">'output file name'</span>,default=<span class="string">'patternShell.txt'</span>)</span><br><span class="line">   parser.add_argument(<span class="string">'-l'</span>, <span class="string">'--length'</span>, <span class="built_in">help</span>=<span class="string">'length of pattern code'</span>,<span class="built_in">type</span>=<span class="built_in">int</span>, default=<span class="number">1024</span>)</span><br><span class="line">   args = parser.parse_args()</span><br><span class="line">   <span class="string">'''</span></span><br><span class="line"><span class="string">   save all argument</span></span><br><span class="line"><span class="string">   '''</span></span><br><span class="line">   length= args.length</span><br><span class="line">   output = args.file</span><br><span class="line">   createCode = args.create</span><br><span class="line">   searchCode = args.search</span><br><span class="line"> </span><br><span class="line">   <span class="keyword">if</span> createCode <span class="keyword">and</span> (<span class="number">0</span> &lt;args.length &lt;= <span class="number">26</span>*<span class="number">26</span>*<span class="number">10</span>):</span><br><span class="line">       generate(length,output)</span><br><span class="line">   <span class="keyword">elif</span> searchCode <span class="keyword">and</span> (<span class="number">0</span> &lt;args.length &lt;=<span class="number">26</span>*<span class="number">26</span>*<span class="number">10</span>):</span><br><span class="line">       patternMatch(searchCode,length)</span><br><span class="line">   <span class="keyword">else</span>:</span><br><span class="line">       <span class="built_in">print</span> <span class="string">'[-] You shoud chices from [-c -s]'</span></span><br><span class="line">       <span class="built_in">print</span> <span class="string">'[-] Pattern length must be less than 6760'</span></span><br><span class="line">       <span class="built_in">print</span> <span class="string">'more help: pattern.py -h'</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">   <span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">       mian()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/24.png"></p>
+<p>使用这个创建200个垃圾数据</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9Ak0Ak1Ak2Ak3Ak4Ak5Ak6Ak7Ak8Ak9Al0Al1Al2Al3Al4Al5Al6Al7Al8Al9Am0Am1Am2Am3Am4Am5Am6Am7Am8Am9An0An1An2An3An4An5An6An7An8An9Ao0Ao1Ao2Ao3Ao4Ao5Ao6Ao7Ao8Ao9Ap0Ap1Ap2Ap3Ap4Ap5Ap6Ap7Ap8Ap9Aq0Aq1Aq2Aq3Aq4Aq5Aq6Aq7Aq8Aq9Ar0Ar1Ar2Ar3Ar4Ar5Ar6Ar7Ar8Ar9As0As1As2As3As4As5As6As7As8As9At0At1At2At3At4At5At6At7At8At9</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后重新带这200个垃圾数据重新动态调试</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/25.png"></p>
+<p>在pwndbg里面运行c让这个程序跑起来</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/26.png"></p>
+<p>发现了返回地址被覆盖了，再次使用patternoffest.py这个脚本测试出偏移</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/27.png"></p>
+<p><code>offest = 204</code>，利用ret2text将返回地址覆盖成shell即可。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/28.png"></p>
+<p>这里需要用0x5c的地址才能利用成功，原因看图</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/29.png"></p>
+<p>为了让shell正常运行所以我们肯定不能有gp从0x5c之里开始就可以顺利进行</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/30.png"></p>
+<p>成功利用</p>
+<h2 id="解密dlink固件"><a href="#解密dlink固件" class="headerlink" title="解密dlink固件"></a>解密dlink固件</h2><blockquote>
+<p> 本次要研究的是路由器Dlink-882的固件</p>
+</blockquote>
+<p><code>ftp://ftp2.dlink.com/PRODUCTS/DIR-882/REVA/，其中的zip文件就是各版本的固件。</code></p>
+<p>然后笔者访问之后是这样的，直接打开了一个文件夹然后里面就是822的一些文件 </p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/32.png"></p>
+<p>将<code>FW100B07、FW101B02、FW104B02、FW110B02、FW111B01、FW120B06、FW130B10</code>下载下来，然后解压并使用binwalk对其进行检测</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/33.png"></p>
+<p>检测发现100b07, 101b02, 104b02这些是没有加密的</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/34.png"></p>
+<p>FW110B02、FW111B01、FW120B06、FW130B10均是加密的</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/35.png"></p>
+<p>那么我们可以确定104B02是中间版本。固件版本迭代的过程经历了固件未加密到固件加密，说明中间肯定有个中间版本（类似下图），下图是固件从未加密到加密的升级原理图。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/37.png"></p>
+<p>所以我们接下来需要从104b02这个版本中找到解密程序，先进行固件解包，笔者这次没有使用binwalk来解包，换了一个方式，使用了一个在线的网站<a target="_blank" rel="noopener" href="https://zhiwanyuzhou.com/multiple_analyse/firmware/">iot在线解包</a> 。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/38.png"></p>
+<p>好了之后到达结果页面</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/39.png"></p>
+<p>在bin或者usr/bin中找到decrypt的相关程序，bin目录下就找到了</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/40.png"></p>
+<p>我们可以对这个加密程序进行一些逆向分析，分析出用的是什么加密算法。这里就不演示了，我们可以想个另一种方法，是不是可以使用这个程序直接对后面加密版本的固件进行解密呢？</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/42.png"></p>
+<p>nice，成功解密。</p>
+<h2 id="修复固件运行环境"><a href="#修复固件运行环境" class="headerlink" title="修复固件运行环境"></a>修复固件运行环境</h2><blockquote>
+<p>之前我们学习了如何模拟运行IoT固件，但是，现实中并不是所有固件都能模拟运行成功，比如固件运行可能依赖于硬件，qemu无法完全模拟，所以，本节我们就来学习如何修复固件的运行环境，从而成功模拟固件运行。</p>
+</blockquote>
+<p>我们本次使用的固件是D-Link的DIR-605L FW_113固件，附件可以去这个项目中下载</p>
+<p>拿到固件后我们先放到fat里面看一下可不可以正常模拟</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/43.png"></p>
+<p>Interfaces那里为空，说明模拟运行失败了。不是所有固件都能用firmadyne模拟的，尤其是那些需要与硬件设备交互的固件</p>
+<p>模拟固件运行的实质其实就是把固件的Web程序跑起来，而模拟失败则说明Web程序运行出错了，我们接下来就要针对看看Web程序报错的原因以及如何修复运行环境，我们提取固件的文件系统，提取出来的路径为squashfs-root-0</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/44.png"></p>
+<p>我们可以使用find ./ -name boa命令来定位该固件的Web程序。Boa程序是一个轻量级的web服务器程序，常见于嵌入式系统中。dlink就是在boa开源代码的基础上新增了很多功能接口以实现路由器上的不同功能。boa程序的路径为/bin/boa，同时我们发现在/etc/boa路径下还有个boa的密码配置文件，我们可以直接获取到boa加密后的密码。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/45.png"></p>
+<p>我们模拟运行程序，会发现报错了，提示初始化MIB错误。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/46.png"></p>
+<p>使用ghidra对boa程序进行逆向分析，我们快速的定位到错误的地方</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/47.png"></p>
+<p>跟进跟进</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/48.png"></p>
+<p>apmib_init这个函数是从flash中读取mib值到RAM中，模拟环境没有flash硬件，所以应该会读取失败。apmib_init读取数据失败返回0，赋值给$v0，然后bnez命令对$v0进行检测，若为0，则回显初始化失败，报错退出。</p>
+<blockquote>
+<p>BENZ R1,NAME;//R1不等于0，程序跳转，以NAME为偏移地址<br>BEQZ R1,NAME;//R1=0，程序跳转到，以NAME为偏移地址</p>
+</blockquote>
+<p>所以我们可以将bnez(0x14)命令改成beqz(0x10)</p>
+<p>在想要patch的语句中按下ctrl + shift + G</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/49.png"></p>
+<p>保存程序具体的操作可以看<a target="_blank" rel="noopener" href="https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/">https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/</a></p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/50.png"></p>
+<p>修补完成之后再次运行这个程序会发现这个程序还是有错误。。。。。创建东西错了，还有一个内存报错</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/51.png"></p>
+<p>没办法，继续跟进看一下</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/52.png"></p>
+<p>找到了报错的地点，open函数导致，但内存错误这里可以动态调试看哪个内存错了，先看函数由返回值引起的，所以看一下这个函数的引用</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/54.png"></p>
+<p>websaspinit中引用了它，而且刚刚的错误也是这个地方错了，所以我们跟进</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/53.png"></p>
+<p>前2个“Create chklist file error!”来自于create_chklist_file和create_devInfo_file函数，后面那个内存崩溃是apmib_get函数导致的。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/55.png"></p>
+<p>动态调试一下看看。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/56.png"></p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/57.png"></p>
+<p>在调试结束creat后，虽然报了创建错误的错但是还能往下运行，结果运行到apmib_get这里的时候就出错了</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/58.png"></p>
+<p>可以看到0x1001是个错误的地址。从第一个错误可以猜到websaspinit函数的功能是从RAM读取MIB值，所以有可能又是硬件依赖导致的错误。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/59.png"></p>
+<p>我们可以将apmib_get里的跳转给nop掉，因为我们模拟固件，所以肯定没有硬件，这里对我们来说无用。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/60.png"></p>
+<p>保存程序退出然后启动运行。ohhhhhhhhhhh</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/61.png"></p>
+<p>成功了，可以看到80端口已经跑起来了</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/62.png"></p>
+<p>访问一下。。。。。还有错的，继续看吧，看一下这个asp代码</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/63.png"></p>
+<p><code>vim web/Basic/Wizard_Easy_LangSelect.asp</code></p>
+<p>通过文件名可以猜测功能是选择页面语言，而它尝试从硬件设备读取语言，显然又会出错了。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/64.png"></p>
+<p>那我们就想办法不让它进入这个页面，查看入口网页，发现逻辑是先判断系统语言，成功则直接进入Webcome界面。那我们将失败和成功都进入welcome页面。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png"></p>
+<p>改完再次访问，ohhhhhhhhhhhh，成功。</p>
+<p><img src="/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这几天一有空就在学习这个项目，总算是完成了（很开心），学习之后觉得这个项目对iot新手极其友好，真的是学到了很多东西，从提取iot固件到修复固件运行环境都讲得特清楚。iot安全之路还长继续加油。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://github.com/G4rb3n/IoT_Sec_Tutorial">https://github.com/G4rb3n/IoT_Sec_Tutorial</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/245945#h2-14">https://www.anquanke.com/post/id/245945#h2-14</a></p>
+<p><a target="_blank" rel="noopener" href="https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/">https://materials.rangeforce.com/tutorial/2020/04/12/Patching-Binaries/</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IoT-Sec-Tutorial"><span class="toc-number">1.</span> <span class="toc-text">IoT_Sec_Tutorial</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E5%8F%96-IOT-%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">提取 IOT 固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90iot%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">静态分析iot固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E6%9E%90IoT%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">动态分析IoT固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%AF%86dlink%E5%9B%BA%E4%BB%B6"><span class="toc-number">1.4.</span> <span class="toc-text">解密dlink固件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E5%9B%BA%E4%BB%B6%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-number">1.5.</span> <span class="toc-text">修复固件运行环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.7.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

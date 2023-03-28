@@ -1,0 +1,424 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LLVM PASS PWN（一）">
+<meta property="og:url" content="http://example.com/2022/10/28/LLVM-PASS-PWN/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/1.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/2.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/3.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/4.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/5.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/6.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/7.png">
+<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/8.png">
+<meta property="article:published_time" content="2022-10-28T12:09:40.000Z">
+<meta property="article:modified_time" content="2022-10-28T04:44:50.779Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>LLVM PASS PWN（一）</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/10/08/CVE-2018-18708-%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#LLVM-PASS-PWN%EF%BC%88%E4%B8%80%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">LLVM PASS PWN（一）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E7%AE%80%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">前置知识简述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%BC%96%E8%AF%91%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">为什么要编译程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.1.2.</span> <span class="toc-text">编译的过程是什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LLVM"><span class="toc-number">1.2.</span> <span class="toc-text">LLVM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-IR-amp-LLVM-Pass"><span class="toc-number">1.2.1.</span> <span class="toc-text">LLVM IR &amp; LLVM Pass</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-%E5%B7%A5%E5%85%B7"><span class="toc-number">1.2.2.</span> <span class="toc-text">LLVM 工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Clang"><span class="toc-number">1.3.</span> <span class="toc-text">Clang</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LLVM-amp-Clang%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85-amp-%E5%B7%A5%E5%85%B7%E6%B5%8B%E8%AF%95"><span class="toc-number">1.4.</span> <span class="toc-text">LLVM &amp; Clang环境安装 &amp; 工具测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AALLVM-Pass"><span class="toc-number">1.5.</span> <span class="toc-text">编写第一个LLVM Pass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E7%AC%AC%E4%B8%80%E4%B8%AALLVM-Pass%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.6.</span> <span class="toc-text">对第一个LLVM Pass逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.8.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        LLVM PASS PWN（一）
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-10-28T12:09:40.000Z" itemprop="datePublished">2022-10-28</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/study/">study</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/pwn/" rel="tag">pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<blockquote>
+<p>CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正</p>
+</blockquote>
+<h1 id="LLVM-PASS-PWN（一）"><a href="#LLVM-PASS-PWN（一）" class="headerlink" title="LLVM PASS PWN（一）"></a>LLVM PASS PWN（一）</h1><h2 id="前置知识简述"><a href="#前置知识简述" class="headerlink" title="前置知识简述"></a>前置知识简述</h2><h3 id="为什么要编译程序"><a href="#为什么要编译程序" class="headerlink" title="为什么要编译程序"></a>为什么要编译程序</h3><p>机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设计之后，机器能识别高电平还是低电平，刚好与2进制很相似，想输入0就给机器输入低电平，想输入1，就给机器输入高电平，所以就看到了1和0的表示形式</p>
+<p>机器语言它是计算机唯一能识别和执行的语言，但它的直观性差，可读性差，比如一串<code>11110000111100001111</code>机器可以快速识别是什么但是我们很难理解，再比如我们想要在屏幕上输出hello world那我们该如何用二进制来表示呢，所以汇编语言就诞生了</p>
+<p>汇编语言用助记符来表示机器指令中的操作码和操作数的指令系统，如a = 1，我们不需要去用二进制来理解，我们完全可以利用mov a, 1进行理解，那有没有更简单的方法呢，比如现在要输出hello wrold，还是需要十几行的汇编代码的，所以高级语言就诞生了</p>
+<p>高级语言是一种更接近人类的自然语言和数学语言的语言，比如想要a = 1，很直观就是a = 1，在很大程度上减少编程人员的编写量</p>
+<p>但是问题来了，机器只懂0和1那怎么才能让高级语言被机器识别，所以就有了编译，将高级语言（源语言）翻译成汇编语言或机器语言（目标语言），编译的根本目的就是把源代码变成目标代码</p>
+<h3 id="编译的过程是什么"><a href="#编译的过程是什么" class="headerlink" title="编译的过程是什么"></a>编译的过程是什么</h3><p>编译过程主要可以划分为前端与后端，笔者用一张图简述一下</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/1.png" style="zoom:50%;">
+
+<p>前端把源代码翻译成IR，后端把IR编译成目标平台的机器码，这里笔者在查阅资料的时候发现有些会将生成中间代码放入前端，而有些资料会将生成中间代码放入后端</p>
+<p>在词法分析中编译器读入源代码，经过词法分析器识别出Token，比如词法分析器中识别出的Token可以是<code>int, return, {, }</code>等</p>
+<p>在语法分析中会把上面的Token串给转换成一个抽象语法树AST，AST树反映了程序的语法结构</p>
+<p>在语义分析中需要做的任务是理解语义，语句要做什么，如for是需要去实现循环，if是判断等</p>
+<p>在前端完成之后，会生成中间代码，统一优化中间代码，再去将中间代码生成目标代码</p>
+<p>前置知识这里笔者简述了一下，具体的可以移步编译原理</p>
+<h2 id="LLVM"><a href="#LLVM" class="headerlink" title="LLVM"></a>LLVM</h2><h3 id="LLVM-IR-amp-LLVM-Pass"><a href="#LLVM-IR-amp-LLVM-Pass" class="headerlink" title="LLVM IR &amp; LLVM Pass"></a>LLVM IR &amp; LLVM Pass</h3><p><code>gcc</code>这个最经典的编译器提供的是一整套服务，前端和后端耦合在了一起，导致了如果一个新的编程语言出现可能需要设计一个新的IR以及实现这个IR的后端，如果出现了一个新的平台就要实现一个从自己的IR到新平台的后端，针对此类问题就出现了LLVM</p>
+<p>不同的前后端使用统一的中间代码，这样一个新的编程语言出现只需要实现一个新的前端，如果出现了一个新的平台只需要实现一个新的后端</p>
+<p>LLVM IR有三种表示形式</p>
+<ul>
+<li>可读IR，类似汇编代码，可以给人看的，后缀<code>.ll</code></li>
+<li>不可读二进制IR，后缀<code>.bc</code></li>
+<li>保存在内存中，内存格式</li>
+</ul>
+<p>LLVM Pass 是一个框架设计，是LLVM系统里重要的组成部分，因为LLVM Pass负责LLVM编译器绝大部分的工作，一系列的Pass组合，构建了编译器的转换和优化部分，抽象成结构化的编译器代码。</p>
+<p>在实现上，LLVM的核心库中会给你一些 Pass类 去继承。你需要实现它的一些方法。 最后使用LLVM的编译器会把它翻译得到的IR传入Pass里，给你遍历和修改。</p>
+<p>LLVM Pass的用处是插桩，机器无关的代码优化，静态分析，代码混淆等</p>
+<h3 id="LLVM-工具"><a href="#LLVM-工具" class="headerlink" title="LLVM 工具"></a>LLVM 工具</h3><p>以下内容来自<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/122522485">LLVM Pass入门导引</a></p>
+<ul>
+<li><code>llvm-as</code>：把LLVM IR从人类能看懂的文本格式汇编成二进制格式。注意：此处得到的<strong>不是</strong>目标平台的机器码。</li>
+<li><code>llvm-dis</code>：<code>llvm-as</code>的逆过程，即反汇编。 不过这里的反汇编的对象是LLVM IR的二进制格式，而不是机器码。</li>
+<li><code>opt</code>：优化LLVM IR。输出新的LLVM IR。</li>
+<li><code>llc</code>：把LLVM IR编译成汇编码。需要用<code>as</code>进一步得到机器码。</li>
+<li><code>lli</code>：解释执行LLVM IR。</li>
+</ul>
+<h2 id="Clang"><a href="#Clang" class="headerlink" title="Clang"></a>Clang</h2><p>Clang 是 LLVM 的前端，可以用来编译 C，C++，ObjectiveC 等语言。Clang 的功能包括：词法分析、语法分析、语义分析、生成中间中间代码LLVM Intermediate Representation (LLVM IR)。</p>
+<h2 id="LLVM-amp-Clang环境安装-amp-工具测试"><a href="#LLVM-amp-Clang环境安装-amp-工具测试" class="headerlink" title="LLVM &amp; Clang环境安装 &amp; 工具测试"></a>LLVM &amp; Clang环境安装 &amp; 工具测试</h2><p>ubuntu20.04下安装LLVM + Clang如下</p>
+<blockquote>
+<p>sudo apt install clang-12</p>
+<p>sudo apt install clang-8</p>
+<p>sudo apt install llvm-12</p>
+<p>sudo apt install llvm-8</p>
+</blockquote>
+<p>llvm-12安装之后可以使用opt-12，今年的ciscn的LLVM PASS PWN就是opt-12，一般题目都会给出opt的版本。ubuntu20.04应该自带opt-10如果没有的话，<code>sudo apt install clang-10 &amp;&amp; sudo apt install llvm-10</code></p>
+<p>上面的做题环境都安装完成之后，先写一个c文件，利用Clang将c文件编译成<code>.ll, .bc</code>等格式看一下是否是如上所说，c文件如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span>{</span><br><span class="line">	<span class="type">char</span> name[<span class="number">0x20</span>];</span><br><span class="line">	<span class="built_in">puts</span>(<span class="string">"hello world"</span>);</span><br><span class="line">	<span class="built_in">puts</span>(<span class="string">"plz input your name"</span>);</span><br><span class="line">	read(<span class="number">0</span>, name, <span class="number">0x1F</span>);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"biubiubiu"</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>首先是<code>.c-&gt;.ll</code>，<code>clang-12 -emit-llvm -S test.c -o test.ll</code>，test.ll(生成的IR文本文件)如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">; ModuleID = <span class="string">'test.c'</span></span><br><span class="line">source_filename = <span class="string">"test.c"</span></span><br><span class="line">target datalayout = <span class="string">"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"</span></span><br><span class="line">target triple = <span class="string">"x86_64-pc-linux-gnu"</span></span><br><span class="line"></span><br><span class="line">@.str = private unnamed_addr constant [<span class="number">12</span> x i8] c<span class="string">"hello world\00"</span>, align <span class="number">1</span></span><br><span class="line">@.str<span class="number">.1</span> = private unnamed_addr constant [<span class="number">20</span> x i8] c<span class="string">"plz input your name\00"</span>, align <span class="number">1</span></span><br><span class="line">@.str<span class="number">.2</span> = private unnamed_addr constant [<span class="number">10</span> x i8] c<span class="string">"biubiubiu\00"</span>, align <span class="number">1</span></span><br><span class="line"></span><br><span class="line">; Function Attrs: noinline nounwind optnone uwtable</span><br><span class="line">define dso_local i32 @main(i32 %<span class="number">0</span>, i8** %<span class="number">1</span>) #<span class="number">0</span> {</span><br><span class="line">  %<span class="number">3</span> = alloca i32, align <span class="number">4</span></span><br><span class="line">  %<span class="number">4</span> = alloca i32, align <span class="number">4</span></span><br><span class="line">  %<span class="number">5</span> = alloca i8**, align <span class="number">8</span></span><br><span class="line">  %<span class="number">6</span> = alloca [<span class="number">32</span> x i8], align <span class="number">16</span></span><br><span class="line">  store i32 <span class="number">0</span>, i32* %<span class="number">3</span>, align <span class="number">4</span></span><br><span class="line">  store i32 %<span class="number">0</span>, i32* %<span class="number">4</span>, align <span class="number">4</span></span><br><span class="line">  store i8** %<span class="number">1</span>, i8*** %<span class="number">5</span>, align <span class="number">8</span></span><br><span class="line">  %<span class="number">7</span> = call i32 @<span class="built_in">puts</span>(i8* getelementptr inbounds ([<span class="number">12</span> x i8], [<span class="number">12</span> x i8]* @.str, i64 <span class="number">0</span>, i64 <span class="number">0</span>))</span><br><span class="line">  %<span class="number">8</span> = call i32 @<span class="built_in">puts</span>(i8* getelementptr inbounds ([<span class="number">20</span> x i8], [<span class="number">20</span> x i8]* @.str<span class="number">.1</span>, i64 <span class="number">0</span>, i64 <span class="number">0</span>))</span><br><span class="line">  %<span class="number">9</span> = getelementptr inbounds [<span class="number">32</span> x i8], [<span class="number">32</span> x i8]* %<span class="number">6</span>, i64 <span class="number">0</span>, i64 <span class="number">0</span></span><br><span class="line">  %<span class="number">10</span> = call i64 @read(i32 <span class="number">0</span>, i8* %<span class="number">9</span>, i64 <span class="number">31</span>)</span><br><span class="line">  %<span class="number">11</span> = call i32 (i8*, ...) @<span class="built_in">printf</span>(i8* getelementptr inbounds ([<span class="number">10</span> x i8], [<span class="number">10</span> x i8]* @.str<span class="number">.2</span>, i64 <span class="number">0</span>, i64 <span class="number">0</span>))</span><br><span class="line">  ret i32 <span class="number">0</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">declare dso_local i32 @<span class="built_in">puts</span>(i8*) #<span class="number">1</span></span><br><span class="line"></span><br><span class="line">declare dso_local i64 @read(i32, i8*, i64) #<span class="number">1</span></span><br><span class="line"></span><br><span class="line">declare dso_local i32 @<span class="built_in">printf</span>(i8*, ...) #<span class="number">1</span></span><br><span class="line"></span><br><span class="line">attributes #<span class="number">0</span> = { noinline nounwind optnone uwtable <span class="string">"disable-tail-calls"</span>=<span class="string">"false"</span> <span class="string">"frame-pointer"</span>=<span class="string">"all"</span> <span class="string">"less-precise-fpmad"</span>=<span class="string">"false"</span> <span class="string">"min-legal-vector-width"</span>=<span class="string">"0"</span> <span class="string">"no-infs-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-jump-tables"</span>=<span class="string">"false"</span> <span class="string">"no-nans-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-signed-zeros-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-trapping-math"</span>=<span class="string">"true"</span> <span class="string">"stack-protector-buffer-size"</span>=<span class="string">"8"</span> <span class="string">"target-cpu"</span>=<span class="string">"x86-64"</span> <span class="string">"target-features"</span>=<span class="string">"+cx8,+fxsr,+mmx,+sse,+sse2,+x87"</span> <span class="string">"tune-cpu"</span>=<span class="string">"generic"</span> <span class="string">"unsafe-fp-math"</span>=<span class="string">"false"</span> <span class="string">"use-soft-float"</span>=<span class="string">"false"</span> }</span><br><span class="line">attributes #<span class="number">1</span> = { <span class="string">"disable-tail-calls"</span>=<span class="string">"false"</span> <span class="string">"frame-pointer"</span>=<span class="string">"all"</span> <span class="string">"less-precise-fpmad"</span>=<span class="string">"false"</span> <span class="string">"no-infs-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-nans-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-signed-zeros-fp-math"</span>=<span class="string">"false"</span> <span class="string">"no-trapping-math"</span>=<span class="string">"true"</span> <span class="string">"stack-protector-buffer-size"</span>=<span class="string">"8"</span> <span class="string">"target-cpu"</span>=<span class="string">"x86-64"</span> <span class="string">"target-features"</span>=<span class="string">"+cx8,+fxsr,+mmx,+sse,+sse2,+x87"</span> <span class="string">"tune-cpu"</span>=<span class="string">"generic"</span> <span class="string">"unsafe-fp-math"</span>=<span class="string">"false"</span> <span class="string">"use-soft-float"</span>=<span class="string">"false"</span> }</span><br><span class="line"></span><br><span class="line">!llvm.module.flags = !{!<span class="number">0</span>}</span><br><span class="line">!llvm.ident = !{!<span class="number">1</span>}</span><br><span class="line"></span><br><span class="line">!<span class="number">0</span> = !{i32 <span class="number">1</span>, !<span class="string">"wchar_size"</span>, i32 <span class="number">4</span>}</span><br><span class="line">!<span class="number">1</span> = !{!<span class="string">"Ubuntu clang version 12.0.0-3ubuntu1~20.04.5"</span>}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>上面的IR很直观，之前提到LLVM PASS的一个用处是优化IR代码，会将上面的可以优化的进行优化</p>
+<p>其次是<code>.c-&gt;.bc</code>，<code>clang-12 -emit-llvm -c test.c -o test.bc</code>，bc是不可读二进制</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/2.png" alt="2" style="zoom:50%;">
+
+<p>然后是<code>.ll -&gt; .bc</code>，<code>llvm-as test.ll -o test.bc</code>，结果和上面的一样</p>
+<p>接着是<code>.bc - &gt; .ll</code>，<code>llvm-dis test.bc -o test.ll</code>，同上</p>
+<p>最后还有一个<code>.bc -&gt; .s</code>， <code>llc test.bc -o test.s</code>，将字节码的二进制格式文件转换为本地的汇编文件</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">	.text</span><br><span class="line">	.file	<span class="string">"test.c"</span></span><br><span class="line">	.globl	main                    # -- Begin function main</span><br><span class="line">	.p2align	<span class="number">4</span>, <span class="number">0x90</span></span><br><span class="line">	.type	main,@function</span><br><span class="line">main:                                   # @main</span><br><span class="line">	.cfi_startproc</span><br><span class="line"># %bb<span class="number">.0</span>:</span><br><span class="line">	pushq	%rbp</span><br><span class="line">	.cfi_def_cfa_offset <span class="number">16</span></span><br><span class="line">	.cfi_offset %rbp, <span class="number">-16</span></span><br><span class="line">	movq	%rsp, %rbp</span><br><span class="line">	.cfi_def_cfa_register %rbp</span><br><span class="line">	subq	$<span class="number">48</span>, %rsp</span><br><span class="line">	movl	$<span class="number">0</span>, <span class="number">-8</span>(%rbp)</span><br><span class="line">	movl	%edi, <span class="number">-4</span>(%rbp)</span><br><span class="line">	movq	%rsi, <span class="number">-16</span>(%rbp)</span><br><span class="line">	movabsq	$.L.str, %rdi</span><br><span class="line">	callq	<span class="built_in">puts</span></span><br><span class="line">	movabsq	$.L.str<span class="number">.1</span>, %rdi</span><br><span class="line">	callq	<span class="built_in">puts</span></span><br><span class="line">	leaq	<span class="number">-48</span>(%rbp), %rsi</span><br><span class="line">	xorl	%edi, %edi</span><br><span class="line">	movl	$<span class="number">31</span>, %edx</span><br><span class="line">	callq	read</span><br><span class="line">	movabsq	$.L.str<span class="number">.2</span>, %rdi</span><br><span class="line">	movb	$<span class="number">0</span>, %al</span><br><span class="line">	callq	<span class="built_in">printf</span></span><br><span class="line">	xorl	%eax, %eax</span><br><span class="line">	addq	$<span class="number">48</span>, %rsp</span><br><span class="line">	popq	%rbp</span><br><span class="line">	.cfi_def_cfa %rsp, <span class="number">8</span></span><br><span class="line">	retq</span><br><span class="line">.Lfunc_end0:</span><br><span class="line">	.size	main, .Lfunc_end0-main</span><br><span class="line">	.cfi_endproc</span><br><span class="line">                                        # -- End function</span><br><span class="line">	.type	.L.str,@object          # @.str</span><br><span class="line">	.section	.rodata.str1<span class="number">.1</span>,<span class="string">"aMS"</span>,@progbits,<span class="number">1</span></span><br><span class="line">.L.str:</span><br><span class="line">	.asciz	<span class="string">"hello world"</span></span><br><span class="line">	.size	.L.str, <span class="number">12</span></span><br><span class="line"></span><br><span class="line">	.type	.L.str<span class="number">.1</span>,@object        # @.str<span class="number">.1</span></span><br><span class="line">.L.str<span class="number">.1</span>:</span><br><span class="line">	.asciz	<span class="string">"plz input your name"</span></span><br><span class="line">	.size	.L.str<span class="number">.1</span>, <span class="number">20</span></span><br><span class="line"></span><br><span class="line">	.type	.L.str<span class="number">.2</span>,@object        # @.str<span class="number">.2</span></span><br><span class="line">.L.str<span class="number">.2</span>:</span><br><span class="line">	.asciz	<span class="string">"biubiubiu"</span></span><br><span class="line">	.size	.L.str<span class="number">.2</span>, <span class="number">10</span></span><br><span class="line"></span><br><span class="line">	.ident	<span class="string">"Ubuntu clang version 12.0.0-3ubuntu1~20.04.5"</span></span><br><span class="line">	.section	<span class="string">".note.GNU-stack"</span>,<span class="string">""</span>,@progbits</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="编写第一个LLVM-Pass"><a href="#编写第一个LLVM-Pass" class="headerlink" title="编写第一个LLVM Pass"></a>编写第一个LLVM Pass</h2><p>通过前面的知识之后，现在可以尝试编写“hello world”的pass，下面是<a target="_blank" rel="noopener" href="https://llvm.org/docs/WritingAnLLVMPass.html">官方</a>的示例</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"llvm/Pass.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"llvm/IR/Function.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"llvm/Support/raw_ostream.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"llvm/IR/LegacyPassManager.h"</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">"llvm/Transforms/IPO/PassManagerBuilder.h"</span></span></span><br><span class="line"></span><br><span class="line">using namespace llvm;</span><br><span class="line"></span><br><span class="line">namespace {</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Hello</span> :</span> public FunctionPass {</span><br><span class="line">  <span class="type">static</span> <span class="type">char</span> ID;</span><br><span class="line">  Hello() : FunctionPass(ID) {}</span><br><span class="line"></span><br><span class="line">  <span class="type">bool</span> <span class="title function_">runOnFunction</span><span class="params">(Function &amp;F)</span> override {</span><br><span class="line">    errs() &lt;&lt; <span class="string">"Hello: "</span>;</span><br><span class="line">    errs().write_escaped(F.getName()) &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  }</span><br><span class="line">}; <span class="comment">// end of struct Hello</span></span><br><span class="line">}  <span class="comment">// end of anonymous namespace</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> Hello::ID = <span class="number">0</span>;</span><br><span class="line"><span class="type">static</span> RegisterPass&lt;Hello&gt; <span class="title function_">X</span><span class="params">(<span class="string">"hello"</span>, <span class="string">"Hello World Pass"</span>,</span></span><br><span class="line"><span class="params">                             <span class="literal">false</span> <span class="comment">/* Only looks at CFG */</span>,</span></span><br><span class="line"><span class="params">                             <span class="literal">false</span> <span class="comment">/* Analysis Pass */</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> RegisterStandardPasses <span class="title function_">Y</span><span class="params">(</span></span><br><span class="line"><span class="params">    PassManagerBuilder::EP_EarlyAsPossible,</span></span><br><span class="line"><span class="params">    [](<span class="type">const</span> PassManagerBuilder &amp;Builder,</span></span><br><span class="line"><span class="params">       legacy::PassManagerBase &amp;PM) { PM.add(new Hello()); })</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>先声明pass本身，然后声明了一个<code>Hello</code>类，它是FunctionPass的子类。稍后将详细描述不同的内置pass子类，但是现在知道FunctionPass一次对一个函数进行操作。</p>
+<p>然后声明了LLVM用于标识pass的pass标识符。 这允许LLVM避免使用昂贵的C ++运行时信息，如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">char</span> ID;</span><br><span class="line">Hello() : FunctionPass(ID) {}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后声明了一个runOnFunction方法，它覆盖了从FunctionPass继承的抽象虚方法。 这是我们应该做的事情，所以我们只用每个函数的名称打印出我们的消息。代码如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> <span class="title function_">runOnFunction</span><span class="params">(Function &amp;F)</span> override {</span><br><span class="line">    errs() &lt;&lt; <span class="string">"Hello: "</span>;</span><br><span class="line">    errs().write_escaped(F.getName()) &lt;&lt; <span class="string">'\n'</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  }</span><br><span class="line">}; <span class="comment">// end of struct Hello</span></span><br><span class="line">}  <span class="comment">// end of anonymous namespace</span></span><br></pre></td></tr></tbody></table></figure>
+
+<p>接着初始化passID。 LLVM使用ID的地址来标识pass，因此初始化值并不重要。代码如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> Hello::ID = <span class="number">0</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后，我们注册我们的类Hello，给它一个命令行参数“hello”，并命名为“Hello World Pass”。 最后两个参数描述了它的行为：如果传递遍历CFG而不修改它，那么第三个参数设置为true; 如果pass是分析pass，例如支配树pass，则提供true作为第四个参数。代码如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> RegisterPass&lt;Hello&gt; <span class="title function_">X</span><span class="params">(<span class="string">"hello"</span>, <span class="string">"Hello World Pass"</span>,</span></span><br><span class="line"><span class="params">                             <span class="literal">false</span> <span class="comment">/* Only looks at CFG */</span>,</span></span><br><span class="line"><span class="params">                             <span class="literal">false</span> <span class="comment">/* Analysis Pass */</span>)</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果我们想将通道注册为现有管道的一个步骤，则提供了一些扩展点，例如<code>PassManagerBuilder::EP_EarlyAsPossible</code>在任何优化之前应用我们的通道，或者<code>PassManagerBuilder::EP_FullLinkTimeOptimizationLast</code> 在链接时间优化之后应用它。代码如下</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> llvm::RegisterStandardPasses <span class="title function_">Y</span><span class="params">(</span></span><br><span class="line"><span class="params">    llvm::PassManagerBuilder::EP_EarlyAsPossible,</span></span><br><span class="line"><span class="params">    [](<span class="type">const</span> llvm::PassManagerBuilder &amp;Builder,</span></span><br><span class="line"><span class="params">       llvm::legacy::PassManagerBase &amp;PM) { PM.add(new Hello()); })</span>;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>现在需要将这个Pass编译成模块，使用如下命令即可</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang<span class="number">-12</span> `llvm-config --cxxflags` -Wl,-znodelete -fno-rtti -fPIC -shared Hello.cpp -o LLVMHello.so `llvm-config --ldflags`</span><br></pre></td></tr></tbody></table></figure>
+
+<p>现在应该会看到LLVMHello.so这个文件，通过官方文档可知需要使用以下命令</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opt -load LLVMHello.so -hello test.ll</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里的 -hello由Hello.cpp中的<code>static RegisterPass&lt;Hello&gt; X</code>参数决定</p>
+<p>但是笔者这里报了一个错<code>Error opening 'LLVMHello.so': LLVMHello.so: cannot open shared object file: No such file or directory</code>，这是因为linux无法在默认地址找到LLVMHello.so，解决很简单<code>sudo cp LLVMHello.so /lib</code></p>
+<img src="/2022/10/28/LLVM-PASS-PWN/3.png" alt="2" style="zoom:50%;">
+
+<p>成功输出test.c所有函数名称</p>
+<h2 id="对第一个LLVM-Pass逆向分析"><a href="#对第一个LLVM-Pass逆向分析" class="headerlink" title="对第一个LLVM Pass逆向分析"></a>对第一个LLVM Pass逆向分析</h2><p>刚刚生成了LLVMHello.so这个pass文件，比赛题和上面也一样，会重写<code>FunctionPass</code>类中的<code>runOnFunction</code>函数，所以我们对上面的示例程序进行逆向分析，看一下虚表位置这样方便比赛的时候确定每个函数的位置</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/4.png" alt="2" style="zoom:50%;">
+
+<p>跟进RegisterPass</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/5.png" alt="2" style="zoom:50%;">
+
+<p>发现调用了callDefaultCtor进行对象创建，跟进它</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/6.png" alt="2" style="zoom:50%;">
+
+<p>给Hello对象分配了0x20个空间，跟进Hello</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/7.png" alt="2" style="zoom:50%;">
+
+<p>看到虚表了，直接跟进</p>
+<img src="/2022/10/28/LLVM-PASS-PWN/8.png" alt="2" style="zoom:50%;">
+
+<p><code>runOnFunction</code>函数位于虚表中的最后一个位置，因为runOnFunction函数被我们重写了，所以它指向的是我们自定义的那个函数，比赛题的漏洞基本就是这个，所以在做LLVM Pass pwn的时候定位函数的位置可以从虚表入手</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>收获很大，从编译过程到LLVM，加固了计算机底层的一些知识，知道了LLVM PASS PWN该怎么入手，以前看到LLVM PASS PWN的时候都不知道怎么运行（XD），这里第一篇就结束了，后面笔者会继续更新</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/130702001">https://zhuanlan.zhihu.com/p/130702001</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/122522485">https://zhuanlan.zhihu.com/p/122522485</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.homedt.net/196837.html">https://www.homedt.net/196837.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://llvm.org/docs/WritingAnLLVMPass.html">https://llvm.org/docs/WritingAnLLVMPass.html</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#LLVM-PASS-PWN%EF%BC%88%E4%B8%80%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">LLVM PASS PWN（一）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E7%AE%80%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">前置知识简述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%BC%96%E8%AF%91%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">为什么要编译程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">1.1.2.</span> <span class="toc-text">编译的过程是什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LLVM"><span class="toc-number">1.2.</span> <span class="toc-text">LLVM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-IR-amp-LLVM-Pass"><span class="toc-number">1.2.1.</span> <span class="toc-text">LLVM IR &amp; LLVM Pass</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLVM-%E5%B7%A5%E5%85%B7"><span class="toc-number">1.2.2.</span> <span class="toc-text">LLVM 工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Clang"><span class="toc-number">1.3.</span> <span class="toc-text">Clang</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LLVM-amp-Clang%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85-amp-%E5%B7%A5%E5%85%B7%E6%B5%8B%E8%AF%95"><span class="toc-number">1.4.</span> <span class="toc-text">LLVM &amp; Clang环境安装 &amp; 工具测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E5%86%99%E7%AC%AC%E4%B8%80%E4%B8%AALLVM-Pass"><span class="toc-number">1.5.</span> <span class="toc-text">编写第一个LLVM Pass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E7%AC%AC%E4%B8%80%E4%B8%AALLVM-Pass%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="toc-number">1.6.</span> <span class="toc-text">对第一个LLVM Pass逆向分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.8.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

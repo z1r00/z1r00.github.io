@@ -1,0 +1,488 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="昨天的西湖论剑有一个kernel题（刚好最近阶段在冲kernel  写一下kernel_pwn的一些防御机制，wiki上面从隔离、访问控制、异常检测、随机化这四种方式来介绍内核中的防御机制。学习一下（照抄， 隔离根据隔离的主体，隔离分为两种：  内核态和用户态的隔离 内核自身内部不同对象间的隔离   前面的文章也说到过保护机制KPTI/SMEP/SMAP  默认：用户态不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kernel pwn（三）防御机制">
+<meta property="og:url" content="http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="昨天的西湖论剑有一个kernel题（刚好最近阶段在冲kernel  写一下kernel_pwn的一些防御机制，wiki上面从隔离、访问控制、异常检测、随机化这四种方式来介绍内核中的防御机制。学习一下（照抄， 隔离根据隔离的主体，隔离分为两种：  内核态和用户态的隔离 内核自身内部不同对象间的隔离   前面的文章也说到过保护机制KPTI/SMEP/SMAP  默认：用户态不">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/1.png">
+<meta property="og:image" content="http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/2.png">
+<meta property="og:image" content="http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/3.png">
+<meta property="article:published_time" content="2021-11-21T00:53:06.000Z">
+<meta property="article:modified_time" content="2022-05-06T00:48:31.398Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="kernel_pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/1.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>kernel pwn（三）防御机制</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;text=kernel pwn（三）防御机制"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;is_video=false&amp;description=kernel pwn（三）防御机制"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel pwn（三）防御机制&amp;body=Check out this article: http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;name=kernel pwn（三）防御机制&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;t=kernel pwn（三）防御机制"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9A%94%E7%A6%BB"><span class="toc-number">1.</span> <span class="toc-text">隔离</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#SMEP"><span class="toc-number">1.1.</span> <span class="toc-text">SMEP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-SMEP"><span class="toc-number">1.1.1.</span> <span class="toc-text">attack SMEP</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SMAP"><span class="toc-number">1.2.</span> <span class="toc-text">SMAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-SMAP"><span class="toc-number">1.2.1.</span> <span class="toc-text">attack SMAP</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#KPTI"><span class="toc-number">1.3.</span> <span class="toc-text">KPTI</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-KPTI"><span class="toc-number">1.3.1.</span> <span class="toc-text">attack KPTI</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%A1%B5%E8%A1%A8"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">修改页表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SWITCH-TO-USER-CR3-STACK"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">SWITCH_TO_USER_CR3_STACK</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#iret"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">iret</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sysret"><span class="toc-number">1.3.1.4.</span> <span class="toc-text">sysret</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E9%83%A8%E9%9A%94%E7%A6%BB"><span class="toc-number">1.4.</span> <span class="toc-text">内部隔离</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">访问控制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#dmesg-restrict"><span class="toc-number">2.1.</span> <span class="toc-text">dmesg_restrict</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kptr-restrict"><span class="toc-number">2.2.</span> <span class="toc-text">kptr_restrict</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#misc"><span class="toc-number">2.3.</span> <span class="toc-text">misc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ro-after-init"><span class="toc-number">2.3.1.</span> <span class="toc-text">__ro_after_init</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mmap-min-addr"><span class="toc-number">2.3.2.</span> <span class="toc-text">mmap_min_addr</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B"><span class="toc-number">3.</span> <span class="toc-text">异常检测</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kernel-Stack-Canary"><span class="toc-number">3.1.</span> <span class="toc-text">Kernel Stack Canary</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">随机化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#KASLR"><span class="toc-number">4.1.</span> <span class="toc-text">KASLR</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FGKASLR"><span class="toc-number">4.2.</span> <span class="toc-text">FGKASLR</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.1.</span> <span class="toc-text">编译阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.2.</span> <span class="toc-text">加载阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.3.</span> <span class="toc-text">启动阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.4.</span> <span class="toc-text">运行阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#open-amp-close"><span class="toc-number">4.2.5.</span> <span class="toc-text">open &amp; close</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="toc-number">4.2.6.</span> <span class="toc-text">缺点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">5.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        kernel pwn（三）防御机制
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-11-21T00:53:06.000Z" itemprop="datePublished">2021-11-21</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/kernel/">kernel</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/kernel-pwn/" rel="tag">kernel_pwn</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="4">
+
+<blockquote>
+<p>昨天的西湖论剑有一个kernel题（刚好最近阶段在冲kernel</p>
+</blockquote>
+<p>写一下kernel_pwn的一些防御机制，wiki上面从隔离、访问控制、异常检测、随机化这四种方式来介绍内核中的防御机制。学习一下（照抄，</p>
+<h1 id="隔离"><a href="#隔离" class="headerlink" title="隔离"></a>隔离</h1><p>根据隔离的主体，隔离分为两种：</p>
+<ul>
+<li>内核态和用户态的隔离</li>
+<li>内核自身内部不同对象间的隔离</li>
+</ul>
+<blockquote>
+<p>前面的文章也说到过保护机制KPTI/SMEP/SMAP</p>
+<ul>
+<li>默认：用户态不可直接访问内核态的数据、执行内核态的代码</li>
+<li>SMEP：内核态不可执行用户态的代码</li>
+<li>SMAP：内核态不可访问用户态的数据</li>
+<li>KPTI：用户态不可看到内核态的页表；内核态不可执行用户态的代码（模拟）</li>
+</ul>
+</blockquote>
+<h2 id="SMEP"><a href="#SMEP" class="headerlink" title="SMEP"></a>SMEP</h2><p>用户态的代码是可控的，假如控制了内核态的执行流程，就可以执行处理用户态的代码，非常容易受到攻击。所以这个保护就是让内核态不可执行用户态的代码。这个保护是与指令集架构相关的。</p>
+<p>默认情况下SMEP是开启的，如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>+smep</code> 来开启 SMEP。用下面的命令可以看到本机的SMEP是否开启。如果发现了 smep 字符串就说明开启了 smep 保护，否则没有开启。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ grep smep /proc/cpuinfo</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="attack-SMEP"><a href="#attack-SMEP" class="headerlink" title="attack SMEP"></a>attack SMEP</h3><p>把 CR4 寄存器中的第 20 位置为 0 后，我们就可以执行用户态的代码。一般而言，我们会使用 0x6f0 来设置 CR4，这样 SMAP 和 SMEP 都会被关闭。</p>
+<p>内核中修改 cr4 的代码最终会调用到 <code>native_write_cr4</code>，当我们能够劫持控制流后，我们可以执行内核中的 gadget 来修改 CR4。从另外一个维度来看，内核中存在固定的修改 cr4 的代码，比如在 <code>refresh_pce</code> 函数、<code>set_tsc_mode</code> 等函数里都有。</p>
+<h2 id="SMAP"><a href="#SMAP" class="headerlink" title="SMAP"></a>SMAP</h2><p>内核态可以访问用户态的数据的话。劫持控制流后，可以通过栈迁移将栈迁移到用户态，再后进行下一步攻击。所以就有了SMAP，这个防御措施的实现是与指令集架构相关的。</p>
+<p>默认情况下，SMAP 保护是开启的。如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>+smap</code> 来开启 SMAP。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ grep smap /proc/cpuinfo</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="attack-SMAP"><a href="#attack-SMAP" class="headerlink" title="attack SMAP"></a>attack SMAP</h3><blockquote>
+<p>改cr4寄存器和上面的SMEP很相似。</p>
+</blockquote>
+<p>把 CR4 寄存器中的第 21 位置为 0 后，我们就可以访问用户态的数据。一般而言，我们会使用 0x6f0 来设置 CR4，这样 SMAP 和 SMEP 都会被关闭。</p>
+<p>内核中修改 cr4 的代码最终会调用到 <code>native_write_cr4</code>，当我们能够劫持控制流后，我们就可以执行内核中对应的 gadget 来修改 CR4。从另外一个维度来看，内核中存在固定的修改 cr4 的代码，比如在 <code>refresh_pce</code> 函数、<code>set_tsc_mode</code> 等函数里都有。</p>
+<blockquote>
+<p>copy_from_user &amp; copy_to_user</p>
+</blockquote>
+<p>在劫持控制流后，攻击者可以调用 <code>copy_from_user</code> 和 <code>copy_to_user</code> 来访问用户态的内存。这两个函数会临时清空禁止访问用户态内存的标志。</p>
+<h2 id="KPTI"><a href="#KPTI" class="headerlink" title="KPTI"></a>KPTI</h2><p>KPTI 机制最初的主要目的是为了缓解 KASLR 的绕过以及 CPU 侧信道攻击。</p>
+<p>在 KPTI 机制中，内核态空间的内存和用户态空间的内存的隔离进一步得到了增强。</p>
+<ul>
+<li>内核态中的页表包括用户空间内存的页表和内核空间内存的页表。</li>
+<li>用户态的页表只包括用户空间内存的页表以及必要的内核空间内存的页表，如用于处理系统调用、中断等信息的内存。</li>
+</ul>
+<blockquote>
+<p>如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>kpti=1</code> 来开启 KPTI。</p>
+<p>如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>nopti</code> 来关闭 KPTI。</p>
+</blockquote>
+<p>可以使用下面的命令看KPTI</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> /proc/cpuinfo | grep pti</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="attack-KPTI"><a href="#attack-KPTI" class="headerlink" title="attack KPTI"></a>attack KPTI</h3><h4 id="修改页表"><a href="#修改页表" class="headerlink" title="修改页表"></a>修改页表</h4><p>在开启 KPTI 后，用户态空间的所有数据都被标记了 NX 权限，但是，我们可以考虑修改对应的页表权限，使其拥有可执行权限。当内核没有开启 smep 权限时，我们在修改了页表权限后就可以返回到用户态，并执行用户态的代码。</p>
+<h4 id="SWITCH-TO-USER-CR3-STACK"><a href="#SWITCH-TO-USER-CR3-STACK" class="headerlink" title="SWITCH_TO_USER_CR3_STACK"></a>SWITCH_TO_USER_CR3_STACK</h4><p>在开启 KPTI 机制后，用户态进入到内核态时，会进行页表切换；当从内核态恢复到用户态时，也会进行页表切换。那么如果我们可以控制内核执行返回用户态时所执行的切换页表的代码片段，也就可以正常地返回到用户态。</p>
+<p>通过分析内核态到用户态切换的代码，我们可以得知，页表的切换主要靠<code>SWITCH_TO_USER_CR3_STACK</code> 汇编宏。因此，我们只需要能够调用这部分代码即可。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">.macro SWITCH_TO_USER_CR3_STACK scratch_reg:req</span><br><span class="line">    pushq   %rax</span><br><span class="line">    SWITCH_TO_USER_CR3_NOSTACK scratch_reg=\scratch_reg scratch_reg2=%rax</span><br><span class="line">    popq    %rax</span><br><span class="line">.endm</span><br><span class="line">.macro SWITCH_TO_USER_CR3_NOSTACK scratch_reg:req scratch_reg2:req</span><br><span class="line">    ALTERNATIVE <span class="string">"jmp .Lend_\@"</span>, <span class="string">""</span>, X86_FEATURE_PTI</span><br><span class="line">    mov %cr3, \scratch_reg</span><br><span class="line"></span><br><span class="line">    ALTERNATIVE <span class="string">"jmp .Lwrcr3_\@"</span>, <span class="string">""</span>, X86_FEATURE_PCID</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Test if the ASID needs a flush.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    movq    \scratch_reg, \scratch_reg2</span><br><span class="line">    andq    $(<span class="number">0x7FF</span>), \scratch_reg      <span class="comment">/* mask ASID */</span></span><br><span class="line">    bt  \scratch_reg, THIS_CPU_user_pcid_flush_mask</span><br><span class="line">    jnc .Lnoflush_\@</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Flush needed, clear the bit */</span></span><br><span class="line">    btr \scratch_reg, THIS_CPU_user_pcid_flush_mask</span><br><span class="line">    movq    \scratch_reg2, \scratch_reg</span><br><span class="line">    jmp .Lwrcr3_pcid_\@</span><br><span class="line"></span><br><span class="line">.Lnoflush_\@:</span><br><span class="line">    movq    \scratch_reg2, \scratch_reg</span><br><span class="line">    SET_NOFLUSH_BIT \scratch_reg</span><br><span class="line"></span><br><span class="line">.Lwrcr3_pcid_\@:</span><br><span class="line">    <span class="comment">/* Flip the ASID to the user version */</span></span><br><span class="line">    orq $(PTI_USER_PCID_MASK), \scratch_reg</span><br><span class="line"></span><br><span class="line">.Lwrcr3_\@:</span><br><span class="line">    <span class="comment">/* Flip the PGD to the user version */</span></span><br><span class="line">    orq     $(PTI_USER_PGTABLE_MASK), \scratch_reg</span><br><span class="line">    mov \scratch_reg, %cr3</span><br><span class="line">.Lend_\@:</span><br><span class="line">.endm</span><br></pre></td></tr></tbody></table></figure>
+
+<p>事实上，我们不仅希望切换页表，还希望能够返回到用户态，因此我们这里也需要复用内核中返回至用户态的代码。内核返回到用户态主要有两种方式：iret 和 sysret。下面详细介绍。</p>
+<h4 id="iret"><a href="#iret" class="headerlink" title="iret"></a>iret</h4><figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">SYM_INNER_LABEL(swapgs_restore_regs_and_return_to_usermode, SYM_L_GLOBAL)</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_DEBUG_ENTRY</span></span><br><span class="line">    <span class="comment">/* Assert that pt_regs indicates user mode. */</span></span><br><span class="line">    testb   $<span class="number">3</span>, CS(%rsp)</span><br><span class="line">    jnz <span class="number">1f</span></span><br><span class="line">    ud2</span><br><span class="line"><span class="number">1</span>:</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    POP_REGS pop_rdi=<span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * The stack is now user RDI, orig_ax, RIP, CS, EFLAGS, RSP, SS.</span></span><br><span class="line"><span class="comment">     * Save old stack pointer and switch to trampoline stack.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    movq    %rsp, %rdi</span><br><span class="line">    movq    PER_CPU_VAR(cpu_tss_rw + TSS_sp0), %rsp</span><br><span class="line">    UNWIND_HINT_EMPTY</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Copy the IRET frame to the trampoline stack. */</span></span><br><span class="line">    pushq   <span class="number">6</span>*<span class="number">8</span>(%rdi)   <span class="comment">/* SS */</span></span><br><span class="line">    pushq   <span class="number">5</span>*<span class="number">8</span>(%rdi)   <span class="comment">/* RSP */</span></span><br><span class="line">    pushq   <span class="number">4</span>*<span class="number">8</span>(%rdi)   <span class="comment">/* EFLAGS */</span></span><br><span class="line">    pushq   <span class="number">3</span>*<span class="number">8</span>(%rdi)   <span class="comment">/* CS */</span></span><br><span class="line">    pushq   <span class="number">2</span>*<span class="number">8</span>(%rdi)   <span class="comment">/* RIP */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Push user RDI on the trampoline stack. */</span></span><br><span class="line">    pushq   (%rdi)</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * We are on the trampoline stack.  All regs except RDI are live.</span></span><br><span class="line"><span class="comment">     * We can do future final exit work right here.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    STACKLEAK_ERASE_NOCLOBBER</span><br><span class="line"></span><br><span class="line">    SWITCH_TO_USER_CR3_STACK scratch_reg=%rdi</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Restore RDI. */</span></span><br><span class="line">    popq    %rdi</span><br><span class="line">    SWAPGS</span><br><span class="line">    INTERRUPT_RETURN</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到，通过伪造如下的栈，然后跳转到 <code>movq %rsp, %rdi</code>，我们就可以同时切换页表和返回至用户态。</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fake rax</span><br><span class="line">fake rdi</span><br><span class="line">RIP</span><br><span class="line">CS</span><br><span class="line">EFLAGS</span><br><span class="line">RSP</span><br><span class="line">SS</span><br></pre></td></tr></tbody></table></figure>
+
+<h4 id="sysret"><a href="#sysret" class="headerlink" title="sysret"></a>sysret</h4><p>在使用 sysret 时，我们首先需要确保 rcx 和 r11 为如下的取值</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rcx, save the rip of the code to be executed when returning to userspace</span><br><span class="line">r11, save eflags</span><br></pre></td></tr></tbody></table></figure>
+
+<p>然后构造如下的栈</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fake rdi</span><br><span class="line">rsp, the stack of the userspace</span><br></pre></td></tr></tbody></table></figure>
+
+<p>最后跳转至 entry_SYSCALL_64 的如下代码，即可返回到用户态。</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SWITCH_TO_USER_CR3_STACK scratch_reg=%rdi</span><br><span class="line"></span><br><span class="line">popq    %rdi</span><br><span class="line">popq    %rsp</span><br><span class="line">swapgs</span><br><span class="line">sysretq</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="内部隔离"><a href="#内部隔离" class="headerlink" title="内部隔离"></a>内部隔离</h2><p>根据描述，如果在使用 <code>kmem_cache_create</code> 创建一个 cache 时，传递了 <code>SLAB_ACCOUNT</code> 标记，那么这个 cache 就会单独存在，不会与其它相同大小的 cache 合并。</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Currently, if we want to account all objects of a particular kmem cache,</span><br><span class="line">we have to pass __GFP_ACCOUNT to each kmem_cache_alloc call, which is</span><br><span class="line">inconvenient. This patch introduces SLAB_ACCOUNT flag which if passed to</span><br><span class="line">kmem_cache_create will force accounting for every allocation from this</span><br><span class="line">cache even if __GFP_ACCOUNT is not passed.</span><br><span class="line"></span><br><span class="line">This patch does not make any of the existing caches use this flag - it</span><br><span class="line">will be done later in the series.</span><br><span class="line"></span><br><span class="line">Note, a cache with SLAB_ACCOUNT cannot be merged with a cache w/o</span><br><span class="line">SLAB_ACCOUNT, i.e. using this flag will probably reduce the number of</span><br><span class="line">merged slabs even if kmem accounting is not used (only compiled in).</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在早期，许多结构体（如 <strong>cred 结构体</strong>）对应的堆块并不单独存在，会和相同大小的堆块使用相同的 cache。在 Linux 4.5 版本引入了这个 flag 后，许多结构体就单独使用了自己的 cache。然而，根据上面的描述，这一特性似乎最初并不是为了安全性引入的。</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Mark those kmem allocations that are known to be easily triggered from</span><br><span class="line">userspace as __GFP_ACCOUNT/SLAB_ACCOUNT, which makes them accounted to</span><br><span class="line">memcg.  For the list, see below:</span><br><span class="line"></span><br><span class="line"> - threadinfo</span><br><span class="line"> - task_struct</span><br><span class="line"> - task_delay_info</span><br><span class="line"> - pid</span><br><span class="line"> - cred</span><br><span class="line"> - mm_struct</span><br><span class="line"> - vm_area_struct and vm_region (nommu)</span><br><span class="line"> - anon_vma and anon_vma_chain</span><br><span class="line"> - signal_struct</span><br><span class="line"> - sighand_struct</span><br><span class="line"> - fs_struct</span><br><span class="line"> - files_struct</span><br><span class="line"> - fdtable and fdtable-&gt;full_fds_bits</span><br><span class="line"> - dentry and external_name</span><br><span class="line"> - inode for all filesystems. This is the most tedious part, because</span><br><span class="line">   most filesystems overwrite the alloc_inode method.</span><br><span class="line"></span><br><span class="line">The list is far from complete, so feel free to add more objects.</span><br><span class="line">Nevertheless, it should be close to "account everything" approach and</span><br><span class="line">keep most workloads within bounds.  Malevolent users will be able to</span><br><span class="line">breach the limit, but this was possible even with the former "account</span><br><span class="line">everything" approach (simply because it did not account everything in</span><br><span class="line">fact).</span><br></pre></td></tr></tbody></table></figure>
+
+<h1 id="访问控制"><a href="#访问控制" class="headerlink" title="访问控制"></a>访问控制</h1><blockquote>
+<p>访问控制是指内核通过对某些对象添加访问控制，使得内核中相应的对象具有一定的访问控制要求，比如不可写，或者不可读。</p>
+</blockquote>
+<h2 id="dmesg-restrict"><a href="#dmesg-restrict" class="headerlink" title="dmesg_restrict"></a>dmesg_restrict</h2><p>该选项用于控制是否可以使用 <code>dmesg</code> 来查看内核日志。当 <code>dmesg_restrict</code> 为 0 时，没有任何限制；当该选项为 1 时，只有具有 <code>CAP_SYSLOG</code> 权限的用户才可以通过 <code>dmesg</code> 命令来查看内核日志。</p>
+<p>如下图，普通用户没有这个权限</p>
+<p><img src="/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/1.png"></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">dmesg_restrict:</span><br><span class="line"></span><br><span class="line">This toggle indicates whether unprivileged users are prevented</span><br><span class="line">from using dmesg(8) to view messages from the kernel's log buffer.</span><br><span class="line">When dmesg_restrict is set to (0) there are no restrictions. When</span><br><span class="line">dmesg_restrict is set set to (1), users must have CAP_SYSLOG to use</span><br><span class="line">dmesg(8).</span><br><span class="line"></span><br><span class="line">The kernel config option CONFIG_SECURITY_DMESG_RESTRICT sets the</span><br><span class="line">default value of dmesg_restrict.</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="kptr-restrict"><a href="#kptr-restrict" class="headerlink" title="kptr_restrict"></a>kptr_restrict</h2><p>该选项用于控制在输出内核地址时施加的限制，主要限制以下接口</p>
+<ul>
+<li>通过 /proc 获取的内核地址</li>
+<li>通过其它接口（有待研究）获取的地址</li>
+</ul>
+<p>具体输出的内容与该选项配置的值有关</p>
+<ul>
+<li>0：默认情况下，没有任何限制。</li>
+<li>1：使用 <code>％pK</code> 输出的内核指针地址将被替换为 0，除非用户具有 CAP_ SYSLOG 特权，并且 group id 和真正的 id 相等。</li>
+<li>2：使用 <code>％pK</code> 输出的内核指针都将被替换为 0 ，即与权限无关。</li>
+</ul>
+<p><img src="/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/2.png"></p>
+<p>当开启该保护后，攻击者就不能通过 <code>/proc/kallsyms</code> 来获取内核中某些敏感的地址了，如 commit_creds、prepare_kernel_cred。</p>
+<h2 id="misc"><a href="#misc" class="headerlink" title="misc"></a>misc</h2><h3 id="ro-after-init"><a href="#ro-after-init" class="headerlink" title="__ro_after_init"></a>__ro_after_init</h3><p>Linux 内核中有很多数据都只会在 <code>__init</code> 阶段被初始化，而且之后不会被改变。使用 <code>__ro_after_init</code> 标记的内存，在 init 阶段结束后，不能够被再次修改。</p>
+<p>我们可以使用 <code>set_memory_rw(unsigned long addr, int numpages)</code> 来修改对应页的权限。</p>
+<h3 id="mmap-min-addr"><a href="#mmap-min-addr" class="headerlink" title="mmap_min_addr"></a>mmap_min_addr</h3><p>mmap_min_addr 是用来对抗 NULL Pointer Dereference 的，指定用户进程通过 mmap 可以使用的最低的虚拟内存地址。</p>
+<h1 id="异常检测"><a href="#异常检测" class="headerlink" title="异常检测"></a>异常检测</h1><blockquote>
+<p>通过对内核中发生的异常行为进行检测，我们可以缓解一定的攻击。</p>
+</blockquote>
+<h2 id="Kernel-Stack-Canary"><a href="#Kernel-Stack-Canary" class="headerlink" title="Kernel Stack Canary"></a>Kernel Stack Canary</h2><p>Canary 是一种典型的检测机制。在 Linux 内核中，Canary 的实现是与架构相关的，所以这里我们分别从不同的架构来介绍。</p>
+<p>正常的pwn栈题里有时也会开canary，想必应该知道什么意思吧。：）</p>
+<p>在 x86 架构中，同一个 task 中使用相同的 Canary。</p>
+<blockquote>
+<p>在编译内核时，我们可以设置 CONFIG_CC_STACKPROTECTOR 选项，来开启该保护。</p>
+<p>我们需要重新编译内核，并关闭编译选项才可以关闭 Canary 保护。</p>
+</blockquote>
+<p>根据 x86 架构下 Canary 实现的特点，我们只要泄漏了一次系统调用中的 Canary，同一 task 的其它系统调用中的 Canary 也就都被泄漏了。</p>
+<h1 id="随机化"><a href="#随机化" class="headerlink" title="随机化"></a>随机化</h1><p>内核中可以使用随机性来提高安全性</p>
+<h2 id="KASLR"><a href="#KASLR" class="headerlink" title="KASLR"></a>KASLR</h2><blockquote>
+<p>在开启了 KASLR 的内核中，内核的代码段基地址等地址会整体偏移。</p>
+</blockquote>
+<p>如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>kaslr</code> 来开启 KASLR。</p>
+<p>如果是使用 qemu 启动的内核，我们可以在 <code>-append</code> 选项中添加 <code>nokaslr</code> 来关闭 KASLR。</p>
+<p>通过泄漏内核某个段的地址，就可以得到这个段内的所有地址。比如当我们泄漏了内核的代码段地址，就知道内核代码段的所有地址。</p>
+<h2 id="FGKASLR"><a href="#FGKASLR" class="headerlink" title="FGKASLR"></a>FGKASLR</h2><p>鉴于 KASLR 的不足，有研究者实现了 FGKASLR。FGKASLR 在 KASLR 基地址随机化的基础上，在加载时刻，以函数粒度重新排布内核代码。</p>
+<p>FGKASLR 的实现相对比较简单，主要在两个部分进行了修改。目前，FGKASLR 只支持 x86_64 架构。</p>
+<h3 id="编译阶段"><a href="#编译阶段" class="headerlink" title="编译阶段"></a>编译阶段</h3><p>FGKASLR 利用 gcc 的编译选项 <code>-ffunction-sections</code> 把内核中不同的函数放到不同的 section 中。 在编译的过程中，任何使用 C 语言编写的函数以及不在特殊输入节的函数都会单独作为一个节；使用汇编编写的代码会位于一个统一的节中。</p>
+<p>编译后的 vmlinux 保留了所有的节区头（Section Headers），以便于知道每个函数的地址范围。同时，FGKASLR 还有一个重定位地址的扩展表。通过这两组信息，内核在解压缩后就可以乱序排列函数。</p>
+<p>最后的 binary 的第一个段包含了一个合并节（由若干个函数合并而成）、以及若干其它单独构成一个节的函数。</p>
+<h3 id="加载阶段"><a href="#加载阶段" class="headerlink" title="加载阶段"></a>加载阶段</h3><p>在解压内核后，会首先检查保留的符号信息，然后寻找需要随机化的 <code>.text.*</code> 节区。其中，第一个合并的节区 (<code>.text</code>) 会被跳过，不会被随机化。后面节区的地址会被随机化，但仍然会与 <code>.text</code> 节区相邻。同时，FGKASLR 修改了已有的用于更新重定位地址的代码，不仅考虑了相对于加载地址的偏移，还考虑了函数节区要被移动到的位置。</p>
+<p>为了隐藏新的内存布局，/proc/kallsyms 中符号使用随机的顺序来排列。在 v4 版本之前，该文件中的符号按照字母序排列。</p>
+<p>通过分析代码，我们可以知道，在 <code>layout_randomized_image</code> 函数中计算了最终会随机化的节区，存储在 sections 里。</p>
+<figure class="highlight c"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * now we need to walk through the section headers and collect the</span></span><br><span class="line"><span class="comment"> * sizes of the .text sections to be randomized.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; shnum; i++) {</span><br><span class="line">    s = &amp;sechdrs[i];</span><br><span class="line">    sname = secstrings + s-&gt;sh_name;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (s-&gt;sh_type == SHT_SYMTAB) {</span><br><span class="line">        <span class="comment">/* only one symtab per image */</span></span><br><span class="line">        <span class="keyword">if</span> (symtab)</span><br><span class="line">            error(<span class="string">"Unexpected duplicate symtab"</span>);</span><br><span class="line"></span><br><span class="line">        symtab = <span class="built_in">malloc</span>(s-&gt;sh_size);</span><br><span class="line">        <span class="keyword">if</span> (!symtab)</span><br><span class="line">            error(<span class="string">"Failed to allocate space for symtab"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">memcpy</span>(symtab, output + s-&gt;sh_offset, s-&gt;sh_size);</span><br><span class="line">        num_syms = s-&gt;sh_size / <span class="keyword">sizeof</span>(*symtab);</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (s-&gt;sh_type == SHT_STRTAB &amp;&amp; i != ehdr-&gt;e_shstrndx) {</span><br><span class="line">        <span class="keyword">if</span> (strtab)</span><br><span class="line">            error(<span class="string">"Unexpected duplicate strtab"</span>);</span><br><span class="line"></span><br><span class="line">        strtab = <span class="built_in">malloc</span>(s-&gt;sh_size);</span><br><span class="line">        <span class="keyword">if</span> (!strtab)</span><br><span class="line">            error(<span class="string">"Failed to allocate space for strtab"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">memcpy</span>(strtab, output + s-&gt;sh_offset, s-&gt;sh_size);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(sname, <span class="string">".text"</span>)) {</span><br><span class="line">        <span class="keyword">if</span> (text)</span><br><span class="line">            error(<span class="string">"Unexpected duplicate .text section"</span>);</span><br><span class="line"></span><br><span class="line">        text = s;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(sname, <span class="string">".data..percpu"</span>)) {</span><br><span class="line">        <span class="comment">/* get start addr for later */</span></span><br><span class="line">        percpu = s;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!(s-&gt;sh_flags &amp; SHF_ALLOC) ||</span><br><span class="line">        !(s-&gt;sh_flags &amp; SHF_EXECINSTR) ||</span><br><span class="line">        !(strstarts(sname, <span class="string">".text"</span>)))</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">    sections[num_sections] = s;</span><br><span class="line"></span><br><span class="line">    num_sections++;</span><br><span class="line">}</span><br><span class="line">sections[num_sections] = <span class="literal">NULL</span>;</span><br><span class="line">sections_size = num_sections;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到，只有同时满足以下条件的节区才会参与随机化</p>
+<ul>
+<li>节区名以 .text 开头</li>
+<li>section flags 中包含<code>SHF_ALLOC</code></li>
+<li>section flags 中包含<code>SHF_EXECINSTR</code></li>
+</ul>
+<p>因此，通过以下命令，我们可以知道</p>
+<ul>
+<li>__ksymtab 不会参与随机化</li>
+<li>.data 不会参与随机化</li>
+</ul>
+<p><img src="/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/3.png"></p>
+<h3 id="启动阶段"><a href="#启动阶段" class="headerlink" title="启动阶段"></a>启动阶段</h3><p>在启动阶段，FGKASLR</p>
+<ul>
+<li>需要解析内核的 ELF 文件来获取需要随机化的节区。</li>
+<li>会调用随机数生成器来确定每个节区需要存储的地址，并进行布局。</li>
+<li>会将原有解压的内核拷贝到另外一个地方，以便于避免内存破坏。</li>
+<li>会增加内核需要重定位的次数。</li>
+<li>需要检查每一个需要重定位的地址是否位于随机化的节区，如果是的话，需要调整一个新的偏移。</li>
+<li>会重新排列那些需要按照地址排序的数据表。</li>
+</ul>
+<p>在一个现代化的系统上，启动一个测试的 VM，大概花费了 1s。</p>
+<h3 id="运行阶段"><a href="#运行阶段" class="headerlink" title="运行阶段"></a>运行阶段</h3><p>运行阶段的开开启销其实主要取决于具体的负载。不过由于原先相邻的函数可能被随机化被放在不同的地址，所以相对而言，整体性能应该会有所降低。</p>
+<h3 id="open-amp-close"><a href="#open-amp-close" class="headerlink" title="open &amp; close"></a>open &amp; close</h3><p>如果想要开启内核的 FGKASLR，你需要开启 <code>CONFIG_FG_KASLR=y</code> 选项。</p>
+<p>FGKASLR 也支持模块的随机化，尽管 FGKASLR 只支持 x86_64 架构下的内核，但是该特性可以支持其它架构下的模块。我们可以使用 <code>CONFIG_MODULE_FG_KASLR=y</code> 来开启这个特性。</p>
+<p>通过在命令行使用 <code>nokaslr</code> 关闭 KASLR 也同时会关闭 FGKASLR。当然，我们可以单独使用 <code>nofgkaslr</code> 来关闭 FGKASLR。</p>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><p>根据 FGKASLR 的特点，我们可以发现它具有以下缺陷</p>
+<ul>
+<li><p>函数粒度随机化，如果函数内的某个地址知道了，函数内部的相对地址也就知道了。</p>
+</li>
+<li><p>.text节区不参与函数随机化。因此，一旦知道其中的某个地址，就可以获取该节区所有的地址。有意思的是系统调用的入口代码都在该节区内，主要是因为这些代码都是汇编代码。此外，该节区具有以下一些不错的 gadget</p>
+<ul>
+<li>swapgs_restore_regs_and_return_to_usermode，该部分的代码可以帮助我们绕过 KPTI 防护</li>
+<li>memcpy 内存拷贝</li>
+<li>sync_regs，可以把 RAX 放到 RDI 中</li>
+</ul>
+</li>
+<li><p>__ksymtab相对于内核镜像的偏移是固定的。因此，如果我们可以泄露数据，那就可以泄露出其它的符号地址，如 prepare_kernel_cred、commit_creds。具体方式如下</p>
+<ul>
+<li>基于内核镜像地址获取 __ksymtab 地址</li>
+<li>基于 __ksymtab 获取对应符号记录项的地址</li>
+<li>根据符号记录项中具体的内容来获取对应符号的地址</li>
+</ul>
+</li>
+<li><p>data 节区相对于内核镜像的偏移也是固定的。因此在获取了内核镜像的基地址后，就可以计算出数据区数据的地址。这个节区有一些可以重点关注的数据</p>
+<ul>
+<li>modprobe_path</li>
+</ul>
+</li>
+</ul>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/kernel-mode/defense/readme/">https://ctf-wiki.org/pwn/linux/kernel-mode/defense/readme/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/commit/15385dfe7e0fa6866b204dd0d14aec2cc48fc0a7">https://github.com/torvalds/linux/commit/15385dfe7e0fa6866b204dd0d14aec2cc48fc0a7</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9A%94%E7%A6%BB"><span class="toc-number">1.</span> <span class="toc-text">隔离</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#SMEP"><span class="toc-number">1.1.</span> <span class="toc-text">SMEP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-SMEP"><span class="toc-number">1.1.1.</span> <span class="toc-text">attack SMEP</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SMAP"><span class="toc-number">1.2.</span> <span class="toc-text">SMAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-SMAP"><span class="toc-number">1.2.1.</span> <span class="toc-text">attack SMAP</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#KPTI"><span class="toc-number">1.3.</span> <span class="toc-text">KPTI</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#attack-KPTI"><span class="toc-number">1.3.1.</span> <span class="toc-text">attack KPTI</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%A1%B5%E8%A1%A8"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">修改页表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SWITCH-TO-USER-CR3-STACK"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">SWITCH_TO_USER_CR3_STACK</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#iret"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">iret</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sysret"><span class="toc-number">1.3.1.4.</span> <span class="toc-text">sysret</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E9%83%A8%E9%9A%94%E7%A6%BB"><span class="toc-number">1.4.</span> <span class="toc-text">内部隔离</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">访问控制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#dmesg-restrict"><span class="toc-number">2.1.</span> <span class="toc-text">dmesg_restrict</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kptr-restrict"><span class="toc-number">2.2.</span> <span class="toc-text">kptr_restrict</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#misc"><span class="toc-number">2.3.</span> <span class="toc-text">misc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ro-after-init"><span class="toc-number">2.3.1.</span> <span class="toc-text">__ro_after_init</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mmap-min-addr"><span class="toc-number">2.3.2.</span> <span class="toc-text">mmap_min_addr</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B"><span class="toc-number">3.</span> <span class="toc-text">异常检测</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kernel-Stack-Canary"><span class="toc-number">3.1.</span> <span class="toc-text">Kernel Stack Canary</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9A%8F%E6%9C%BA%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">随机化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#KASLR"><span class="toc-number">4.1.</span> <span class="toc-text">KASLR</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FGKASLR"><span class="toc-number">4.2.</span> <span class="toc-text">FGKASLR</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%AF%91%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.1.</span> <span class="toc-text">编译阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.2.</span> <span class="toc-text">加载阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.3.</span> <span class="toc-text">启动阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E9%98%B6%E6%AE%B5"><span class="toc-number">4.2.4.</span> <span class="toc-text">运行阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#open-amp-close"><span class="toc-number">4.2.5.</span> <span class="toc-text">open &amp; close</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="toc-number">4.2.6.</span> <span class="toc-text">缺点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">5.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;text=kernel pwn（三）防御机制"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;is_video=false&amp;description=kernel pwn（三）防御机制"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel pwn（三）防御机制&amp;body=Check out this article: http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;title=kernel pwn（三）防御机制"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;name=kernel pwn（三）防御机制&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/21/kernel-pwn%EF%BC%88%E4%B8%89%EF%BC%89%E9%98%B2%E5%BE%A1%E6%9C%BA%E5%88%B6/&amp;t=kernel pwn（三）防御机制"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>

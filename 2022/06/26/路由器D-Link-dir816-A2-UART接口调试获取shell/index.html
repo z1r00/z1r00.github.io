@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="Welcome to my blog, enter password to read.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="路由器D-Link dir816 A2 UART接口调试获取shell">
+<meta property="og:url" content="http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="Welcome to my blog, enter password to read.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-26T06:26:30.000Z">
+<meta property="article:modified_time" content="2022-06-27T08:55:15.896Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>路由器D-Link dir816 A2 UART接口调试获取shell</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2022/07/02/ciscn-2022-%E5%8D%8E%E4%B8%9C%E5%8C%97%E5%88%86%E5%8C%BA%E8%B5%9Bpwn-wp/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2022/04/11/vm-pwn%E5%AD%A6%E4%B9%A0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;text=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;is_video=false&amp;description=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=路由器D-Link dir816 A2 UART接口调试获取shell&amp;body=Check out this article: http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;name=路由器D-Link dir816 A2 UART接口调试获取shell&amp;description=Welcome to my blog, enter password to read."><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;t=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        路由器D-Link dir816 A2 UART接口调试获取shell
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-06-26T06:26:30.000Z" itemprop="datePublished">2022-06-26</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E8%B7%AF%E7%94%B1%E5%99%A8/">路由器</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="a89e7f03fd5f7e2b8d38d6f47db6ab31e98a26283abb18ca05989a317b6ff716">884646ea77f1c24152dc1cbf2d86e034938a171fd5d6382c51a23e90dd0aaf13b40fb2a80e43d684436e4de8fe1b237d42f022dc2947b3576dde2560f4abce5ff45ab17e1e7a6898d4682ac3bbd5cf24e0f149d551b7c7b3a39e6b9f98633124b349e62400208c2746f46688b9f586057f9788ed880d0e725fdb6a289b09b59197321ff644dd346ce993a72017e42f84e90e057700547fdd1d2afa04d84924f8cb198b2df9573d92c044def686b2d0077b270ed4bd878c2921df2c9909434607838fce1617f3d03b6585696702674c70aa5faee1879b7e7f5e30b8cfc293df116d9bedb34a4d76ecf383189ef071569c01c6089472c80c22dac4ef483488d2ef2229b449a0857e7f459ab3dd24ca8c5729f3523c3fcd21da032456f80fd248315f0526e069c4b655f9bb13dedcc77beee7c00b7733744c5e1d5053b8474aa6291f8a23c33391cdebd82f26f8a706500a787691fe6d91bf4b6d55d310fe0eafc21f5881d5cf2b902e7437bef6cb62faa6a0f99d57843685472d838ae14ba5f9924a77b2d1d895ec6847c96c5a5986453c9a9728d95fe816d5420e2cee140d245d3bbc113ccfc5551e63420c2d6aef054f2e3035f3ca053e5ab0fb22a00b1b12ad6871329f1ed1455ca8939ef5a400085d0c10a0409211ee1c387ab315625d4bc7a50bddf3c2c87f37cc469cb095831693fc3a8f2bd6d1366ce706b5ea9f4b7bb96a8a0f1b999b90b49925641048f036ffb89de649da80996c94357c54fdda9e72b5ec19cafe387393915566b4f9972eee9753c2089856871bf4e11d82dda3477e60059b794d4819ee7f77c398aa9ec6a3adc8838ed29c7bae9eb1263eabd4157185e498e7470662a67eebe65fc47c21f6ae5245cad47e1b0b58d64bcd1406cab70618e1ab21961c3e252382d5655c6abf4575713000dc2d4180289492edc889aba0e997044d1d6e1ee28b29efee99242d73bdf74cf6ed30f7ce168afc70283e51de0dddbdb96a80e3146461fb2e0f968b81dc93597d21b4cd68e71ea2deee02c6c4aa205cbd68bd25d4ae97c6613f8e4b6490cbd4d478261098ab4a632c910b2be108041af08abc6675eecaa261b017ccb1e5ec5b3832c3796589133eaa5a34eff3b95a221c50805be7106bdc18cdc590bd42feb920ca68efd749d7944b54728e836cbc70c02722777e0a68f781aa2fc661f2bf4bf6cbd9825b20ed8021c05b7431850c6423f780a589e02876c9040d262f6489de781492d42816ae94cc59b621c6badf261418785d34c0a3eb222ff3aec9bc005ee1ce9a7d0db33d0cd2f1fec915c8f33d7beb264ee9d9b7a854de7327fb341f271f2b318c4d7d903db6c1ca082845c0ae7522adf1ea54508b9376ae259fbce6b916a5ec90c2d4e70100078e8637c59fb6dbb0f498c779b505d2ae12516e6d88d9c277187a4ed82f223fb4e188c7eb4810d1f36792fa944c2097f416d6ebc0213dd5f754eb7d9069f7bf4c612ef715617b2d1454773102cfff08e2fcd67d971344eb88ca5fa461e4468f5102ab344484f155ac16c26129bb03c7010cf261f42e64f8de1b6bd1a690ae2ced938e5f806516c724a4555228b92cae9a85e27744346cb22a6f78a636e1c84adb1dea85a8721533e677e86cafdb7ea1c34998766a20f6817306159e9649e8e7c0bff4d9e952b8418b693bfe1529c042c0c6d5b153dae2dad8ec339c8c5a1a1f1584f617e2d5d25c1ec52703c58844de67c1592e110d39d3aa7cecc1d5531f95677a6325521448bfaaa4cebf975268809854ac65241a46238d8cfe7cdd164d029117db527853110fc15b6c7593a426fe198136d5dc249106214e77c246f2b82927ed6d4f7266fda904ff0ea51f8e36e8ed37cfad59ed4f9a61c445607cfa450aa4fb234395ed68786eca59ab61a203d17d6efcc72b2c19ac1ed01b3cd7caede98b4472f3ae695848900ebfa80c85250f8a253f0376fcba8efcdc8689095060cba2df0e71395853cb725ba793310cc8741d51364df445694b42cef30f9da195b420bc532b1146f53efeedd474692230f3ff687b86fb4760ab1b5374212fe59d5ddc238069fb2e582a81698ce366bb26bb81c76fb86ca3607df660da9d8db5e729c4ffc00a3da5e648f58d03d5f376ed72051145e22d3e94029b7fff4ba63d94ff7cd57b6193c450a51b4a1d52c50f2640280ea7858448b2661bf379649fc0ec31b3fd815f416065b750211afa50e4702dec7df32d404a08dafdf2c55f3c795012a60f61c1bc06df0849d49a87cc209c2516cea793fd97c6d888c197738ec21bc1529175669248b62b2b3321dc4f13825dc4f8c8d7455f4857749133fff79f6f7d0f1eed4b006464b8b2652e75bc057fb715ddc771a37cb663b1c159e9ebee5c2ee5d6bca0db81b3552aaa2dc1234ecca01f86c40fd6afaa4661934e49f3bb18baa073da5f859308a93e360688e6e07c1de1c55ca2cef4a5c666c0dc0eab136208f631b2d31aeee21941e58baab580497db3965380cacc43af4c8bfbbc5ac5f929f945faf5f522f73dd5be542e7778c4b27e65730462acbab3f18728b2164b093f0ac1dfeeea59e9774adb0d185c21415f72d69d865bcc6b0e995b86c1d3fb11093b4535106c6cb55b56beb4e22df69f32928eee64011755fa46e88b03acf5a43a9d98094d3c51541fccf53a1306deea10ecaf3b837bce6b1f558303230232183c89a2c128a8eefdf53343c005c6cd848f20bb3ae79840b5f450ee3f0cf80b15808e57bdbc7533ca7e5a665bfb5fdba1f2ba569f49ca2d536dc39aa4e30dbc9ef2dd761c0432bc0dee71ad61c0bd8738b971aa94ffb3fb95596c05e71f86b441b9c4bc475645e7f3719bdf87b89bc03568b34861569c760fe924b6d078ba4bc87b41e73789bbdab9fc5889eb35e3f65a1ac0791dc97353819728f35b6d96ee234eaac1265e72e6f7351f9cec06d4d2aecb1adb0cf8d1e94452a2b90ec6f3a1f2b8e074f2239f8666e80017533f20555eb48c86d8393d37c76998f899293d10b92aff034c9028fe3b9cd00fc5e771a2bfa0f1649132e504ac0995ea578481ea7b510d6d8bd7d8d3c125956f28270acd8c54a1ead35ba8852994073cdb1dab7a593829649ab9b434721e7ecb3b6c914028c1f51415cd0c4cf7e87e83e717702f4d048f057a428b339aa1687a400c79aeb3f4b32dab1cb21f8eef63bb49fc190f742d3f33d98f5ff9f1339b38c8fa7ee2ebef512eeba769daa66c45147aa392fa61435635dfa43ec8d35f395e10a6a60c4e8357af3e35884c5421a9898ffb72f1832c7e492f1397d9f71166dcbbdb5b16526e7ddf6b66164b057d5952c8d35515f918e04efa4ac26ac4d97f110825cbc6f7a7ea7f2eeb1aeae59979b1a4f36b3a8e0c51ff427bdbeeb156cb453d6adfa45feaacdb6e7cad2f0be1a4e16582299762ead23be0a124d7db31283e7e776a76c7e1ce536a5a84e7cb539ae7a01c94ed191c6b73020d961a59aaf322e385584ffd7ed2852be3f8d5a3c8d1277de46892bc1a6c13e2f1a3ac39df2aa71c426066076c30c28af60ca4659ab56eee95e1fe128ce8697843288704d4a487b330ce7a5d44f8d180363aec110e6813778669db88eb59443991d6ba68345c27b27d1e35004795aeaa79f43b78cc8b637f8a7e2010c5dff5f713dcb805aea5ef7faacf6b73303f7cb6220bce2a0d2ff8902e42ca9f71a868860a37f9e07b2b33d56676df09857d059e30d91660893c8067b1e78f7809cd9ed01c1531d9132c8c57ef6995e42ac2ff57e745eb602fba3cdddd1e316318f8f21ec6000c9eaad31adfc8c77464e2a4af0ab74f1a78a823f3097243cc3a9b2bb8fcb217ed36698d5373e352debc995a1ea834263df3d27cfb04145130750f645253e02080bfe16696cb059f22618a3d02f719278b4259cc60ad912640861f579ae3f985f1c47cb66957496c01fa503b0482e646a0939304e72a5fb61ecdec24fe284a0d209c01bc4b3da73136091e8aa38467fa073aae37bfb190085582aa4bd2badf29ae89b614aad6123247fe5534c16a82e76bf1be89f9dc0a2c5469b5e593774c6f93e4d1140a883cc9dbfdf1821435e6602805840c16afa295eb8a3a1554e3c8ef6d25d608b5a8866633a095cc7ada557b10109c880bf5f091a6f0ef0f3ee3942e0a5caa20b31177bc284f6063afafb16397f5491e7dfa547417a5f3b2b2c39f6e6e2ea11d019470d8433975fe28af00ead3f08897568f4407bf6bad69c762b30c3c80c9778b99e3cda9c772924a744fa629f2810f01e47da3b616b164e41e58cd295a951b269d0022027633a462056e4fecc771b7430988ebf71a5831bef22b37f33c6780aed909d61b8409c7e85c349e508e8e18ef72be6f9b4633e9bade622a8d5dc7f7132b802759bbd039e76f3ab7d5648c46bf0944163b559ddc687548010a70a8d1963cb37c10b5450b05a8805bc93091d4f9b0f1c51c82eb6677f8a8058c928d51c55cd70689612fddab5224366a7b200c30930f8dc8c0f13f2e10039fbefced9e4c79dc23b03f92cfcd07398d10ae6b27b558560681e0f326b29e5c8d232e00498c2ba713a6cfa2d063cfb260769ec4e292dac2ba3f0eabd98d44b2b2abb4291aeb9e1a2947331bc014ce2a493a4615d2c623bfa9c4e5f283b4d43d1354010db39891ef59e4de2befb9a61f2c8b5d2f7358362e99f85dffc51f6a09b5c053db65b14c1905b1a5f382d828f260b5eec1295fb9e532d1fb658ba387e0537a7c8278f275b7e250e7029e75573c37caf746e4617921ec27d0d563f5982f8ce56651337325bbbbd0e8b63c60e22622ce1e3533dd772c91a716b81f6f0e2e7c93d19ec7f78decc51ce8f95aeb2ba186116e69d7251931f789e2025d57bd3118a94c099857add48cfe4a9ca70a9fb6a693a5593dbfd7a083b80bf5cf6b1aaefe52a60535bb2dfb35cf4408aa318a889e037ea5c6654bf5430d2b5cabd2fb676ad9c30a0b014c2b5b4b7e4a7637728826d57dbcb90efb7ab3b7c6282e2514cac7c55ec9b468dea5847d0cbee48d5ef7357a989825abd025e9a4af1e717db0444ef2e229c30d8958ecedd94ee4eb053a9c59943d69299f53528536dd1d791c1fe472ac0a035ffc92ee89c95d21f09d81d4682ea8466938e1ebbbc28b3430708508e76309050c9c42a0e460abfb66c97c3dfdf73696fa0ce8a1a969b1ee54e04d06cccde14997fa9a7f2a8b0dc8590f5a71db3ceb75e0ada8d80fc0dacbd77f0746d91b76d2c35dffaaa6430fecb97aba17815b9ab12415cad0235b2b3f615b7f9be37b44b7047ce39ccb750b07fdce8d9f7000fffd77b3322d65cd75bc9cca1850e926e3b105878b8c719b1b867b543ca591a00302301af773279c0e760ecab3f600429819c029fcdb59917bef68d7126cc7fe5b90c4e80a8f9be8333f052c77755e8bd6dee5b7d299099c51f1055bc097e81e9506b7ade3a9e0db0f814ef2132252e82269272ccb205b5bba40cba9953b2e4dab6fd36e431a62a294ada15ed46b4269f923d7561f21c2d9be3f31f2a99a7cc139b331b89aac10bb45bff7c749f924fc9a17094bbd9b43e3f2caaebf1700255de7043a8fe6bd2d0e386be77b2e1289c7731e4c3a9c48690e7f118adb5ba31c93233f32711acf5fc3cb4659dff3320efa6475d4b642d6b6da494f4c4457a4093e359aa61af87ece673a0927c12fb85fd636cd926094fafc301fbc68fb27ae42127b95b4697d1c1e05e3bdfa3bd24d31b90cb6cf6e7d334b745241b5cf952ad8a15ae8ca1628c2ccaf77c032ec3fb738009d5f77a6c9fe92d3d78e3424128f4a35a31ee5cf38182b7f98f5b6c0790dfe761e87d3a715a3809245f40705f28ce548559be592895b1f8a7854678af12bbf57561591471fd5061fe2c21829c0366dca0662fc0644767ef615ec9e11baecdc16ed06af643d76967c98294778382027e995fb93aea71f4b42bf270edc3807c6066e86bfc831ec8d8fe2dbf864202f38c0a5705ee6508dc97935c3feb2b3cab223a24b1aa9b605bdd0bb2d2afb1ee0ec7623811277d53b95403c4abb0ebc242da24b16f9d6ef836c097c259f25a8002f033745df93572040feae82117a5ea805e477e18cda7aa0a0963bd6c737342c34b186212e40dc27641089e9ecb4fb7662923424084066eccf232ef7e6350210b0bfcd49e2d65ee225f569fb6bcd70637473d290afabc58259c7c441b8ec3b3ad5a4a6d15c743c0c908929da859602815c80ef1997b92c204a8b4684b34e4ed44aa4dead09ff3d370dd1dde04c9917b80db27795137b4f8aa92f593e1205b3387d3e3fd99ce8faeb3585f062a5b71479db465b2fbcbaed1b4c6cb1fb503104140dd2f87f959331db3650a0592d6767fa18323e3ca75cb202e3417ff5c7045249e0b7128a9c07e327e9a37d8ee2f78c056e685d76566ff63c860743f37a51db5d6a2a0dc781c64b55b31098ea705bc7d1b77333f8a7a3c8c73e10aaa57955ed39267e155f97a0da8ba71d1e1fc67e37b343c4d7c896e574856108a52c748f9a0d31787ad31598415b33091a4afe7269007e3ef76ea6fb1fce16eef2dc7d28a9b587baea37af8b2676e44d5c2459abf4647da1b5ea7380bb9878bd4a4f7b5c0f5bf681c3824213249b03776d1a67eeaa73e16a3352fb13a90d9de754ef8ef32fdfffe635e5f5b9d8f3ebc0f9f172f4f9d4bf0f41950a225ada29844fea7f078f250e2f464c4d1ad0a24d00fedfe3ef5f02f543b9479b3999ce2ac77ad06df73155e621b5593bfbb2f53a961b3bc6bb3195ff3be6c35e8e66eb1dfd516f287dbc1b6c7016fa7d8a6b1a6c250302f67bf54f6559fc14f8c47bb88e31441cdecd9c66955e74f8ad3fdf8e1f6ae70160f0805d209cafa35aabf7e920913c5f3af72b8f82c4f13ea355d0d3c36851bac98ae6bfd6f95f72aaae5cda7dca9f330f88753688e6871ba25caf2db81d5e126e99f6eb476720db105d75d4a3e8c6f27f783ba61d03d33a6d8deeb62094966c13d97b831522e70920a4248402c0a8a3309f5d257a8674e338e621dd2451b86db711f667f070f76d84bcc71bd4c19a6ce417b36ce5539242510a58461426f9a967c0591f1c096771d5091e19ad6ecded9b7629426ae47bd8773574795bb1d7673d8d6dc4b7fe4dc82a9df08984ea438b605b77ebe55169ac41ebd3f557440ec199d55fe460fac1f0113d95e6147afa6504115282cf7a4a1566092f58dbc1fef33cf586b232d773d8d333cbc4a31c5baba8a46125e0b507edd96526be7cea97d6a6e3b57a91b29384daba7d558d26cd9118eed866a6fef09848ddd2cb2c019f8a272c657a1c9b64a031e362711e4bd3daa838139644cb74945fa90f873324176ecd01892bf623ef61915f5be2719f83061afce3563fc16fb416eef74b38cdac30352f1ee0354c4c79f1399f0a443481961a8e138004c2b723e7d081bebf27a660465bf52c00d7628323409a2d805d2a57d27323208bdc5cb87fd11ee2f082cf9c80ade7a1bc019fef145d41d4c708dd2ef9043d1631cf9c36e43e8ca53525e6f8112757db09254fb6f5b4a70793dcf935523e7d941df17bce01077319bd723238123bbe4e9433c6be36c8350e9924c90fbe9206eb310e800f90fdafdd46be1e77bc743cb5c1571cada86e419c237543ee85d602a14816d0e2f6bcf092fd18835b8ee76a4a70d4a020df822a817857d60fa330671300373550ad5b3925957f82566b27d611d32ab0957f048305d64c5c941e9462e504877b202509569796e066a824106332d3b64f07cc261d561c139bbaaf9097773d1d11e67af2c7debe3ed0b7b132f40e84a8fde183a1a3586013cd421d23c57f2a7823dec16fc9e4c57b0809785d7fd6f9bed3e44a25f5114647b3629721701ca89ed3db1964c4cd0f7a86afc5e2f97052fbd4455f92ba452352ec743f13e73fe2f56c2c68f2e492b55ac206a997ee53651d7dfab8ec7c76f77730f57d5c26cd04a8de9ba9fc4fc891cc645b23f8f2014790bad4b518878e359cee0ef08f8a7b18905b9ce0e0fa5e48036f543e1aba69ff06831b82a33e83a074fccee7765b3848b95946f5d21b0f67f87ede9101f8d1bed1266569c80678bef3d50f156d1993f04fb0fad9875e559974fdaf40acc22db1003721384b09a8f259bcb091a65c16824e10fab2f00f15fc93bbea338d117e05e73e3e74fd3c31c5a6acff90e6245f15b1b90200aa89eec13a4f068bdc53e7fdb0e8241c4d29ac8b965f19071e5466ad1ab5d6fa61a6c86f3ce857b49d6d4d639e011d3c938a4268e5bc97d671b42da31f33de35ae465c0da48839179aa13327d0823b0d9cd66a1e3f10b4527c07a9bba457199c3fff9d31d7c960006148044c76de1172a422973b8088f3dcae1be7b94dd49c660633c60ac0c8a7f66b05f91e707d58f5a73caead2551a4bc4b5a27d871607dff9e41e7791287d26b78661d1604ffbec861976515703fb2befaf369edd7e07692a85397341f87cc3bc74e1eb786cd77b2b00aefdfba48cdefbbbad71b39b1a4ebfd2e5616002a7b2aaf196a302e71748eb9e371feef742b62cbd8f0466cebfed2715187eb73a2b07d3849cdfa21df6cab8a8a3f22a512a36fca8bca4b028b2aa4db64eeea201cf2d608d27634eaa7e2fc000a26a3065198786a32f10be340e3901c339a671cc4cea0861cee263e4785bc3d607b754d7e1ad2f91bf831030b8e0186944963cac5dfa8bf0503e847c163acb9c36b47381d15eaf070f8635a8ae8eb61b46597380bfd3839572b0cd37448f2fa6b87ecd6b2d8c8ac0449d1653b7ef1eb1c78253b11d736c22693539e58be18442021ec39db3427a39242973179102018e11cb143a2dd1456f70ec498524f981f2f2f46fa7e9305d85005bb644a9e86036a53ea5e09d10fb85736cb306778aee785dffbfb7c40fa7fc68b7117cf40cb04325ab34c06c76abe528410ffb428c1e74a0d9a0761ff2a41bc647a759fb6f43bdab88a70d7538aaed691bcef7f4517fbb64dbb7eddc142ef43eb224c7568a5399ec9bf601db05646299520ac62840c2450653f11e711c7253467f7e65826e34d9cb2c92abdaaf90ae529bc8e4624dc92b2299eb8c07ea5728fae8058ec92f30a3511e5b310f4583fea651eda652ffcb70d37179b0572982cfd638bc448b699c6b81e83188513f93f0417e92c9e9ec197d2c54e1563e8bb69f0de8f5c498f5552a21697f8d0a1d2b0eca992b8d65a61a07c105d662a9f985dbc7a5bd7279a5019b1d7916052e1b3b74bc3fa4cc30f2d933b51217f79fbf168f352330a8904923af9f82683d5bd8bb5e352bb8ebdd6bfbaba2274cf4192a19b22f776d8bf5b2c8e11872ea7e67a272164d6257567a918a8e2aa53b1e10bfc6787c0145e8284e1f00867ff7a8c47bf2c94dd473379ae17e77945ba13d6b8e008a11ffaee4acf19c86706e1e803a54d29b145fcd929e9931a8b36721f5de400431f5e6ab97ea8b0466516e0b93f62d9a0</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Welcome to my blog, enter password to read.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax="" src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;text=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;is_video=false&amp;description=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=路由器D-Link dir816 A2 UART接口调试获取shell&amp;body=Check out this article: http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;title=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;name=路由器D-Link dir816 A2 UART接口调试获取shell&amp;description=Welcome to my blog, enter password to read."><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/06/26/%E8%B7%AF%E7%94%B1%E5%99%A8D-Link-dir816-A2-UART%E6%8E%A5%E5%8F%A3%E8%B0%83%E8%AF%95%E8%8E%B7%E5%8F%96shell/&amp;t=路由器D-Link dir816 A2 UART接口调试获取shell"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>
