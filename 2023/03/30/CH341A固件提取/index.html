@@ -1,0 +1,369 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="CH341A编程器在线固件提取 起因是因为对某个路由器进行漏洞挖掘的时候发现官网没有固件下载  需要的工具 CH341A编程器 SOP8测试夹 转接板  可以去taobao买，买的时候选择CH341A编程器+SOP8测试夹即可 需要注意的是笔者买的是8角的，还有16角的是SOP16（需要看一下路由器的flash是哪个，也有NOR flash等等，这里以SOP8来演示）  组装工具首先组装一下S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CH341A编程器在线固件提取">
+<meta property="og:url" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="CH341A编程器在线固件提取 起因是因为对某个路由器进行漏洞挖掘的时候发现官网没有固件下载  需要的工具 CH341A编程器 SOP8测试夹 转接板  可以去taobao买，买的时候选择CH341A编程器+SOP8测试夹即可 需要注意的是笔者买的是8角的，还有16角的是SOP16（需要看一下路由器的flash是哪个，也有NOR flash等等，这里以SOP8来演示）  组装工具首先组装一下S">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/1.jpg">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/2.jpg">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/3.jpg">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/4.jpg">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/5.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/6.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/7.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/8.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/9.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/10.jpg">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/11.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/12.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/13.png">
+<meta property="og:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/14.png">
+<meta property="article:published_time" content="2023-03-30T10:36:03.000Z">
+<meta property="article:modified_time" content="2023-03-30T11:54:46.942Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="IOT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/1.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>CH341A编程器在线固件提取</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2099/12/08/diary/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2023/03/23/AFL-fuzz%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;text=CH341A编程器在线固件提取"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;is_video=false&amp;description=CH341A编程器在线固件提取"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CH341A编程器在线固件提取&amp;body=Check out this article: http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;name=CH341A编程器在线固件提取&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;t=CH341A编程器在线固件提取"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CH341A%E7%BC%96%E7%A8%8B%E5%99%A8%E5%9C%A8%E7%BA%BF%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96"><span class="toc-number">1.</span> <span class="toc-text">CH341A编程器在线固件提取</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">需要的工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">1.2.</span> <span class="toc-text">组装工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CH341A%E9%A9%B1%E5%8A%A8%E5%AE%89%E8%A3%85"><span class="toc-number">1.3.</span> <span class="toc-text">CH341A驱动安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8%E7%BA%BF%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96"><span class="toc-number">1.4.</span> <span class="toc-text">在线固件提取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">2.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        CH341A编程器在线固件提取
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-03-30T10:36:03.000Z" itemprop="datePublished">2023-03-30</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/">固件提取</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/IOT/" rel="tag">IOT</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <font size="3">
+
+<h1 id="CH341A编程器在线固件提取"><a href="#CH341A编程器在线固件提取" class="headerlink" title="CH341A编程器在线固件提取"></a>CH341A编程器在线固件提取</h1><blockquote>
+<p>起因是因为对某个路由器进行漏洞挖掘的时候发现官网没有固件下载</p>
+</blockquote>
+<h2 id="需要的工具"><a href="#需要的工具" class="headerlink" title="需要的工具"></a>需要的工具</h2><ul>
+<li>CH341A编程器</li>
+<li>SOP8测试夹</li>
+<li>转接板</li>
+</ul>
+<p>可以去taobao买，买的时候选择CH341A编程器+SOP8测试夹即可</p>
+<p>需要注意的是笔者买的是8角的，还有16角的是SOP16（需要看一下路由器的flash是哪个，也有NOR flash等等，这里以SOP8来演示）</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/1.jpg" alt="1"></p>
+<h2 id="组装工具"><a href="#组装工具" class="headerlink" title="组装工具"></a>组装工具</h2><p>首先组装一下SOP8测试夹+转接板</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/2.jpg" alt="2"></p>
+<p>红色线对应1的位置</p>
+<p>确保CH341A编程器的黄色条线帽在1-2位置连接好</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/3.jpg" alt="3"></p>
+<p>然后是将转接板与CH341A编程器进行连接</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/4.jpg" alt="4"></p>
+<p>到了这里组装完成</p>
+<h2 id="CH341A驱动安装"><a href="#CH341A驱动安装" class="headerlink" title="CH341A驱动安装"></a>CH341A驱动安装</h2><p>笔者用的windows 10，然后用<code>Asprogrammer</code>的时候会报错，报错原因是没有装驱动</p>
+<p>这个网站里有对应的驱动，下载即可<a target="_blank" rel="noopener" href="https://www.wch.cn/downloads/CH341SER_EXE.html">https://www.wch.cn/downloads/CH341SER_EXE.html</a></p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/5.png" alt="5"></p>
+<p>直接点击安装就行，安装完成之后右击计算机，点击管理，然后找到CH341A这个usb设备（记得插到电脑上），右击，点击属性，驱动程序，更新驱动程序，点击浏览我的电脑以查找驱动程序</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/6.png" alt="6"></p>
+<p>然后点击让我从计算机上的可用驱动程序列表中选取，找到端口（COM和LPT）</p>
+<p>然后找一下wch.cn，找到对应的CH341A</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/7.png" alt="7"></p>
+<p>然后下一页，继续，好了之后就可以在管理的端口（COM和LPT）里看到对应的CH341A</p>
+<p>但是还是没有用，接下来点击设置，windows更新，点击查看所有可选更新，找到驱动程序更新里的wch.cn</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/8.png" alt="8"></p>
+<p>勾选，然后下载并安装</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/9.png" alt="9"></p>
+<p>安装完成之后就可以在外部接口里看到对应的CH341A</p>
+<p>至此驱动安装完成</p>
+<h2 id="在线固件提取"><a href="#在线固件提取" class="headerlink" title="在线固件提取"></a>在线固件提取</h2><p>把SOP8的夹子夹到8角的flash上，路由器不用插电，看自己有没有夹对就是看夹完之后路由器前面的灯亮不亮</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/10.jpg" alt="10"></p>
+<p>然后打开Asprogrammer软件，下载地址：<a target="_blank" rel="noopener" href="https://github.com/YTEC-info/CH341A-Softwares">https://github.com/YTEC-info/CH341A-Softwares</a></p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/11.png" alt="11"></p>
+<p>点击自动检测，成功后会弹出型号</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/12.png" alt="12"></p>
+<p>选中符合条件之后点击read ic</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/13.png" alt="13"></p>
+<p>下面的进度条代表正在读取固件</p>
+<p>读取完成之后就可以保存这个固件了</p>
+<p><img src="/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/14.png" alt="14"></p>
+<p>保存完成之后就可以愉快的固件漏洞挖掘了，至此利用CH341A进行在线固件提取就完成了</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个过程也是笔者自己慢慢找资料弄出来的，中间经历过失败也买错了东西，但是当完成的那一刻感觉很值得！</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p><a target="_blank" rel="noopener" href="https://macoshome.com/hackintosh/hcourse/8672.html">https://macoshome.com/hackintosh/hcourse/8672.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.wch.cn/downloads/CH341SER_EXE.html">https://www.wch.cn/downloads/CH341SER_EXE.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1MU4y1d78x/?vd_source=24a2b4fd0cbfe31385800372c26e55ce">https://www.bilibili.com/video/BV1MU4y1d78x/?vd_source=24a2b4fd0cbfe31385800372c26e55ce</a></p>
+</font>
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CH341A%E7%BC%96%E7%A8%8B%E5%99%A8%E5%9C%A8%E7%BA%BF%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96"><span class="toc-number">1.</span> <span class="toc-text">CH341A编程器在线固件提取</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">需要的工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E8%A3%85%E5%B7%A5%E5%85%B7"><span class="toc-number">1.2.</span> <span class="toc-text">组装工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CH341A%E9%A9%B1%E5%8A%A8%E5%AE%89%E8%A3%85"><span class="toc-number">1.3.</span> <span class="toc-text">CH341A驱动安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8%E7%BA%BF%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96"><span class="toc-number">1.4.</span> <span class="toc-text">在线固件提取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Reference"><span class="toc-number">2.</span> <span class="toc-text">Reference</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;text=CH341A编程器在线固件提取"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;is_video=false&amp;description=CH341A编程器在线固件提取"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CH341A编程器在线固件提取&amp;body=Check out this article: http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;title=CH341A编程器在线固件提取"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;name=CH341A编程器在线固件提取&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/03/30/CH341A%E5%9B%BA%E4%BB%B6%E6%8F%90%E5%8F%96/&amp;t=CH341A编程器在线固件提取"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2023
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00?tab=repositories">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>
