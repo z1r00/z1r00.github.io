@@ -4,12 +4,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_p">
+    <meta name="description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_plu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IO_FILE-2.23劫持vtable、FSOP、house of orange">
 <meta property="og:url" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_p">
+<meta property="og:description" content="这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。  IO_FILE-2.23劫持vtable、FSOP、house of orangevtable劫持原理首先需要知道_IO_FILE_plus这个结构体位于/libio/libioP.h，如下所示 12345struct _IO_FILE_plu">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/2.png">
 <meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/3.png">
@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/6.png">
 <meta property="og:image" content="http://example.com/2021/10/09/IO-FILE-2-23%E5%8A%AB%E6%8C%81vtable%E5%8F%8AFSOP/7.png">
 <meta property="article:published_time" content="2021-10-09T07:20:04.000Z">
-<meta property="article:modified_time" content="2022-08-31T14:30:55.791Z">
+<meta property="article:modified_time" content="2023-08-17T06:31:39.575Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
@@ -51,6 +51,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -162,9 +164,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="3">
-
-<blockquote>
+    <blockquote>
 <p>这个文章的利用争对2.23的版本，主要是在初学io之后学习一下老版本的简单的io利用，因为2.24就加入了vtable检查机制无法再构造vtable。</p>
 </blockquote>
 <h1 id="IO-FILE-2-23劫持vtable、FSOP、house-of-orange"><a href="#IO-FILE-2-23劫持vtable、FSOP、house-of-orange" class="headerlink" title="IO_FILE-2.23劫持vtable、FSOP、house of orange"></a>IO_FILE-2.23劫持vtable、FSOP、house of orange</h1><h2 id="vtable劫持原理"><a href="#vtable劫持原理" class="headerlink" title="vtable劫持原理"></a>vtable劫持原理</h2><p>首先需要知道<code>_IO_FILE_plus</code>这个结构体位于<code>/libio/libioP.h</code>，如下所示</p>
@@ -265,7 +265,7 @@
 
 
 
-</font>
+
   </div>
 </article>
 

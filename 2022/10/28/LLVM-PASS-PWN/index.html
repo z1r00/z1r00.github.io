@@ -4,12 +4,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进">
+    <meta name="description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LLVM PASS PWN（一）">
 <meta property="og:url" content="http://example.com/2022/10/28/LLVM-PASS-PWN/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进">
+<meta property="og:description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/1.png">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/2.png">
@@ -20,7 +20,7 @@
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/7.png">
 <meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/8.png">
 <meta property="article:published_time" content="2022-10-28T12:09:40.000Z">
-<meta property="article:modified_time" content="2022-10-28T04:44:50.779Z">
+<meta property="article:modified_time" content="2023-08-17T06:33:00.391Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
@@ -53,6 +53,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -164,9 +166,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="3">
-
-<blockquote>
+    <blockquote>
 <p>CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正</p>
 </blockquote>
 <h1 id="LLVM-PASS-PWN（一）"><a href="#LLVM-PASS-PWN（一）" class="headerlink" title="LLVM PASS PWN（一）"></a>LLVM PASS PWN（一）</h1><h2 id="前置知识简述"><a href="#前置知识简述" class="headerlink" title="前置知识简述"></a>前置知识简述</h2><h3 id="为什么要编译程序"><a href="#为什么要编译程序" class="headerlink" title="为什么要编译程序"></a>为什么要编译程序</h3><p>机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设计之后，机器能识别高电平还是低电平，刚好与2进制很相似，想输入0就给机器输入低电平，想输入1，就给机器输入高电平，所以就看到了1和0的表示形式</p>
@@ -277,7 +277,7 @@
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/122522485">https://zhuanlan.zhihu.com/p/122522485</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.homedt.net/196837.html">https://www.homedt.net/196837.html</a></p>
 <p><a target="_blank" rel="noopener" href="https://llvm.org/docs/WritingAnLLVMPass.html">https://llvm.org/docs/WritingAnLLVMPass.html</a></p>
-</font>
+
   </div>
 </article>
 

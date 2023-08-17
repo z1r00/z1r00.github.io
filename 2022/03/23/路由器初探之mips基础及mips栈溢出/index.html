@@ -4,12 +4,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》    MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通">
+    <meta name="description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》  MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通用寄">
 <meta property="og:type" content="article">
 <meta property="og:title" content="路由器初探之mips基础及mips栈溢出">
 <meta property="og:url" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》    MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通">
+<meta property="og:description" content="不得不说现在iot是越来越卷了(T_T) mips基础>这里笔者参考了《家用路由器0day漏洞挖掘技术》  MIPS汇编基础 MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器  寄存器MIPS32中的寄存器分为两类：通用寄">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/1.png">
 <meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/2.png">
@@ -17,7 +17,7 @@
 <meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/3.png">
 <meta property="og:image" content="http://example.com/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/5.png">
 <meta property="article:published_time" content="2022-03-23T13:13:59.000Z">
-<meta property="article:modified_time" content="2023-03-26T02:47:03.553Z">
+<meta property="article:modified_time" content="2023-08-17T06:35:45.630Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="IOT">
 <meta name="twitter:card" content="summary">
@@ -50,6 +50,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -165,8 +167,6 @@
 <p>不得不说现在iot是越来越卷了(T_T)</p>
 <p>mips基础&gt;这里笔者参考了《家用路由器0day漏洞挖掘技术》</p>
 </blockquote>
-<font size="4">
-
 <h1 id="MIPS汇编基础"><a href="#MIPS汇编基础" class="headerlink" title="MIPS汇编基础"></a>MIPS汇编基础</h1><blockquote>
 <p>MIPS32的指令中除了加载/存储指令以外，都使用寄存器或者立即数作为操作数，以便让编译器通过保持对寄存器内数据的频繁存取进一步优化代码的生成性能。MIPS32中的寄存器分为两类，分别是通用寄存器(GPR)和特殊寄存器</p>
 </blockquote>
@@ -267,7 +267,7 @@
 <p><img src="/2022/03/23/%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%9D%E6%8E%A2%E4%B9%8Bmips%E5%9F%BA%E7%A1%80%E5%8F%8Amips%E6%A0%88%E6%BA%A2%E5%87%BA/5.png" alt="5"></p>
 <h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><p>《家用路由器0day漏洞挖掘技术》</p>
 <p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6808#toc-8">https://xz.aliyun.com/t/6808#toc-8</a></p>
-</font>
+
   </div>
 </article>
 

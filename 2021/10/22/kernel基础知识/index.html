@@ -4,19 +4,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <meta name="description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些">
+    <meta name="description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些内核，比如微内">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kernel pwn（一）基础知识">
 <meta property="og:url" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
 <meta property="og:site_name" content="z1r0's blog">
-<meta property="og:description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些">
+<meta property="og:description" content="从wiki和其它文章上学习一下kernel pwn的一些基础知识。  kernel基础kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理  Linux内核是单内核结构。单内核效率高，但是体积大，可扩展性和可维护性相对较差。还有其他的一些内核，比如微内">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/1.png">
 <meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/2.png">
 <meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/4.png">
 <meta property="og:image" content="http://example.com/2021/10/22/kernel%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/3.png">
 <meta property="article:published_time" content="2021-10-22T01:43:41.000Z">
-<meta property="article:modified_time" content="2022-05-06T00:48:31.394Z">
+<meta property="article:modified_time" content="2023-08-17T06:32:29.627Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="kernel_pwn">
 <meta name="twitter:card" content="summary">
@@ -49,6 +49,8 @@
     
     <!-- rss -->
     
+    
+      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
     
 	<!-- mathjax -->
 	
@@ -160,9 +162,7 @@
   
 
   <div class="content" itemprop="articleBody">
-    <font size="4">
-
-<blockquote>
+    <blockquote>
 <p>从wiki和其它文章上学习一下kernel pwn的一些基础知识。</p>
 </blockquote>
 <h1 id="kernel基础"><a href="#kernel基础" class="headerlink" title="kernel基础"></a>kernel基础</h1><p>kernel是操作系统的核心，其实也可以看成一个程序。管理硬件设备，为应用程序提供运行环境，其实就是用来管理软件发出的数据 I/O 要求，将这些要求转义为指令，交给 CPU 和计算机中的其他组件处理</p>
@@ -270,7 +270,7 @@
 <p><a target="_blank" rel="noopener" href="https://arttnba3.cn/2021/02/21/NOTE-0X02-LINUX-KERNEL-PWN-PART-I/#0xFF-reference">https://arttnba3.cn/2021/02/21/NOTE-0X02-LINUX-KERNEL-PWN-PART-I/#0xFF-reference</a></p>
 <p><a target="_blank" rel="noopener" href="https://ama2in9.top/2020/09/03/kernel/">https://ama2in9.top/2020/09/03/kernel/</a></p>
 <p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%86%85%E6%A0%B8">https://zh.wikipedia.org/wiki/%E5%86%85%E6%A0%B8</a></p>
-</font>
+
   </div>
 </article>
 
