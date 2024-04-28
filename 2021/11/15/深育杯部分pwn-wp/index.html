@@ -7,18 +7,18 @@
     <meta name="description" content="只能说深育杯被爆打+罚坐，pwn只能干三条（菜狗），目前还没怎么接触v8。抓紧学吧。。。。。。。（大佬们太牛了）等管方wp出来复现一下  find_flag栈溢出啊+格式化字符串还有一个backdoor，这题保护全开，我们需要泄露基地址+canary，最后rop一下就可以cat flag了。  123456789101112131415161718192021222324252627282930">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深育杯部分pwn-wp">
-<meta property="og:url" content="http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="只能说深育杯被爆打+罚坐，pwn只能干三条（菜狗），目前还没怎么接触v8。抓紧学吧。。。。。。。（大佬们太牛了）等管方wp出来复现一下  find_flag栈溢出啊+格式化字符串还有一个backdoor，这题保护全开，我们需要泄露基地址+canary，最后rop一下就可以cat flag了。  123456789101112131415161718192021222324252627282930">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/6.png">
-<meta property="og:image" content="http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/7.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/6.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/7.png">
 <meta property="article:published_time" content="2021-11-15T01:19:34.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:35:05.310Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/6.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/6.png">
     
     
       
@@ -48,11 +48,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -96,17 +95,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;text=深育杯部分pwn-wp"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;is_video=false&amp;description=深育杯部分pwn-wp"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=深育杯部分pwn-wp&amp;body=Check out this article: http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;name=深育杯部分pwn-wp&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;t=深育杯部分pwn-wp"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;text=深育杯部分pwn-wp"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;is_video=false&amp;description=深育杯部分pwn-wp"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深育杯部分pwn-wp&amp;body=Check out this article: https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;name=深育杯部分pwn-wp&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;t=深育杯部分pwn-wp"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -209,17 +208,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;text=深育杯部分pwn-wp"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;is_video=false&amp;description=深育杯部分pwn-wp"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=深育杯部分pwn-wp&amp;body=Check out this article: http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;name=深育杯部分pwn-wp&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;t=深育杯部分pwn-wp"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;text=深育杯部分pwn-wp"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;is_video=false&amp;description=深育杯部分pwn-wp"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深育杯部分pwn-wp&amp;body=Check out this article: https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;title=深育杯部分pwn-wp"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;name=深育杯部分pwn-wp&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/11/15/%E6%B7%B1%E8%82%B2%E6%9D%AF%E9%83%A8%E5%88%86pwn-wp/&amp;t=深育杯部分pwn-wp"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

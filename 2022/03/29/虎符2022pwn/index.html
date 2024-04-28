@@ -7,38 +7,38 @@
     <meta name="description" content="不得不说学到了很多东西  babygame查看保护 保护全开 逆向分析 栈溢出漏洞撞脸上 ，game里面其实就是石头剪刀布游戏  这个里面采取了随机数的方法，但是在主函数内的随机种子可以被覆盖，所以我们可以做到随机数预测。还有一种方法，这个种子是时间，我们在运行这个程序的时候我们也可以使用cdll（python和c的联合编程）同样以时间做为种子和程序一起运行，只要不超过1秒就可以了。这里笔者直接">
 <meta property="og:type" content="article">
 <meta property="og:title" content="虎符CTF 2022 pwn">
-<meta property="og:url" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="不得不说学到了很多东西  babygame查看保护 保护全开 逆向分析 栈溢出漏洞撞脸上 ，game里面其实就是石头剪刀布游戏  这个里面采取了随机数的方法，但是在主函数内的随机种子可以被覆盖，所以我们可以做到随机数预测。还有一种方法，这个种子是时间，我们在运行这个程序的时候我们也可以使用cdll（python和c的联合编程）同样以时间做为种子和程序一起运行，只要不超过1秒就可以了。这里笔者直接">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/2.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/3.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/5.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/6.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/7.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/11.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/8.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/9.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/10.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/12.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/13.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/15.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/16.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/17.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/18.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/19.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/20.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/21.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/22.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/24.png">
-<meta property="og:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/25.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/2.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/3.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/5.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/6.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/7.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/11.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/8.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/9.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/10.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/12.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/13.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/15.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/16.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/17.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/18.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/19.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/20.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/21.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/22.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/24.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/25.png">
 <meta property="article:published_time" content="2022-03-29T01:16:15.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:35:28.321Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/1.png">
     
     
       
@@ -68,11 +68,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -116,17 +115,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -329,17 +328,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;text=虎符CTF 2022 pwn"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;is_video=false&amp;description=虎符CTF 2022 pwn"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=虎符CTF 2022 pwn&amp;body=Check out this article: https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;title=虎符CTF 2022 pwn"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;name=虎符CTF 2022 pwn&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/03/29/%E8%99%8E%E7%AC%A62022pwn/&amp;t=虎符CTF 2022 pwn"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

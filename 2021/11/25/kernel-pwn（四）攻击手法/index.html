@@ -7,28 +7,28 @@
     <meta name="description" content="前面写了kernel pwn的最基础的知识，接下来就是各种各样的攻击手法，但基本都离不开代码审计  Kernel UAF通过前面的知识，回过头再看CISCN2017 - babydriver  题目链接：https://github.com/z1r00/ctf-pwn/tree/main/kernel_pwn/ciscn_babydriver  准备下载tar，然后解压，会出现三个文件，通过前面">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kernel-pwn（四）attack之uaf &amp; rop">
-<meta property="og:url" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="前面写了kernel pwn的最基础的知识，接下来就是各种各样的攻击手法，但基本都离不开代码审计  Kernel UAF通过前面的知识，回过头再看CISCN2017 - babydriver  题目链接：https://github.com/z1r00/ctf-pwn/tree/main/kernel_pwn/ciscn_babydriver  准备下载tar，然后解压，会出现三个文件，通过前面">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/1.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/2.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/3.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/4.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/5.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/6.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/7.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/8.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/9.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/10.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/11.png">
-<meta property="og:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/12.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/1.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/2.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/3.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/4.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/5.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/6.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/7.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/8.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/9.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/10.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/11.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/12.png">
 <meta property="article:published_time" content="2021-11-25T00:53:13.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:32:24.134Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="kernel_pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/1.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/1.png">
     
     
       
@@ -58,11 +58,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -106,17 +105,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;text=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;is_video=false&amp;description=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=kernel-pwn（四）attack之uaf &amp; rop&amp;body=Check out this article: http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;name=kernel-pwn（四）attack之uaf &amp; rop&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;t=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;text=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;is_video=false&amp;description=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel-pwn（四）attack之uaf &amp; rop&amp;body=Check out this article: https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;name=kernel-pwn（四）attack之uaf &amp; rop&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;t=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -379,17 +378,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;text=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;is_video=false&amp;description=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=kernel-pwn（四）attack之uaf &amp; rop&amp;body=Check out this article: http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;name=kernel-pwn（四）attack之uaf &amp; rop&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;t=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;text=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;is_video=false&amp;description=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=kernel-pwn（四）attack之uaf &amp; rop&amp;body=Check out this article: https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;title=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;name=kernel-pwn（四）attack之uaf &amp; rop&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/11/25/kernel-pwn%EF%BC%88%E5%9B%9B%EF%BC%89%E6%94%BB%E5%87%BB%E6%89%8B%E6%B3%95/&amp;t=kernel-pwn（四）attack之uaf &amp; rop"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

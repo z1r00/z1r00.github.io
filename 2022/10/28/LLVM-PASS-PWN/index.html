@@ -7,24 +7,24 @@
     <meta name="description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设">
 <meta property="og:type" content="article">
 <meta property="og:title" content="LLVM PASS PWN（一）">
-<meta property="og:url" content="http://example.com/2022/10/28/LLVM-PASS-PWN/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="CISCN和强网就出了LLVM PASS PWN，笔者没有接触过就直接跳过了，但是随着pwn的难度越来越高LLVM PASS PWN在笔者看来出题的次数会越来越多，笔者写下这一系列文章来记录学习LLVM PASS PWN，如有错误欢迎指正  LLVM PASS PWN（一）前置知识简述为什么要编译程序机器语言是用1和0组成的代码，但机器是识别不了1和0的，更具体的是如何识别的呢？对机器电路进行设">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/1.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/2.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/3.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/4.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/5.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/6.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/7.png">
-<meta property="og:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/8.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/1.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/2.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/3.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/4.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/5.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/6.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/7.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/8.png">
 <meta property="article:published_time" content="2022-10-28T12:09:40.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:33:00.391Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/10/28/LLVM-PASS-PWN/1.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/1.png">
     
     
       
@@ -54,11 +54,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -102,17 +101,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -309,17 +308,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: http://example.com/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;text=LLVM PASS PWN（一）"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;is_video=false&amp;description=LLVM PASS PWN（一）"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=LLVM PASS PWN（一）&amp;body=Check out this article: https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;title=LLVM PASS PWN（一）"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;name=LLVM PASS PWN（一）&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/10/28/LLVM-PASS-PWN/&amp;t=LLVM PASS PWN（一）"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

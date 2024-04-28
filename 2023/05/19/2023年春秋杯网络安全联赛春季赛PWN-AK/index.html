@@ -7,18 +7,18 @@
     <meta name="description" content="2023年春秋杯网络安全联赛春季赛PWN(AK) 每天花一个小时左右的时间做了一下    p2048这题都没昨看就莫名其妙的出来了，调试的时候写了如下的exp，然后wasd+enter乱按就拿到shell了。如果一次不成功，可以再来一次（XD 123456789101112131415161718192021222324252627282930from pwn import *#context(a">
 <meta property="og:type" content="article">
 <meta property="og:title" content="2023年春秋杯网络安全联赛春季赛PWN(AK)">
-<meta property="og:url" content="http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="2023年春秋杯网络安全联赛春季赛PWN(AK) 每天花一个小时左右的时间做了一下    p2048这题都没昨看就莫名其妙的出来了，调试的时候写了如下的exp，然后wasd+enter乱按就拿到shell了。如果一次不成功，可以再来一次（XD 123456789101112131415161718192021222324252627282930from pwn import *#context(a">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/2.png">
-<meta property="og:image" content="http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/1.png">
+<meta property="og:image" content="https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/2.png">
+<meta property="og:image" content="https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/1.png">
 <meta property="article:published_time" content="2023-05-19T05:54:42.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:28:05.748Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/2.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/2.png">
     
     
       
@@ -48,11 +48,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -96,17 +95,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;text=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;is_video=false&amp;description=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;body=Check out this article: http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;name=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;t=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;text=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;is_video=false&amp;description=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;body=Check out this article: https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;name=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;t=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -246,17 +245,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;text=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;is_video=false&amp;description=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;body=Check out this article: http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;name=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;t=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;text=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;is_video=false&amp;description=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;body=Check out this article: https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;title=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;name=2023年春秋杯网络安全联赛春季赛PWN(AK)&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2023/05/19/2023%E5%B9%B4%E6%98%A5%E7%A7%8B%E6%9D%AF%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%81%94%E8%B5%9B%E6%98%A5%E5%AD%A3%E8%B5%9BPWN-AK/&amp;t=2023年春秋杯网络安全联赛春季赛PWN(AK)"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

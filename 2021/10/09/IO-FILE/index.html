@@ -7,17 +7,17 @@
     <meta name="description" content="io file这一部分的知识，因为发现之前接触的太浅了 这一次源码级调试一下，看一下各种各样的io结构的原理，笔者这里照着这个师傅调试的 本文章基本算是转载这位师傅的，转载！  IO FILE怎么源码级调试？这里笔者直接用的pwndbg里面的dir将glibc的源码带到了调试里。dir /glibc-2.23/libio/，需要注意的是启动gdb的时候需要这样：gdb 文件名，这样就可以愉快的调">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IO_FILE">
-<meta property="og:url" content="http://example.com/2021/10/09/IO-FILE/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2021/10/09/IO-FILE/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="io file这一部分的知识，因为发现之前接触的太浅了 这一次源码级调试一下，看一下各种各样的io结构的原理，笔者这里照着这个师傅调试的 本文章基本算是转载这位师傅的，转载！  IO FILE怎么源码级调试？这里笔者直接用的pwndbg里面的dir将glibc的源码带到了调试里。dir /glibc-2.23/libio/，需要注意的是启动gdb的时候需要这样：gdb 文件名，这样就可以愉快的调">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2021/10/09/IO-FILE/18.png">
+<meta property="og:image" content="https://www.z1r0.top/2021/10/09/IO-FILE/18.png">
 <meta property="article:published_time" content="2021-10-09T06:20:04.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:31:50.971Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/10/09/IO-FILE/18.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2021/10/09/IO-FILE/18.png">
     
     
       
@@ -47,11 +47,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -95,17 +94,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE/&amp;text=IO_FILE"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE/&amp;is_video=false&amp;description=IO_FILE"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IO_FILE&amp;body=Check out this article: http://example.com/2021/10/09/IO-FILE/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE/&amp;name=IO_FILE&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE/&amp;t=IO_FILE"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/10/09/IO-FILE/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;text=IO_FILE"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;is_video=false&amp;description=IO_FILE"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE&amp;body=Check out this article: https://www.z1r0.top/2021/10/09/IO-FILE/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;name=IO_FILE&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;t=IO_FILE"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -426,17 +425,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/10/09/IO-FILE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/10/09/IO-FILE/&amp;text=IO_FILE"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/10/09/IO-FILE/&amp;is_video=false&amp;description=IO_FILE"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=IO_FILE&amp;body=Check out this article: http://example.com/2021/10/09/IO-FILE/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/10/09/IO-FILE/&amp;name=IO_FILE&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/10/09/IO-FILE/&amp;t=IO_FILE"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2021/10/09/IO-FILE/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;text=IO_FILE"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;is_video=false&amp;description=IO_FILE"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=IO_FILE&amp;body=Check out this article: https://www.z1r0.top/2021/10/09/IO-FILE/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;title=IO_FILE"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;name=IO_FILE&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2021/10/09/IO-FILE/&amp;t=IO_FILE"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

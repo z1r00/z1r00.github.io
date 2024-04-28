@@ -7,79 +7,79 @@
     <meta name="description" content="最近在网上看到了IoT_Sec_Tutorial这个项目项目地址，拿过来学习一下，分5个点  提取iot固件 静态分析iot固件 动态分析iot固件 解密dlink固件 修复固件运行环境    iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将自己">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iot安全学习之IoT_Sec_Tutorial">
-<meta property="og:url" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/index.html">
+<meta property="og:url" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/index.html">
 <meta property="og:site_name" content="z1r0's blog">
 <meta property="og:description" content="最近在网上看到了IoT_Sec_Tutorial这个项目项目地址，拿过来学习一下，分5个点  提取iot固件 静态分析iot固件 动态分析iot固件 解密dlink固件 修复固件运行环境    iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将自己">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/2.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/3.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/4.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/5.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/6.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/7.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/8.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/9.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/10.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/11.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/12.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/13.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/14.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/15.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/16.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/17.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/18.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/19.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/20.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/21.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/22.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/23.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/24.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/25.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/26.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/27.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/28.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/29.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/30.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/32.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/33.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/34.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/35.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/37.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/38.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/39.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/40.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/42.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/43.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/44.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/45.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/46.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/47.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/48.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/49.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/50.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/51.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/52.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/54.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/53.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/55.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/56.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/57.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/58.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/59.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/60.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/61.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/62.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/63.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/64.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png">
-<meta property="og:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/2.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/3.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/4.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/5.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/6.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/7.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/8.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/9.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/10.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/11.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/12.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/13.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/14.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/15.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/16.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/17.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/18.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/19.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/20.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/21.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/22.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/23.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/24.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/25.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/26.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/27.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/28.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/29.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/30.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/32.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/33.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/34.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/35.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/37.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/38.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/39.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/40.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/42.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/43.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/44.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/45.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/46.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/47.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/48.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/49.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/50.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/51.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/52.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/54.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/53.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/55.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/56.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/57.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/58.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/59.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/60.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/61.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/62.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/63.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/64.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/65.png">
+<meta property="og:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/66.png">
 <meta property="article:published_time" content="2022-04-05T05:58:53.000Z">
 <meta property="article:modified_time" content="2023-08-17T06:32:02.145Z">
 <meta property="article:author" content="z1r0">
 <meta property="article:tag" content="IOT">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
+<meta name="twitter:image" content="https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/1.png">
     
     
       
@@ -109,11 +109,10 @@
     <!-- rss -->
     
     
-      <link rel="alternate" href="/true" title="z1r0's blog" type="application/atom+xml">
-    
 	<!-- mathjax -->
 	
-<meta name="generator" content="Hexo 6.1.0"></head>
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
 
 <body class="max-width mx-auto px3 ltr">
     
@@ -157,17 +156,17 @@
     <br>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -234,7 +233,7 @@
 <blockquote>
 <p>iot入门可以看看《揭密家用路由器0day漏洞挖掘》这本书，笔者目前的iot安全学习阶段觉得难得并不是分析固件漏洞，而是对固件进行模拟和动态分析这一块，有些环境总是搭建失败（可能是菜吧XD）。笔者会将自己遇见的一些坑点写出来。在这里笔者可能会借用很多IoT_Sec_Tutorial这个项目的东西</p>
 </blockquote>
-<h1 id="IoT-Sec-Tutorial"><a href="#IoT-Sec-Tutorial" class="headerlink" title="IoT_Sec_Tutorial"></a>IoT_Sec_Tutorial</h1><h2 id="提取-IOT-固件"><a href="#提取-IOT-固件" class="headerlink" title="提取 IOT 固件"></a>提取 IOT 固件</h2><p>首先在提取iot固件中需要的工具就是binwalk。在前面的<a target="_blank" rel="noopener" href="https://www.z1r0.top/2022/03/24/%E8%B7%AF%E7%94%B1%E5%99%A8D-LINK-DIR-815%E5%A4%9A%E6%AC%A1%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">路由器初探之D-LINK DIR-815多次溢出漏洞分析</a>中笔者使用kali 2022.1提取非标准的Squashfs文件系统的时候会出现错误需要安装<code>sasquatch</code>。然后在网上搜索之后发现可能是kali的版本太新了导致安装报错，所以笔者直接在vm上装了一个ubuntu18，然后再安装sasquatch包括后面的固件模拟都需要安装很多环境，所以有点麻烦。笔者继续往下做这些实验的时候发现了一个os<code>Attify</code>。这个操作系统将iot的环境基本都装好了。所以笔者就下载了，并且安装使用，只能说一句真***好用。</p>
+<h1 id="IoT-Sec-Tutorial"><a href="#IoT-Sec-Tutorial" class="headerlink" title="IoT_Sec_Tutorial"></a>IoT_Sec_Tutorial</h1><h2 id="提取-IOT-固件"><a href="#提取-IOT-固件" class="headerlink" title="提取 IOT 固件"></a>提取 IOT 固件</h2><p>首先在提取iot固件中需要的工具就是binwalk。在前面的<a href="https://www.z1r0.top/2022/03/24/%E8%B7%AF%E7%94%B1%E5%99%A8D-LINK-DIR-815%E5%A4%9A%E6%AC%A1%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">路由器初探之D-LINK DIR-815多次溢出漏洞分析</a>中笔者使用kali 2022.1提取非标准的Squashfs文件系统的时候会出现错误需要安装<code>sasquatch</code>。然后在网上搜索之后发现可能是kali的版本太新了导致安装报错，所以笔者直接在vm上装了一个ubuntu18，然后再安装sasquatch包括后面的固件模拟都需要安装很多环境，所以有点麻烦。笔者继续往下做这些实验的时候发现了一个os<code>Attify</code>。这个操作系统将iot的环境基本都装好了。所以笔者就下载了，并且安装使用，只能说一句真***好用。</p>
 <blockquote>
 <p>因为是国外的网盘下载链接，所以可能下的有点慢，这里笔者将这个os放到了百度网盘里，链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA">https://pan.baidu.com/s/1eVVDXKVpH9ox_ein9pkchA</a> 提取码: gprv 。ova直接使用虚拟机打开就可以了，界面如下图</p>
 </blockquote>
@@ -441,17 +440,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;text=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;is_video=false&amp;description=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=iot安全学习之IoT_Sec_Tutorial&amp;body=Check out this article: https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;title=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;name=iot安全学习之IoT_Sec_Tutorial&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2022/04/05/iot%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0%E4%B9%8BIoT-Sec-Tutorial/&amp;t=iot安全学习之IoT_Sec_Tutorial"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
